@@ -11,3 +11,4 @@ export { default as ImportModal } from './ImportModal';
 export type { ImportSummary } from './ImportModal';
 export { default as TagManager } from './TagManager';
 export { default as TagSelector } from './TagSelector';
+export { default as AudioPlayer } from './AudioPlayer';

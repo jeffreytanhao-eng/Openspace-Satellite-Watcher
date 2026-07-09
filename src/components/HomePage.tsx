@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { ViewSwitcher, TimeControlBar, SatelliteList, FilterPanel, SearchBar, SatelliteDetailPanel, ImportModal, TagManager } from '@/components/ui';
+import { ViewSwitcher, TimeControlBar, SatelliteList, FilterPanel, SearchBar, SatelliteDetailPanel, ImportModal, TagManager, AudioPlayer } from '@/components/ui';
 import type { ImportSummary } from '@/components/ui/ImportModal';
 import { useSatelliteStore, useSatellites, useSelectedSatellite, useVisibleSatellites, useViewMode } from '@/store/satelliteStore';
 import { fetchSpaceObjects, apiClient } from '@/lib/api/client';
@@ -543,6 +543,8 @@ export default function HomePage() {
         isOpen={showTagManager}
         onClose={handleTagManagerClose}
       />
+
+      <AudioPlayer />
     </div>
   );
 }
