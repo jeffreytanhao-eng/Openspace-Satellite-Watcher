@@ -5,7 +5,7 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "env": {
-    "DATABASE_URL": "@DATABASE_URL",
+    "DATABASE_URL": "@POSTGRES_URL_NON_POOLING",
     "NEXTAUTH_URL": "@NEXTAUTH_URL",
     "NEXTAUTH_SECRET": "@NEXTAUTH_SECRET",
     "VERCEL_POSTGRES_URL": "@VERCEL_POSTGRES_URL",
