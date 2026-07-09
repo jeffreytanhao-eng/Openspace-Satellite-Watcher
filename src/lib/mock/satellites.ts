@@ -79,38 +79,6 @@ export const mockSatellites = [
       line2: '2 54219  41.4712 196.0089 0002973 276.1678  83.8823 15.58032789296390',
     },
   },
-  // ===== MEO 中轨道（GPS）=====
-  {
-    noradId: 40730,
-    name: 'GPS BIIF-10 (PRN 8)',
-    country: 'USA',
-    objectType: 'PAYLOAD',
-    launchDate: '2015-07-15',
-    launchSite: 'Cape Canaveral',
-    owner: 'USAF',
-    isActive: true,
-    tleData: {
-      name: 'GPS BIIF-10',
-      line1: '1 40730U 15033A   26189.16213735 -.00000003  00000+0  00000+0 0  9992',
-      line2: '2 40730  53.9664 266.2211 0115245  30.2806 330.4455  2.00555165 80412',
-    },
-  },
-  // ===== GEO 地球同步轨道（北斗）=====
-  {
-    noradId: 44231,
-    name: 'BEIDOU-2 G8 (C01)',
-    country: 'CHN',
-    objectType: 'PAYLOAD',
-    launchDate: '2019-05-17',
-    launchSite: 'Xichang',
-    owner: 'CMSA',
-    isActive: true,
-    tleData: {
-      name: 'BEIDOU-2 G8',
-      line1: '1 44231U 19027A   26188.88659801 -.00000233  00000+0  00000+0 0  9990',
-      line2: '2 44231   1.7072  74.5162 0009917 284.7279  30.2695  1.00274660 26282',
-    },
-  },
   // ===== DEBRIS 碎片 =====
   {
     noradId: 41270,
@@ -146,7 +114,6 @@ export const mockSatellites = [
 
 export const mockTags = [
   { id: 'tag-1', name: '载人航天', color: '#00d4ff' },
-  { id: 'tag-2', name: '导航卫星', color: '#00ff88' },
   { id: 'tag-3', name: '空间望远镜', color: '#a855f7' },
   { id: 'tag-4', name: '空间站', color: '#ffd700' },
 ];

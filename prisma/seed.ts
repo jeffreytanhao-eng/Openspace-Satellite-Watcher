@@ -11,6 +11,18 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
+  // 0. Remove non-LEO satellites that are no longer in the default dataset
+  const nonLeoNoradIds = [40730, 44231]; // GPS BIIF-10 (MEO), BEIDOU-2 G8 (GEO)
+  const deleted = await prisma.spaceObject.deleteMany({
+    where: { noradId: { in: nonLeoNoradIds } },
+  });
+  if (deleted.count > 0) {
+    console.log(`  Removed ${deleted.count} non-LEO satellites`);
+  }
+
+  // Remove the now-orphaned "导航卫星" tag
+  await prisma.userTag.deleteMany({ where: { name: '导航卫星' } });
+
   // 1. Seed satellites + TLE data
   let satCount = 0;
   let tleCount = 0;
