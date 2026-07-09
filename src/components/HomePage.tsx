@@ -10,7 +10,7 @@ import { fetchSpaceObjects, apiClient } from '@/lib/api/client';
 import type { SpaceObject } from '@/store/satelliteStore';
 import type { FilterState } from '@/components/ui/FilterPanel';
 import { createSatrec, calculateOrbitParams } from '@/lib/tle/orbit';
-import { translateCountry } from '@/lib/translations';
+import { translateCountry, inferCountryFromName } from '@/lib/translations';
 import { Upload, Tags, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -114,7 +114,7 @@ export default function HomePage() {
       const newSatellites: SpaceObject[] = importedSatellites.map(sat => ({
         noradId: sat.noradId,
         name: sat.name,
-        country: 'UNK',
+        country: inferCountryFromName(sat.name),
         objectType: 'PAYLOAD',
         launchDate: '',
         launchSite: '',

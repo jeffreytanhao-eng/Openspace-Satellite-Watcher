@@ -133,3 +133,107 @@ export function translateCountry(country: string): string | null {
 export function translateObjectType(type: string): string | null {
   return OBJECT_TYPE_TRANSLATIONS[type] || null;
 }
+
+// Satellite-name keyword → ISO country code mapping (longest first).
+// Used to infer the country/owner of an imported satellite from its name.
+const COUNTRY_KEYWORD_MAP: { keyword: string; country: string }[] = [
+  // 中国
+  { keyword: 'BEIDOU', country: 'CN' },
+  { keyword: 'BDS', country: 'CN' },
+  { keyword: 'COMPASS', country: 'CN' },
+  { keyword: 'TIANGONG', country: 'CN' },
+  { keyword: 'TIANHE', country: 'CN' },
+  { keyword: 'WENTIAN', country: 'CN' },
+  { keyword: 'MENGTIAN', country: 'CN' },
+  { keyword: 'CHANG', country: 'CN' }, // CHANG'E / CHANG-E
+  { keyword: 'YAOGAN', country: 'CN' },
+  { keyword: 'GAOFEN', country: 'CN' },
+  { keyword: 'FENGYUN', country: 'CN' },
+  { keyword: 'SHIJIAN', country: 'CN' },
+  { keyword: 'ZHUHONG', country: 'CN' },
+  { keyword: 'HAIYANG', country: 'CN' },
+  { keyword: 'ZIYUAN', country: 'CN' },
+  { keyword: 'ZHONGXING', country: 'CN' },
+  { keyword: 'CHINASAT', country: 'CN' },
+  // 美国
+  { keyword: 'GPS', country: 'US' },
+  { keyword: 'NAVSTAR', country: 'US' },
+  { keyword: 'STARLINK', country: 'US' },
+  { keyword: 'IRIDIUM', country: 'US' },
+  { keyword: 'GLOBALSTAR', country: 'US' },
+  { keyword: 'ORBCOMM', country: 'US' },
+  { keyword: 'ONEWEB', country: 'US' },
+  { keyword: 'HUBBLE', country: 'US' },
+  { keyword: 'HST', country: 'US' },
+  { keyword: 'TERRA', country: 'US' },
+  { keyword: 'AQUA', country: 'US' },
+  { keyword: 'AURA', country: 'US' },
+  { keyword: 'LANDSAT', country: 'US' },
+  { keyword: 'NOAA', country: 'US' },
+  { keyword: 'GOES', country: 'US' },
+  { keyword: 'WGS', country: 'US' },
+  { keyword: 'USA-', country: 'US' },
+  { keyword: 'ISS', country: 'US' },
+  { keyword: 'SPACEX', country: 'US' },
+  { keyword: 'SKYSAT', country: 'US' },
+  { keyword: 'WORLDVIEW', country: 'US' },
+  { keyword: 'GEOEYE', country: 'US' },
+  { keyword: 'QUICKBIRD', country: 'US' },
+  { keyword: 'CAPSTONE', country: 'US' },
+  { keyword: 'LUCY', country: 'US' },
+  { keyword: 'DART', country: 'US' },
+  { keyword: 'ARTEMIS', country: 'US' },
+  { keyword: 'ORION', country: 'US' },
+  { keyword: 'SDO', country: 'US' },
+  // 俄罗斯
+  { keyword: 'GLONASS', country: 'RU' },
+  { keyword: 'COSMOS', country: 'RU' },
+  { keyword: 'KOSMOS', country: 'RU' },
+  { keyword: 'PROGRESS', country: 'RU' },
+  { keyword: 'SOYUZ', country: 'RU' },
+  { keyword: 'ROSCOSMOS', country: 'RU' },
+  { keyword: 'METEOR', country: 'RU' },
+  { keyword: 'ELEKTRO', country: 'RU' },
+  // 欧洲
+  { keyword: 'GALILEO', country: 'EU' },
+  { keyword: 'SENTINEL', country: 'EU' },
+  { keyword: 'ESA', country: 'EU' },
+  { keyword: 'METEOSAT', country: 'EU' },
+  { keyword: 'METOP', country: 'EU' },
+  { keyword: 'EUMETSAT', country: 'EU' },
+  { keyword: 'AEOLUS', country: 'EU' },
+  { keyword: 'CRYOSAT', country: 'EU' },
+  { keyword: 'SWARM', country: 'EU' },
+  // 日本
+  { keyword: 'QZS', country: 'JP' },
+  { keyword: 'QZSS', country: 'JP' },
+  { keyword: 'MICHIIBI', country: 'JP' },
+  { keyword: 'GMS', country: 'JP' },
+  { keyword: 'HIMAWARI', country: 'JP' },
+  { keyword: 'ALOS', country: 'JP' },
+  { keyword: 'GCOM', country: 'JP' },
+  { keyword: 'GOSAT', country: 'JP' },
+  // 印度
+  { keyword: 'IRNSS', country: 'IN' },
+  { keyword: 'NAVIC', country: 'IN' },
+  { keyword: 'GSAT', country: 'IN' },
+  { keyword: 'INSAT', country: 'IN' },
+  { keyword: 'CARTOSAT', country: 'IN' },
+  { keyword: 'RESOURCESAT', country: 'IN' },
+  { keyword: 'RISAT', country: 'IN' },
+  { keyword: 'OCEANSAT', country: 'IN' },
+];
+
+/**
+ * Infers the ISO country code from a satellite name (case-insensitive).
+ * Returns the country code (e.g. 'US', 'CN') or 'UNK' when no match is found.
+ */
+export function inferCountryFromName(name: string): string {
+  const upper = name.toUpperCase();
+  for (const { keyword, country } of COUNTRY_KEYWORD_MAP) {
+    if (upper.includes(keyword)) {
+      return country;
+    }
+  }
+  return 'UNK';
+}
