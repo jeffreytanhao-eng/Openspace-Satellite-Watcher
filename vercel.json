@@ -1,0 +1,43 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "env": {
+    "DATABASE_URL": "@DATABASE_URL",
+    "NEXTAUTH_URL": "@NEXTAUTH_URL",
+    "NEXTAUTH_SECRET": "@NEXTAUTH_SECRET",
+    "VERCEL_POSTGRES_URL": "@VERCEL_POSTGRES_URL",
+    "VERCEL_POSTGRES_PRISMA_URL": "@VERCEL_POSTGRES_PRISMA_URL",
+    "VERCEL_POSTGRES_URL_NO_SSL": "@VERCEL_POSTGRES_URL_NO_SSL",
+    "VERCEL_POSTGRES_USER": "@VERCEL_POSTGRES_USER",
+    "VERCEL_POSTGRES_PASSWORD": "@VERCEL_POSTGRES_PASSWORD",
+    "VERCEL_POSTGRES_DATABASE": "@VERCEL_POSTGRES_DATABASE"
+  },
+  "functions": {
+    "app/api/**/*.{ts,tsx}": {
+      "runtime": "@vercel/node@3",
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "crons": [],
+  "regions": ["hkg1", "sfo1"],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    }
+  ],
+  "build": {
+    "env": {
+      "NEXT_PRIVATE_STANDALONE": "true"
+    }
+  }
+}

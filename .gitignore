@@ -1,0 +1,29 @@
+node_modules/
+.next/
+.npm/
+dist/
+build/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.log
+.DS_Store
+Thumbs.db
+prisma/migrations/
+prisma/dev.db
+prisma/dev.db-journal
+
+# Cesium static assets (copied from node_modules by next.config.mjs)
+public/cesium/
+
+# Graphify knowledge graph (generated artifacts)
+graphify-out/
+.graphify_uncached.txt
+
+# Debug logs
+.dbg/
+
+# TypeScript build cache
+*.tsbuildinfo

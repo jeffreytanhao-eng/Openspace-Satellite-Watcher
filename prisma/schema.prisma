@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ObjectType {
+  PAYLOAD
+  ROCKET_BODY
+  DEBRIS
+  UNKNOWN
+}
+
+enum Source {
+  CELESTRAK_API
+  FILE_UPLOAD
+}
+
+model SpaceObject {
+  id          String            @id @default(cuid())
+  noradId     Int               @unique
+  name        String
+  country     String?
+  objectType  ObjectType        @default(UNKNOWN)
+  launchDate  DateTime?
+  launchSite  String?
+  owner       String?
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  tleData     TLEData[]
+  orbitCache  OrbitCache[]
+  tags        SpaceObjectTag[]
+}
+
+model TLEData {
+  id            String      @id @default(cuid())
+  spaceObjectId String
+  line1         String
+  line2         String
+  epoch         DateTime
+  fetchedAt     DateTime    @default(now())
+  source        Source
+
+  spaceObject   SpaceObject @relation(fields: [spaceObjectId], references: [id], onDelete: Cascade)
+
+  @@unique([spaceObjectId, epoch])
+}
+
+model OrbitCache {
+  id            String      @id @default(cuid())
+  spaceObjectId String
+  startTime     DateTime
+  endTime       DateTime
+  timeStep      Int
+  points        Json
+
+  spaceObject   SpaceObject @relation(fields: [spaceObjectId], references: [id], onDelete: Cascade)
+
+  @@unique([spaceObjectId, startTime, endTime])
+}
+
+model UserTag {
+  id    String            @id @default(cuid())
+  name  String            @unique
+  color String
+
+  objects SpaceObjectTag[]
+}
+
+model SpaceObjectTag {
+  spaceObjectId String
+  tagId         String
+
+  spaceObject   SpaceObject @relation(fields: [spaceObjectId], references: [id], onDelete: Cascade)
+  tag           UserTag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([spaceObjectId, tagId])
+}
+
+model Constellation {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  category    String
+  description String?
+}

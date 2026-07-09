@@ -1,0 +1,12 @@
+node_modules/
+.next/
+public/cesium/
+graphify-out/
+.trae/
+prisma/migrations/
+*.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+*.log
+.env*
