@@ -12,7 +12,7 @@ import type { SpaceObject } from '@/store/satelliteStore';
 import type { FilterState } from '@/components/ui/FilterPanel';
 import { createSatrec, calculateOrbitParams } from '@/lib/tle/orbit';
 import { translateCountry } from '@/lib/translations';
-import { Upload, Tags } from 'lucide-react';
+import { Upload, Tags, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export interface Tag {
@@ -54,6 +54,8 @@ export default function Home() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showTagManager, setShowTagManager] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [isRefreshingTLE, setIsRefreshingTLE] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const viewParam = searchParams.get('view');
@@ -144,6 +146,64 @@ export default function Home() {
       };
     } else {
       loadSatellites();
+    }
+  };
+
+  const handleRefreshTLE = async () => {
+    if (allSatellites.length === 0 || isRefreshingTLE) return;
+
+    setIsRefreshingTLE(true);
+    setRefreshMessage(null);
+
+    try {
+      const noradIds = allSatellites.map(s => s.noradId);
+      const response = await fetch('/api/tle/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noradIds }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        setRefreshMessage(`刷新失败: ${result.error}`);
+        return;
+      }
+
+      const { updated, failed, updatedCount, failedCount, total } = result.data;
+
+      if (updatedCount === 0) {
+        setRefreshMessage('未能获取任何卫星的最新 TLE 数据');
+        return;
+      }
+
+      const tleMap = new Map(updated.map((t: { noradId: number; name: string; line1: string; line2: string }) => [t.noradId, t]));
+
+      const updatedSatellites = allSatellites.map(sat => {
+        const newTle = tleMap.get(sat.noradId);
+        if (newTle) {
+          return {
+            ...sat,
+            name: newTle.name,
+            tleData: [{
+              name: newTle.name,
+              line1: newTle.line1,
+              line2: newTle.line2,
+            }],
+          };
+        }
+        return sat;
+      });
+
+      setSatellites(updatedSatellites);
+
+      const failedInfo = failedCount > 0 ? `，${failedCount} 颗失败` : '';
+      setRefreshMessage(`已刷新 ${updatedCount}/${total} 颗卫星的 TLE 数据${failedInfo}`);
+    } catch {
+      setRefreshMessage('刷新失败，请检查网络连接');
+    } finally {
+      setIsRefreshingTLE(false);
+      setTimeout(() => setRefreshMessage(null), 5000);
     }
   };
 
@@ -306,6 +366,17 @@ export default function Home() {
             variant="outline"
             size="sm"
             className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300"
+            onClick={handleRefreshTLE}
+            disabled={isRefreshingTLE || allSatellites.length === 0}
+            title="从 Celestrak 同步所有卫星的最新 TLE 轨道数据"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingTLE ? 'animate-spin' : ''}`} />
+            {isRefreshingTLE ? '刷新中...' : '轨道数据刷新'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300"
             onClick={() => setShowImportModal(true)}
           >
             <Upload className="h-4 w-4 mr-2" />
@@ -330,6 +401,12 @@ export default function Home() {
           {showSidebar ? '◀' : '▶'}
         </button>
       </header>
+
+      {refreshMessage && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-space-800/95 backdrop-blur-sm border border-space-700 text-sm text-space-100 shadow-lg">
+          {refreshMessage}
+        </div>
+      )}
 
       <div className="flex-1 flex overflow-hidden">
         {showSidebar && (

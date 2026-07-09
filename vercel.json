@@ -23,7 +23,7 @@
     }
   },
   "crons": [],
-  "regions": ["hkg1", "sfo1"],
+  "regions": ["hkg1"],
   "headers": [
     {
       "source": "/(.*)",
