@@ -31,7 +31,7 @@ export const useTimeStore = create<TimeStoreState & TimeStoreActions>((set, get)
  return {
  currentTime: now,
  isPlaying: false,
- rate: 1,
+ rate: 10,
  playbackRates: PLAYBACK_RATES,
  startTime: new Date(now.getTime() - oneDay),
  endTime: new Date(now.getTime() + oneDay),

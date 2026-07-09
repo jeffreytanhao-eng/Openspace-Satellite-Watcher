@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { ViewSwitcher, TimeControlBar, SatelliteList, FilterPanel, SearchBar, SatelliteDetailPanel, ImportModal, TagManager, AudioPlayer } from '@/components/ui';
 import type { ImportSummary } from '@/components/ui/ImportModal';
 import { useSatelliteStore, useSatellites, useSelectedSatellite, useVisibleSatellites, useViewMode } from '@/store/satelliteStore';
+import { useTimeStore } from '@/store/timeStore';
 import { fetchSpaceObjects, apiClient } from '@/lib/api/client';
 import type { SpaceObject } from '@/store/satelliteStore';
 import type { FilterState } from '@/components/ui/FilterPanel';
@@ -66,6 +67,7 @@ export default function HomePage() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [isRefreshingTLE, setIsRefreshingTLE] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
+  const startPlayback = useTimeStore(state => state.startPlayback);
 
   useEffect(() => {
     const viewParam = searchParams.get('view');
@@ -107,6 +109,12 @@ export default function HomePage() {
 
   useEffect(() => {
     loadTags();
+  }, []);
+
+  // Auto-start playback at 10x speed on initial load
+  useEffect(() => {
+    startPlayback();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleImportSuccess = async (importedSatellites?: { noradId: number; name: string; line1: string; line2: string }[]): Promise<ImportSummary | void> => {
