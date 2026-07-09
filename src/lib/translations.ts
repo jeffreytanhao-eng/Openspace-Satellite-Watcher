@@ -63,7 +63,7 @@ const COUNTRY_TRANSLATIONS: Record<string, string> = {
   RU: '俄罗斯', RUS: '俄罗斯', RF: '俄罗斯', USSR: '苏联',
   JP: '日本', JPN: '日本',
   IN: '印度', IND: '印度',
-  EU: '欧盟', ESA: '欧盟', EUM: '欧盟',
+  EU: '欧洲', ESA: '欧洲', EUM: '欧洲',
   KR: '韩国', KOR: '韩国',
   FR: '法国', FRA: '法国',
   DE: '德国', GER: '德国',

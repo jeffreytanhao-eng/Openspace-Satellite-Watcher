@@ -11,6 +11,7 @@ import { fetchSpaceObjects, apiClient } from '@/lib/api/client';
 import type { SpaceObject } from '@/store/satelliteStore';
 import type { FilterState } from '@/components/ui/FilterPanel';
 import { createSatrec, calculateOrbitParams } from '@/lib/tle/orbit';
+import { translateCountry } from '@/lib/translations';
 import { Upload, Tags } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -175,8 +176,20 @@ export default function Home() {
         return false;
       }
       
-      if (filters.country && satellite.country !== filters.country) {
-        return false;
+      if (filters.country) {
+        const KNOWN_COUNTRIES = ['中国', '美国', '俄罗斯', '欧洲', '日本', '印度'];
+        const codes = (satellite.country || '').split('/').map(c => c.trim()).filter(Boolean);
+        const translated = codes.map(code => translateCountry(code)).filter(Boolean) as string[];
+
+        if (filters.country === '其他') {
+          if (translated.some(c => KNOWN_COUNTRIES.includes(c))) {
+            return false;
+          }
+        } else {
+          if (!translated.includes(filters.country)) {
+            return false;
+          }
+        }
       }
       
       // Map Chinese type labels to English objectType values
