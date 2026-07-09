@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx prisma/seed.ts",
     "db:push": "prisma db push && prisma generate",
-    "db:seed": "prisma db push && prisma generate && tsx prisma/seed.ts"
+    "db:seed": "prisma db push && prisma generate && tsx prisma/seed.ts",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -37,8 +38,8 @@
   },
   "devDependencies": {
     "@types/geojson": "^7946.0.16",
-    "@types/node": "^20.14.10",
-    "@types/react": "^18.3.3",
+    "@types/node": "20.19.43",
+    "@types/react": "18.3.31",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
     "css-loader": "^7.1.4",

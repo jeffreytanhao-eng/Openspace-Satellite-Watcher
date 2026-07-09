@@ -38,11 +38,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    }
-  ],
   "exclude": [
     "node_modules"
   ]

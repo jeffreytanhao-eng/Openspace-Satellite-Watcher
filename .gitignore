@@ -27,3 +27,5 @@ graphify-out/
 
 # TypeScript build cache
 *.tsbuildinfo
+.vercel
+.env*
