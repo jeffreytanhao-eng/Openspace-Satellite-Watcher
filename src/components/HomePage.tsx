@@ -109,44 +109,64 @@ export default function HomePage() {
     loadTags();
   }, []);
 
-  const handleImportSuccess = (importedSatellites?: { noradId: number; name: string; line1: string; line2: string }[]): ImportSummary | void => {
+  const handleImportSuccess = async (importedSatellites?: { noradId: number; name: string; line1: string; line2: string }[]): Promise<ImportSummary | void> => {
     if (importedSatellites && importedSatellites.length > 0) {
-      const newSatellites: SpaceObject[] = importedSatellites.map(sat => ({
-        noradId: sat.noradId,
-        name: sat.name,
-        country: inferCountryFromName(sat.name),
-        objectType: 'PAYLOAD',
-        launchDate: '',
-        launchSite: '',
-        owner: '',
-        isActive: true,
-        tleData: [{
-          name: sat.name,
-          line1: sat.line1,
-          line2: sat.line2,
-        }],
-      }));
-
       const existingIds = new Set(allSatellites.map(s => s.noradId));
-      const uniqueNew = newSatellites.filter(s => !existingIds.has(s.noradId));
-      const skippedCount = newSatellites.length - uniqueNew.length;
+      const uniqueNew = importedSatellites.filter(sat => !existingIds.has(sat.noradId));
+      const skippedCount = importedSatellites.length - uniqueNew.length;
 
       const IMPORT_LIMIT = 200;
       const toImport = uniqueNew.slice(0, IMPORT_LIMIT);
       const remainingCount = uniqueNew.length - toImport.length;
 
-      if (toImport.length > 0) {
-        const updated = [...allSatellites, ...toImport];
-        setSatellites(updated);
+      // Persist each satellite to the database via POST /api/space-objects.
+      // Run requests with limited concurrency to avoid overwhelming the server.
+      const CONCURRENCY = 5;
+      let persistedCount = 0;
+      const failedPersist: { noradId: number; name: string; reason: string }[] = [];
+
+      for (let i = 0; i < toImport.length; i += CONCURRENCY) {
+        const batch = toImport.slice(i, i + CONCURRENCY);
+        const results = await Promise.allSettled(
+          batch.map(sat =>
+            apiClient.createSpaceObject({
+              noradId: sat.noradId,
+              name: sat.name,
+              country: inferCountryFromName(sat.name),
+              objectType: 'PAYLOAD',
+              isActive: true,
+              tleData: { line1: sat.line1, line2: sat.line2 },
+            })
+          )
+        );
+        results.forEach((res, idx) => {
+          if (res.status === 'fulfilled' && res.value.success) {
+            persistedCount++;
+          } else {
+            const sat = batch[idx];
+            const reason =
+              res.status === 'rejected'
+                ? res.reason?.message || '网络错误'
+                : res.value?.error || '未知错误';
+            failedPersist.push({ noradId: sat.noradId, name: sat.name, reason });
+          }
+        });
       }
 
-      const parts: string[] = [`成功导入 ${toImport.length} 颗卫星`];
+      // Reload from the database so the UI reflects the true persisted state
+      // (includes correct ids, tleData, and tags from the server).
+      if (persistedCount > 0) {
+        await loadSatellites();
+      }
+
+      const parts: string[] = [`成功导入 ${persistedCount} 颗卫星`];
       if (skippedCount > 0) parts.push(`跳过 ${skippedCount} 颗已存在`);
+      if (failedPersist.length > 0) parts.push(`失败 ${failedPersist.length} 颗`);
       if (remainingCount > 0) parts.push(`剩余 ${remainingCount} 颗可下次导入`);
       console.log(parts.join('，'));
 
       return {
-        imported: toImport.length,
+        imported: persistedCount,
         skipped: skippedCount,
         remaining: remainingCount,
       };

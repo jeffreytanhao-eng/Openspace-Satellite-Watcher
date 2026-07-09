@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { ObjectType } from '@prisma/client';
+import { ObjectType, Source } from '@prisma/client';
 import { mockSatellites } from '@/lib/mock/satellites';
 
 // Parse TLE line2 to extract orbital elements
@@ -16,6 +16,16 @@ function parseTLEElements(line2: string, noradId: number) {
     inclination, raan, eccentricity, argPerigee, meanAnomaly, meanMotion,
     revolutionNumber: 0
   };
+}
+
+// Parse TLE epoch from line1 (columns 19-32: YYDDD.FFFFFFF)
+function parseTLEEpoch(line1: string): Date {
+  const epochStr = line1.substring(18, 32).trim();
+  const year = 2000 + parseInt(epochStr.substring(0, 2));
+  const dayOfYear = parseFloat(epochStr.substring(2));
+  const epoch = new Date(year, 0, 1);
+  epoch.setDate(epoch.getDate() + dayOfYear - 1);
+  return epoch;
 }
 
 export async function GET(request: NextRequest) {
@@ -105,25 +115,29 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     if (!body.noradId || !body.name) {
       return NextResponse.json(
         { success: false, error: 'NORAD ID 和名称为必填项' },
         { status: 400 }
       );
     }
-    
+
     const existing = await prisma.spaceObject.findUnique({
       where: { noradId: body.noradId }
     });
-    
+
     if (existing) {
       return NextResponse.json(
         { success: false, error: `NORAD ID ${body.noradId} 已存在` },
         { status: 409 }
       );
     }
-    
+
+    // Optional TLE data passed from the client (batch import)
+    const tle = body.tleData as { line1: string; line2: string } | undefined;
+    const epoch = tle ? parseTLEEpoch(tle.line1) : undefined;
+
     const spaceObject = await prisma.spaceObject.create({
       data: {
         noradId: body.noradId,
@@ -133,11 +147,24 @@ export async function POST(request: NextRequest) {
         launchDate: body.launchDate ? new Date(body.launchDate) : undefined,
         launchSite: body.launchSite,
         owner: body.owner,
-        isActive: body.isActive !== undefined ? body.isActive : true
+        isActive: body.isActive !== undefined ? body.isActive : true,
+        // Atomically create the TLE record in the same transaction
+        ...(tle && epoch
+          ? {
+              tleData: {
+                create: {
+                  line1: tle.line1,
+                  line2: tle.line2,
+                  epoch,
+                  source: Source.CELESTRAK_API,
+                },
+              },
+            }
+          : {}),
       },
       include: { tleData: { take: 1, orderBy: { epoch: 'desc' } }, tags: true }
     });
-    
+
     return NextResponse.json({ success: true, data: spaceObject }, { status: 201 });
   } catch (error) {
     console.error('POST space-objects error:', error);

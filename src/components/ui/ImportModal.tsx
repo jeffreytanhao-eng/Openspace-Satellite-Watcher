@@ -35,7 +35,7 @@ export interface ImportSummary {
 interface ImportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: (satellites?: ImportedSatellite[]) => ImportSummary | void;
+  onSuccess?: (satellites?: ImportedSatellite[]) => Promise<ImportSummary | void> | ImportSummary | void;
 }
 
 const CELESTRAK_CATEGORIES = [
@@ -154,10 +154,10 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
           failures: report.failures || []
         });
         if (data.satellites && data.satellites.length > 0) {
-          const summary = onSuccess?.(data.satellites);
+          const summary = await onSuccess?.(data.satellites);
           if (summary) setImportSummary(summary);
         } else {
-          onSuccess?.();
+          await onSuccess?.();
         }
       } else {
         setError(response.error || '导入失败');
