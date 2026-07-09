@@ -1,24 +1,33 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import * as Cesium from 'cesium';
+import type * as CesiumType from 'cesium';
 import type { SpaceObject } from '@/store/satelliteStore';
 import { createSatelliteEntity, getSatelliteColor } from '@/components/visualization/SatelliteEntity';
 import { createOrbitTrail } from '@/components/visualization/OrbitTrail';
 import { calculateSatellitePosition, generateOrbitPoints } from '@/lib/cesium/positions';
 
-// CESIUM_BASE_URL must be set for workers/assets/widgets to resolve.
-if (typeof window !== 'undefined') {
-  (window as unknown as Record<string, unknown>).CESIUM_BASE_URL = '/cesium/';
+type CesiumNS = typeof CesiumType;
+
+const CESIUM_CDN = 'https://cdn.jsdelivr.net/npm/cesium@1.142.0/Build/Cesium';
+
+// Access Cesium from window (loaded via CDN script)
+function getCesium(): CesiumNS {
+  if (typeof window === 'undefined' || !(window as unknown as { Cesium?: CesiumNS }).Cesium) {
+    throw new Error('Cesium not loaded yet');
+  }
+  return (window as unknown as { Cesium: CesiumNS }).Cesium;
 }
 
-// Disable Cesium Ion to prevent external network requests and access token errors.
-Cesium.Ion.defaultAccessToken = '';
+// Set CESIUM_BASE_URL for workers/assets/widgets
+if (typeof window !== 'undefined') {
+  (window as unknown as Record<string, unknown>).CESIUM_BASE_URL = CESIUM_CDN + '/';
+}
 
 interface CesiumInstance {
-  viewer: Cesium.Viewer;
-  scene: Cesium.Scene;
-  Cesium: typeof Cesium;
+  viewer: CesiumType.Viewer;
+  scene: CesiumType.Scene;
+  Cesium: CesiumNS;
   satelliteEntities: Map<number, { update: (config: Record<string, unknown>) => void; destroy: () => void }>;
   orbitEntities: Map<number, { update: (config: Record<string, unknown>) => void; destroy: () => void }>;
 }
@@ -36,12 +45,13 @@ export function useCesium() {
   }, [cesium]);
 
   const initCesium = useCallback(async (container: HTMLDivElement) => {
-    // Prevent double-initialization (React StrictMode in dev)
     if (initializedRef.current) return;
     initializedRef.current = true;
 
     try {
-      // Create viewer with NO default imagery layer
+      const Cesium = getCesium();
+      Cesium.Ion.defaultAccessToken = '';
+
       const viewer = new Cesium.Viewer(container, {
         baseLayerPicker: false,
         fullscreenButton: false,
@@ -54,7 +64,7 @@ export function useCesium() {
         geocoder: false,
         infoBox: false,
         shouldAnimate: true,
-        imageryProvider: false as unknown as Cesium.ImageryProvider,
+        imageryProvider: false as unknown as CesiumType.ImageryProvider,
       });
 
       const scene = viewer.scene;
@@ -62,14 +72,14 @@ export function useCesium() {
       // ---------- Starfield skybox ----------
       scene.skyBox = new Cesium.SkyBox({
         sources: {
-          positiveX: '/cesium/Assets/Textures/SkyBox/tycho2t3_80_px.jpg',
-          negativeX: '/cesium/Assets/Textures/SkyBox/tycho2t3_80_mx.jpg',
-          positiveY: '/cesium/Assets/Textures/SkyBox/tycho2t3_80_py.jpg',
-          negativeY: '/cesium/Assets/Textures/SkyBox/tycho2t3_80_my.jpg',
-          positiveZ: '/cesium/Assets/Textures/SkyBox/tycho2t3_80_pz.jpg',
-          negativeZ: '/cesium/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg',
+          positiveX: CESIUM_CDN + '/Assets/Textures/SkyBox/tycho2t3_80_px.jpg',
+          negativeX: CESIUM_CDN + '/Assets/Textures/SkyBox/tycho2t3_80_mx.jpg',
+          positiveY: CESIUM_CDN + '/Assets/Textures/SkyBox/tycho2t3_80_py.jpg',
+          negativeY: CESIUM_CDN + '/Assets/Textures/SkyBox/tycho2t3_80_my.jpg',
+          positiveZ: CESIUM_CDN + '/Assets/Textures/SkyBox/tycho2t3_80_pz.jpg',
+          negativeZ: CESIUM_CDN + '/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg',
         },
-      }) as Cesium.SkyBox;
+      }) as CesiumType.SkyBox;
       scene.skyBox.show = true;
 
       // ---------- Globe appearance ----------
@@ -82,15 +92,13 @@ export function useCesium() {
       scene.moon.show = false;
       scene.globe.showGroundAtmosphere = false;
       scene.globe.showSkirts = false;
-      // Enable depth test against globe so satellites/orbits behind Earth are occluded
       scene.globe.depthTestAgainstTerrain = true;
 
-      // ---------- Earth imagery: Use Cesium's built-in TileMapServiceImageryProvider
-      // which correctly reads tilemapresource.xml for tiling scheme ----------
+      // ---------- Earth imagery ----------
       let imageryOk = false;
       try {
         const ne2Provider = await Cesium.TileMapServiceImageryProvider.fromUrl(
-          '/cesium/Assets/Textures/NaturalEarthII/',
+          CESIUM_CDN + '/Assets/Textures/NaturalEarthII/',
           { maximumLevel: 2 }
         );
         viewer.imageryLayers.addImageryProvider(ne2Provider);
@@ -101,9 +109,8 @@ export function useCesium() {
 
       if (!imageryOk) {
         try {
-          // Legacy constructor approach for older Cesium versions
-          const ne2Provider = new (Cesium as any).TileMapServiceImageryProvider({
-            url: '/cesium/Assets/Textures/NaturalEarthII/',
+          const ne2Provider = new (Cesium as unknown as { TileMapServiceImageryProvider: new (opts: Record<string, unknown>) => CesiumType.ImageryProvider }).TileMapServiceImageryProvider({
+            url: CESIUM_CDN + '/Assets/Textures/NaturalEarthII/',
             maximumLevel: 2,
           });
           viewer.imageryLayers.addImageryProvider(ne2Provider);
@@ -114,7 +121,6 @@ export function useCesium() {
       }
 
       if (!imageryOk) {
-        // Fallback: grid
         try {
           viewer.imageryLayers.addImageryProvider(
             new Cesium.GridImageryProvider({
@@ -127,21 +133,13 @@ export function useCesium() {
         } catch { /* ignore */ }
       }
 
-      // Continuous rendering
       viewer.requestRenderMode = false;
 
-      // Hide credit container
       try {
         const creditContainer = viewer.cesiumWidget.creditContainer as HTMLElement;
         if (creditContainer) creditContainer.style.display = 'none';
       } catch { /* ignore */ }
 
-      // ---------- Disable entity clustering for small datasets ----------
-      // Clustering merges nearby satellites into pins, hiding individual labels
-      // For now, disable it so labels and points are always visible
-      // (We'll re-enable with proper settings later when dealing with large datasets)
-
-      // ---------- Camera: view Earth straight down, centered on screen ----------
       viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(0, 0, 45000000),
         orientation: {
@@ -195,7 +193,6 @@ export function useCesium() {
     const inst = cesiumRef.current;
     if (!inst) return;
     const { Cartesian3, HeadingPitchRange, Math: CesiumMath } = inst.Cesium;
-    // Use Cesium's built-in flyTo to center the satellite entity
     const entity = inst.viewer.entities.getById(`satellite-${satellite.noradId}`);
     if (entity) {
       inst.viewer.flyTo(entity, {
@@ -203,7 +200,6 @@ export function useCesium() {
         duration: 1.5,
       });
     } else {
-      // Fallback: calculate camera position manually
       const pos = calculateSatellitePosition(satellite.tleData, new Date());
       if (pos) {
         const mag = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
@@ -228,10 +224,10 @@ export function useCesium() {
     const inst = cesiumRef.current;
     if (!inst) return;
     inst.viewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(0, 0, 45000000),
+      destination: inst.Cesium.Cartesian3.fromDegrees(0, 0, 45000000),
       orientation: {
         heading: 0.0,
-        pitch: Cesium.Math.toRadians(-90),
+        pitch: inst.Cesium.Math.toRadians(-90),
         roll: 0.0,
       },
       duration: 1.5,
@@ -250,7 +246,6 @@ export function useCesium() {
       const existingIds = new Set(inst.satelliteEntities.keys());
       const currentIds = new Set(visible.map(s => s.noradId));
 
-      // Remove satellites no longer in list
       existingIds.forEach(id => {
         if (!currentIds.has(id)) {
           const ent = inst.satelliteEntities.get(id);
@@ -259,7 +254,6 @@ export function useCesium() {
       });
 
       const C = inst.Cesium;
-      // Add/update satellites - all entities go into viewer.entities (single collection)
       visible.forEach(sat => {
         const pos = calculateSatellitePosition(sat.tleData, time);
         if (!pos) return;
@@ -290,7 +284,6 @@ export function useCesium() {
     const existingIds = new Set(inst.orbitEntities.keys());
     const currentIds = new Set(satellites.map(s => s.noradId));
 
-    // Remove orbits no longer needed
     existingIds.forEach(id => {
       if (!currentIds.has(id)) {
         const e = inst.orbitEntities.get(id);
@@ -301,7 +294,6 @@ export function useCesium() {
     const orbitSats = satellites.slice(0, 200);
     const C = inst.Cesium;
 
-    // Each satellite gets exactly ONE orbit trail (no duplicate predicted orbits)
     orbitSats.forEach(sat => {
       const points = generateOrbitPoints(sat.tleData, time);
       const color = getSatelliteColor(sat.objectType);

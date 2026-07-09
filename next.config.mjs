@@ -8,10 +8,16 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   webpack(config, { isServer, webpack }) {
+    // Mark cesium as external — loaded via CDN <script> to avoid
+    // bundling its build output which contains octal escape sequences
+    // that break in template literals.
+    config.externals = config.externals || [];
+    config.externals.push({ cesium: 'Cesium' });
+
     if (isServer) return config;
     config.plugins.push(
       new webpack.DefinePlugin({
-        CESIUM_BASE_URL: JSON.stringify('/cesium/'),
+        CESIUM_BASE_URL: JSON.stringify('https://cdn.jsdelivr.net/npm/cesium@1.142.0/Build/Cesium/'),
         'typeof define': JSON.stringify('undefined'),
       })
     );
