@@ -1,6 +1,6 @@
 # 卫星守望者 · Satellite Watcher
 
-一个开源的 Web 端空间态势感知（SSA, Space Situational Awareness）应用，基于 TLE 轨道数据实时计算并可视化近地轨道卫星的位置与轨迹。支持 2D / 3D 双视角切换、时间回放、星座批量导入与标签管理。
+一个隶属于开源太空计划 Openspace 的 Web 端空间态势感知（SSA, Space Situational Awareness）应用，基于 TLE 轨道数据实时计算并可视化近地轨道卫星的位置与轨迹。支持 2D / 3D 双视角切换、时间回放、星座批量导入与标签管理。
 
 ---
 
