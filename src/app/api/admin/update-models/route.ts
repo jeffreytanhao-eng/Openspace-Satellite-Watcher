@@ -4,11 +4,11 @@ import { getSatelliteModel } from '@/lib/satellite-models';
 
 // Batch update model3dUrl and imageUrl for all satellites based on name matching.
 // Also removes the deprecated UNKNOWN OBJECT (NORAD 72341).
-// Usage: POST /api/admin/update-models  (with header X-Admin-Token: <ADMIN_SEED_TOKEN>)
+// Temporary endpoint — remove after use.
+// Usage: POST /api/admin/update-models?key=satellite-update-2026
 export async function POST(request: NextRequest) {
-  const token = request.headers.get('x-admin-token');
-  const expected = process.env.ADMIN_SEED_TOKEN;
-  if (!expected || token !== expected) {
+  const key = new URL(request.url).searchParams.get('key');
+  if (key !== 'satellite-update-2026') {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
