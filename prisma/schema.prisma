@@ -29,6 +29,8 @@ model SpaceObject {
   launchSite  String?
   owner       String?
   isActive    Boolean           @default(true)
+  model3dUrl  String?
+  imageUrl    String?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 

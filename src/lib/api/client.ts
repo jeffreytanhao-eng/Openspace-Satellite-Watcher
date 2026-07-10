@@ -141,6 +141,8 @@ class ApiClient {
     launchSite?: string;
     owner?: string;
     isActive?: boolean;
+    model3dUrl?: string | null;
+    imageUrl?: string | null;
     tleData?: { line1: string; line2: string };
   }): Promise<ApiResponse> {
     return this.request('/space-objects', {

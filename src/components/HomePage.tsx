@@ -12,6 +12,7 @@ import type { SpaceObject } from '@/store/satelliteStore';
 import type { FilterState } from '@/components/ui/FilterPanel';
 import { createSatrec, calculateOrbitParams } from '@/lib/tle/orbit';
 import { translateCountry, inferCountryFromName } from '@/lib/translations';
+import { getSatelliteModel } from '@/lib/satellite-models';
 import { Upload, Tags, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -136,16 +137,19 @@ export default function HomePage() {
       for (let i = 0; i < toImport.length; i += CONCURRENCY) {
         const batch = toImport.slice(i, i + CONCURRENCY);
         const results = await Promise.allSettled(
-          batch.map(sat =>
-            apiClient.createSpaceObject({
+          batch.map(sat => {
+            const model = getSatelliteModel(sat.name);
+            return apiClient.createSpaceObject({
               noradId: sat.noradId,
               name: sat.name,
               country: inferCountryFromName(sat.name),
               objectType: 'PAYLOAD',
               isActive: true,
+              model3dUrl: model?.model3dUrl || null,
+              imageUrl: model?.imageUrl || null,
               tleData: { line1: sat.line1, line2: sat.line2 },
-            })
-          )
+            });
+          })
         );
         results.forEach((res, idx) => {
           if (res.status === 'fulfilled' && res.value.success) {
@@ -358,6 +362,26 @@ export default function HomePage() {
     }
   };
 
+  const handleBatchShow = (noradIds: number[]) => {
+    const newVisible = [...new Set([...visibleSatellites, ...noradIds])];
+    setVisibleSatellites(newVisible);
+  };
+
+  const handleBatchHide = (noradIds: number[]) => {
+    const hideSet = new Set(noradIds);
+    setVisibleSatellites(visibleSatellites.filter(id => !hideSet.has(id)));
+  };
+
+  const handleBatchDelete = (noradIds: number[]) => {
+    const deleteSet = new Set(noradIds);
+    const updated = allSatellites.filter(s => !deleteSet.has(s.noradId));
+    setSatellites(updated);
+    setVisibleSatellites(visibleSatellites.filter(id => !deleteSet.has(id)));
+    if (selectedSatellite && deleteSet.has(selectedSatellite.noradId)) {
+      setSelectedSatellite(null);
+    }
+  };
+
   const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters);
   };
@@ -479,6 +503,9 @@ export default function HomePage() {
                         onSelectAll={handleSelectAll}
                         onDeselectAll={handleDeselectAll}
                         onDeleteSatellite={handleDeleteSatellite}
+                        onBatchShow={handleBatchShow}
+                        onBatchHide={handleBatchHide}
+                        onBatchDelete={handleBatchDelete}
                         tags={tags}
                         getSatelliteTags={getSatelliteTags}
                       />

@@ -12,6 +12,8 @@ export interface SpaceObject {
   launchSite?: string;
   owner?: string;
   isActive: boolean;
+  model3dUrl?: string | null;
+  imageUrl?: string | null;
   createdAt: Date;
   updatedAt: Date;
   tleData: TLEData[];
@@ -48,6 +50,7 @@ export interface SatelliteStoreState {
   isLoading: boolean;
   error: string | null;
   focusTrigger: number;
+  trackingNoradId: number | null;
 }
 
 export interface SatelliteStoreActions {
@@ -66,6 +69,7 @@ export interface SatelliteStoreActions {
   setError: (error: string | null) => void;
   clearError: () => void;
   triggerFocus: () => void;
+  setTracking: (noradId: number | null) => void;
 }
 
 const MAX_SATELLITES = 1000;
@@ -84,6 +88,7 @@ export const useSatelliteStore = create<SatelliteStoreState & SatelliteStoreActi
   isLoading: false,
   error: null,
   focusTrigger: 0,
+  trackingNoradId: null,
 
   setSatellites: (satellites) => {
     if (satellites.length > MAX_SATELLITES) {
@@ -176,6 +181,10 @@ export const useSatelliteStore = create<SatelliteStoreState & SatelliteStoreActi
 
   triggerFocus: () => {
     set(state => ({ focusTrigger: state.focusTrigger + 1 }));
+  },
+
+  setTracking: (noradId) => {
+    set({ trackingNoradId: noradId });
   }
 }));
 

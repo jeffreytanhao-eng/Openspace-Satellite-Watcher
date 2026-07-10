@@ -46,6 +46,8 @@ async function main() {
         launchSite: sat.launchSite || null,
         owner: sat.owner || null,
         isActive: sat.isActive,
+        model3dUrl: (sat as any).model3dUrl || null,
+        imageUrl: (sat as any).imageUrl || null,
       },
       create: {
         noradId: sat.noradId,
@@ -56,6 +58,8 @@ async function main() {
         launchSite: sat.launchSite || null,
         owner: sat.owner || null,
         isActive: sat.isActive,
+        model3dUrl: (sat as any).model3dUrl || null,
+        imageUrl: (sat as any).imageUrl || null,
       },
     });
 

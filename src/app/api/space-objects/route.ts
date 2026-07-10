@@ -148,6 +148,8 @@ export async function POST(request: NextRequest) {
         launchSite: body.launchSite,
         owner: body.owner,
         isActive: body.isActive !== undefined ? body.isActive : true,
+        model3dUrl: body.model3dUrl || null,
+        imageUrl: body.imageUrl || null,
         // Atomically create the TLE record in the same transaction
         ...(tle && epoch
           ? {

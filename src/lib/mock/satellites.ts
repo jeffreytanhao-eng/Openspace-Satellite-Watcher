@@ -1,6 +1,7 @@
 // Real TLE data fetched from Celestrak (https://celestrak.org)
 // Epoch: 2026-07-08 (Day 189)
 // These are actual orbital elements from real satellites
+// 3D models from NASA 3D Resources (Public Domain): github.com/nasa/NASA-3D-Resources
 
 export const mockSatellites = [
   // ===== LEO 近地轨道有效载荷 =====
@@ -13,6 +14,8 @@ export const mockSatellites = [
     launchSite: 'Baikonur',
     owner: 'NASA/Roscosmos',
     isActive: true,
+    model3dUrl: '/models/iss.glb',
+    imageUrl: '/models/iss.png',
     tleData: {
       name: 'ISS (ZARYA)',
       line1: '1 25544U 98067A   26189.15353387  .00005161  00000+0  10196-3 0  9993',
@@ -28,6 +31,8 @@ export const mockSatellites = [
     launchSite: 'Kennedy Space Center',
     owner: 'NASA/ESA',
     isActive: true,
+    model3dUrl: '/models/hubble.glb',
+    imageUrl: '/models/hubble.png',
     tleData: {
       name: 'HST',
       line1: '1 20580U 90037B   26188.74350551  .00004421  00000+0  13593-3 0  9993',
@@ -89,6 +94,8 @@ export const mockSatellites = [
     launchSite: 'Vandenberg',
     owner: 'NASA',
     isActive: true,
+    model3dUrl: '/models/terra.glb',
+    imageUrl: '/models/terra.png',
     tleData: {
       name: 'TERRA',
       line1: '1 25994U 99068A   26189.93962939  .00000244  00000+0  58555-4 0  9998',
@@ -104,10 +111,46 @@ export const mockSatellites = [
     launchSite: 'Vandenberg',
     owner: 'NASA',
     isActive: true,
+    model3dUrl: '/models/aqua.glb',
+    imageUrl: '/models/aqua.png',
     tleData: {
       name: 'AQUA',
       line1: '1 27424U 02022A   26189.95349685  .00000518  00000+0  11265-3 0  9991',
       line2: '2 27424  98.4290 159.6731 0000753 101.4132 325.9430 14.62191028286457',
+    },
+  },
+  {
+    noradId: 28376,
+    name: 'AURA',
+    country: 'USA',
+    objectType: 'PAYLOAD',
+    launchDate: '2004-07-15',
+    launchSite: 'Vandenberg',
+    owner: 'NASA',
+    isActive: true,
+    model3dUrl: '/models/aura.glb',
+    imageUrl: '/models/aura.png',
+    tleData: {
+      name: 'AURA',
+      line1: '1 28376U 04026A   26190.78680976  .00000489  00000+0  10861-3 0  9996',
+      line2: '2 28376  98.3427 147.4290 0001253  91.5620 268.5724 14.61362934169517',
+    },
+  },
+  {
+    noradId: 39084,
+    name: 'LANDSAT 8',
+    country: 'USA',
+    objectType: 'PAYLOAD',
+    launchDate: '2013-02-11',
+    launchSite: 'Vandenberg',
+    owner: 'NASA/USGS',
+    isActive: true,
+    model3dUrl: '/models/landsat8.glb',
+    imageUrl: '/models/landsat8.png',
+    tleData: {
+      name: 'LANDSAT 8',
+      line1: '1 39084U 13008A   26190.82316649  .00000179  00000+0  49866-4 0  9996',
+      line2: '2 39084  98.2292 260.6886 0001358  93.8169 266.3184 14.57109555701197',
     },
   },
   {
@@ -169,21 +212,6 @@ export const mockSatellites = [
       name: 'NOAA 16 DEB',
       line1: '1 41270U 00055FW  26187.32637465  .00007501  00000+0  24826-2 0  9990',
       line2: '2 41270  98.9784 324.5019 0022692 174.8360 185.3064 14.38065353543620',
-    },
-  },
-  {
-    noradId: 72341,
-    name: 'UNKNOWN OBJECT',
-    country: 'UNK',
-    objectType: 'UNKNOWN',
-    launchDate: '2024-01-15',
-    launchSite: 'Unknown',
-    owner: 'Unknown',
-    isActive: false,
-    tleData: {
-      name: 'UNKNOWN OBJ',
-      line1: '1 72341U 24001A   26189.50000000  .00000000  00000-0  00000-0 0  9992',
-      line2: '2 72341  82.5000  45.0000 0005000  90.0000 270.0000 15.20000000  1000',
     },
   },
 ];

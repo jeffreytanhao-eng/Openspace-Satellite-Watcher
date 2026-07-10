@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type * as CesiumType from 'cesium';
 import type { SpaceObject } from '@/store/satelliteStore';
+import { useTimeStore } from '@/store/timeStore';
 import { createSatelliteEntity, getSatelliteColor } from '@/components/visualization/SatelliteEntity';
 import { createOrbitTrail } from '@/components/visualization/OrbitTrail';
 import { calculateSatellitePosition, generateOrbitPoints } from '@/lib/cesium/positions';
@@ -30,6 +31,7 @@ interface CesiumInstance {
   Cesium: CesiumNS;
   satelliteEntities: Map<number, { update: (config: Record<string, unknown>) => void; destroy: () => void }>;
   orbitEntities: Map<number, { update: (config: Record<string, unknown>) => void; destroy: () => void }>;
+  trackingRemoveListener?: () => void;
 }
 
 const MAX_VISIBLE_SATELLITES = 2000;
@@ -317,6 +319,80 @@ export function useCesium() {
     inst.orbitEntities.forEach((ent, id) => ent.update({ isSelected: id === noradId }));
   }, []);
 
+  // --- Continuous satellite tracking ---
+  // Uses preUpdate event to keep camera centered on the satellite.
+  // Avoids viewer.trackedEntity which can cause orbit entity re-evaluation.
+  const trackedSatRef = useRef<{ satellite: SpaceObject; listener: () => void } | null>(null);
+
+  const startTracking = useCallback((satellite: SpaceObject) => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+
+    // Stop any previous tracking
+    if (trackedSatRef.current) {
+      trackedSatRef.current.listener();
+      trackedSatRef.current = null;
+    }
+
+    const { Cesium } = inst;
+    const viewer = inst.viewer;
+
+    // Fly to satellite first
+    flyToSatellite(satellite);
+
+    // Track via preUpdate: on each frame, center camera on satellite position
+    // using the app's simulation time (NOT viewer.clock.currentTime).
+    const TRACKING_RANGE = 2500000; // 2500 km, fixed to avoid RangeError
+
+    const listener = viewer.scene.preUpdate.addEventListener(() => {
+      const simTime = useTimeStore.getState().currentTime;
+      const pos = calculateSatellitePosition(satellite.tleData, simTime);
+      if (!pos) return;
+      viewer.camera.lookAt(
+        pos,
+        new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), TRACKING_RANGE)
+      );
+    });
+
+    trackedSatRef.current = { satellite, listener };
+  }, [flyToSatellite]);
+
+  const stopTracking = useCallback(() => {
+    if (trackedSatRef.current) {
+      trackedSatRef.current.listener();
+      trackedSatRef.current = null;
+    }
+    // Release camera from lookAt lock
+    const inst = cesiumRef.current;
+    if (inst) {
+      inst.viewer.camera.lookAtTransform(inst.Cesium.Matrix4.IDENTITY);
+    }
+  }, []);
+
+  // Regenerate orbit trail for a specific satellite at the current sim time.
+  // Used when tracking starts to ensure the orbit matches the satellite's path.
+  const regenerateOrbit = useCallback((satellite: SpaceObject) => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    const simTime = useTimeStore.getState().currentTime;
+    const points = generateOrbitPoints(satellite.tleData, simTime);
+    const color = getSatelliteColor(satellite.objectType);
+    const existing = inst.orbitEntities.get(satellite.noradId);
+    if (existing) {
+      existing.update({ points, color });
+    }
+  }, []);
+
+  // Cleanup tracking on unmount
+  useEffect(() => {
+    return () => {
+      if (trackedSatRef.current) {
+        trackedSatRef.current.listener();
+        trackedSatRef.current = null;
+      }
+    };
+  }, []);
+
   return {
     isReady: !!cesium,
     loadError,
@@ -329,5 +405,8 @@ export function useCesium() {
     updateSatellitePositions,
     updateOrbits,
     setSelectedSatellite,
+    startTracking,
+    stopTracking,
+    regenerateOrbit,
   };
 }

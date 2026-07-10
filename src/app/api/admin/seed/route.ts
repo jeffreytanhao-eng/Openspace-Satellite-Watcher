@@ -43,6 +43,8 @@ export async function POST(request: NextRequest) {
           launchSite: sat.launchSite || null,
           owner: sat.owner || null,
           isActive: sat.isActive,
+          model3dUrl: (sat as any).model3dUrl || null,
+          imageUrl: (sat as any).imageUrl || null,
         },
         create: {
           noradId: sat.noradId,
@@ -53,6 +55,8 @@ export async function POST(request: NextRequest) {
           launchSite: sat.launchSite || null,
           owner: sat.owner || null,
           isActive: sat.isActive,
+          model3dUrl: (sat as any).model3dUrl || null,
+          imageUrl: (sat as any).imageUrl || null,
         },
       });
 

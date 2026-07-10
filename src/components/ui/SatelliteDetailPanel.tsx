@@ -57,8 +57,11 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
   const [expandedSection, setExpandedSection] = useState<'orbit' | 'tle'>('orbit');
   const [showTagSelector, setShowTagSelector] = useState(false);
   const triggerFocus = useSatelliteStore(state => state.triggerFocus);
+  const trackingNoradId = useSatelliteStore(state => state.trackingNoradId);
+  const setTracking = useSatelliteStore(state => state.setTracking);
   const orbitData = calculateOrbitData(satellite);
   const tleData = satellite.tleData && satellite.tleData.length > 0 ? satellite.tleData[0] : null;
+  const isTracking = trackingNoradId === satellite.noradId;
   
   const satelliteTags = getSatelliteTags ? getSatelliteTags(satellite) : [];
   const [selectedTags, setSelectedTags] = useState<Tag[]>(satelliteTags);
@@ -104,6 +107,13 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
     }
   };
 
+  const handleClose = () => {
+    if (isTracking) {
+      setTracking(null);
+    }
+    onClose();
+  };
+
   return (
     <div className="bg-space-900/80 backdrop-blur-sm border border-space-800 rounded-lg overflow-hidden max-h-[60vh] flex flex-col">
       <div className="p-4 border-b border-space-800">
@@ -132,9 +142,20 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-space-400 hover:text-cosmic-blue hover:bg-space-700/50"
-              onClick={triggerFocus}
-              title="定位至卫星位置"
+              className={`h-7 w-7 ${
+                isTracking
+                  ? 'text-cosmic-blue bg-cosmic-blue/20 border border-cosmic-blue/50'
+                  : 'text-space-400 hover:text-cosmic-blue hover:bg-space-700/50'
+              }`}
+              onClick={() => {
+                if (isTracking) {
+                  setTracking(null);
+                } else {
+                  triggerFocus();
+                  setTracking(satellite.noradId);
+                }
+              }}
+              title={isTracking ? '停止跟踪' : '持续跟踪卫星'}
             >
               <Crosshair className="h-4 w-4" />
             </Button>
@@ -142,7 +163,7 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-space-400 hover:text-space-100 hover:bg-space-700/50"
-              onClick={onClose}
+              onClick={handleClose}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -158,7 +179,11 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
               <Box className="h-3.5 w-3.5" />
               <span>3D模型/图像</span>
             </div>
-            <SatelliteMedia satelliteName={satellite.name} />
+            <SatelliteMedia
+              satelliteName={satellite.name}
+              model3dUrl={satellite.model3dUrl}
+              imageUrl={satellite.imageUrl}
+            />
           </div>
 
           <div className="space-y-2">

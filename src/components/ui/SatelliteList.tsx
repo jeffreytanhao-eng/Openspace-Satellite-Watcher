@@ -22,6 +22,9 @@ interface SatelliteListProps {
   onSelectAll: () => void;
   onDeselectAll: () => void;
   onDeleteSatellite?: (noradId: number) => void;
+  onBatchShow?: (noradIds: number[]) => void;
+  onBatchHide?: (noradIds: number[]) => void;
+  onBatchDelete?: (noradIds: number[]) => void;
   tags?: Tag[];
   getSatelliteTags?: (satellite: SpaceObject) => Tag[];
 }
@@ -49,6 +52,9 @@ export default function SatelliteList({
   onSelectAll,
   onDeselectAll,
   onDeleteSatellite,
+  onBatchShow,
+  onBatchHide,
+  onBatchDelete,
   tags,
   getSatelliteTags,
 }: SatelliteListProps) {
@@ -108,7 +114,10 @@ export default function SatelliteList({
             variant="outline"
             size="sm"
             className="flex-1 h-7 text-xs bg-space-800/50 hover:bg-space-700/50 border-space-700"
-            onClick={() => setIsSelecting(!isSelecting)}
+            onClick={() => {
+              setIsSelecting(!isSelecting);
+              setSelectedItems([]);
+            }}
           >
             {isSelecting ? '退出选择' : '批量选择'}
           </Button>
@@ -131,8 +140,62 @@ export default function SatelliteList({
         </div>
         
         {isSelecting && (
-          <div className="mt-2 text-xs text-space-400">
-            已选择 {selectedItems.length} 个目标
+          <div className="mt-2 space-y-2">
+            <div className="text-xs text-space-400">
+              已选择 {selectedItems.length} 个目标
+            </div>
+            {selectedItems.length > 0 && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 h-7 text-xs bg-cosmic-blue/10 hover:bg-cosmic-blue/20 border-cosmic-blue/30 text-cosmic-blue"
+                  onClick={() => {
+                    onBatchShow?.(selectedItems);
+                  }}
+                  title="显示选中的卫星"
+                >
+                  <svg className="w-3.5 h-3.5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  显示
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 h-7 text-xs bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300"
+                  onClick={() => {
+                    onBatchHide?.(selectedItems);
+                  }}
+                  title="隐藏选中的卫星"
+                >
+                  <svg className="w-3.5 h-3.5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                  隐藏
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 h-7 text-xs bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-400"
+                  onClick={() => {
+                    onBatchDelete?.(selectedItems);
+                    setSelectedItems([]);
+                    setIsSelecting(false);
+                  }}
+                  title="删除选中的卫星"
+                >
+                  <svg className="w-3.5 h-3.5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                  删除
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>

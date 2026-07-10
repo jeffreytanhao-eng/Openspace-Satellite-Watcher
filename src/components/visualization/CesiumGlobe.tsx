@@ -27,11 +27,17 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     updateSatellitePositions,
     updateOrbits,
     setSelectedSatellite,
+    startTracking,
+    stopTracking,
+    regenerateOrbit,
   } = useCesium();
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const currentTime = useTimeStore(state => state.currentTime);
   const focusTrigger = useSatelliteStore(state => state.focusTrigger);
+  const trackingNoradId = useSatelliteStore(state => state.trackingNoradId);
+  const setTracking = useSatelliteStore(state => state.setTracking);
+  const allSatellites = useSatelliteStore(state => state.satellites);
 
   // Initialize Cesium viewer once - use a ref to track init state across StrictMode
   useEffect(() => {
@@ -76,14 +82,18 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   }, [satellites, currentTime, visibleSatellites, isReady, viewer, updateSatellitePositions]);
 
   // Update orbits ONLY when satellite data or visibility changes (not on time change)
-  // Orbit shape is determined by TLE elements, not by current time
+  // Orbit shape is a fixed ellipse determined by TLE elements, not by current time.
+  // Skip orbit updates while tracking to prevent visual jumping.
+  const isTrackingRef = useRef(false);
   useEffect(() => {
     if (!isReady || !viewer || !initCompleted.current || !satellites.length) return;
+    if (isTrackingRef.current) return; // Freeze orbits during tracking
 
     const visibleIds = new Set(visibleSatellites);
     const filteredSatellites = satellites.filter(s => visibleIds.has(s.noradId));
 
-    updateOrbits(filteredSatellites, new Date());
+    updateOrbits(filteredSatellites, currentTime);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [satellites, visibleSatellites, isReady, viewer, updateOrbits]);
 
   // Handle selected satellite
@@ -92,6 +102,40 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     setSelectedSatellite(selectedSatellite.noradId);
     flyToSatellite(selectedSatellite);
   }, [selectedSatellite, isReady, flyToSatellite, setSelectedSatellite, focusTrigger]);
+
+  // Handle tracking: start/stop continuous tracking when trackingNoradId changes
+  useEffect(() => {
+    if (!isReady || !viewer) return;
+
+    if (trackingNoradId !== null) {
+      const sat = allSatellites.find(s => s.noradId === trackingNoradId);
+      if (sat) {
+        isTrackingRef.current = true;
+        // Regenerate orbit at current sim time so it matches the satellite's path
+        regenerateOrbit(sat);
+        startTracking(sat);
+      }
+    } else {
+      isTrackingRef.current = false;
+      stopTracking();
+    }
+  }, [trackingNoradId, isReady, viewer, allSatellites, startTracking, stopTracking, regenerateOrbit]);
+
+  // Stop tracking when user clicks on the globe (left-click)
+  useEffect(() => {
+    if (!isReady || !viewer) return;
+    const Cesium = (window as unknown as { Cesium: typeof import('cesium') }).Cesium;
+    const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    handler.setInputAction(() => {
+      if (useSatelliteStore.getState().trackingNoradId !== null) {
+        setTracking(null);
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+    return () => {
+      handler.destroy();
+    };
+  }, [isReady, viewer, setTracking]);
 
   const handleResetView = useCallback(() => {
     resetView();
