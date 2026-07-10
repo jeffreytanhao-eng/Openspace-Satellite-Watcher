@@ -397,4 +397,4 @@ pm2 restart satellite-watcher
 
 ## 许可证
 
-MIT License
+Apache License 2.0
