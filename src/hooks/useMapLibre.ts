@@ -73,7 +73,7 @@ export function useMapLibre() {
         filter: ['has', 'point_count'],
         layout: {
           'text-field': '{point_count_abbreviated}',
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-font': ['Open Sans Semibold', 'Klokantech Noto Sans CJK Bold'],
           'text-size': 12
         },
         paint: {
@@ -111,7 +111,7 @@ export function useMapLibre() {
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
           'text-field': ['get', 'name'],
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-font': ['Open Sans Semibold', 'Klokantech Noto Sans CJK Bold'],
           'text-size': 11,
           'text-offset': [0, 1.5],
           'text-anchor': 'top',
@@ -434,6 +434,7 @@ function createDarkMapStyle(): maplibregl.StyleSpecification {
     version: 8,
     name: 'Dark Satellite',
     metadata: {},
+    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
     sources: {
       'osm-tiles': {
         type: 'raster',

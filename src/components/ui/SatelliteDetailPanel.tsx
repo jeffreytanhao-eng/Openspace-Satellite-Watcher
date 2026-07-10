@@ -34,18 +34,21 @@ function calculateOrbitData(satellite: SpaceObject) {
   }
 
   try {
-    const satrec = createSatrec(satellite.tleData[0]);
+    const tle = satellite.tleData[0];
+    const satrec = createSatrec(tle);
     const params = calculateOrbitParams(satrec);
-    const elements = satellite.tleData[0].elements;
+
+    // Parse orbital elements from TLE line2 directly (satrec stores radians, convert to degrees)
+    const toDeg = (rad: number) => rad * 180 / Math.PI;
 
     return {
       ...params,
-      inclination: elements.inclination,
-      raan: elements.raan,
-      eccentricity: elements.eccentricity,
-      argPerigee: elements.argPerigee,
-      meanAnomaly: elements.meanAnomaly,
-      meanMotion: elements.meanMotion,
+      inclination: toDeg(satrec.inclo),
+      raan: toDeg(satrec.nodeo),
+      eccentricity: satrec.ecco,
+      argPerigee: toDeg(satrec.argpo),
+      meanAnomaly: toDeg(satrec.mo),
+      meanMotion: satrec.no * 60 * 24 / (2 * Math.PI), // convert rad/min to rev/day
     };
   } catch {
     return null;
@@ -56,9 +59,11 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedSection, setExpandedSection] = useState<'orbit' | 'tle'>('orbit');
   const [showTagSelector, setShowTagSelector] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const triggerFocus = useSatelliteStore(state => state.triggerFocus);
   const trackingNoradId = useSatelliteStore(state => state.trackingNoradId);
   const setTracking = useSatelliteStore(state => state.setTracking);
+  const displayImageUrl = uploadedImageUrl || satellite.imageUrl;
   const orbitData = calculateOrbitData(satellite);
   const tleData = satellite.tleData && satellite.tleData.length > 0 ? satellite.tleData[0] : null;
   const isTracking = trackingNoradId === satellite.noradId;
@@ -181,8 +186,12 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
             </div>
             <SatelliteMedia
               satelliteName={satellite.name}
+              noradId={satellite.noradId}
               model3dUrl={satellite.model3dUrl}
-              imageUrl={satellite.imageUrl}
+              imageUrl={displayImageUrl}
+              onImageUploaded={(imageUrl) => {
+                setUploadedImageUrl(imageUrl);
+              }}
             />
           </div>
 
