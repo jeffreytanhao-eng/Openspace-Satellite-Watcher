@@ -26,6 +26,8 @@ interface SatelliteDetailPanelProps {
   onClose: () => void;
   tags?: Tag[];
   getSatelliteTags?: (satellite: SpaceObject) => Tag[];
+  onImageUploaded?: (imageUrl: string) => void;
+  onImageUploadRequest?: (noradId: number, file: File) => void;
 }
 
 function calculateOrbitData(satellite: SpaceObject) {
@@ -55,15 +57,14 @@ function calculateOrbitData(satellite: SpaceObject) {
   }
 }
 
-export default function SatelliteDetailPanel({ satellite, onClose, tags = [], getSatelliteTags }: SatelliteDetailPanelProps) {
+export default function SatelliteDetailPanel({ satellite, onClose, tags = [], getSatelliteTags, onImageUploaded, onImageUploadRequest }: SatelliteDetailPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedSection, setExpandedSection] = useState<'orbit' | 'tle'>('orbit');
   const [showTagSelector, setShowTagSelector] = useState(false);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const triggerFocus = useSatelliteStore(state => state.triggerFocus);
   const trackingNoradId = useSatelliteStore(state => state.trackingNoradId);
   const setTracking = useSatelliteStore(state => state.setTracking);
-  const displayImageUrl = uploadedImageUrl || satellite.imageUrl;
+  const displayImageUrl = satellite.imageUrl;
   const orbitData = calculateOrbitData(satellite);
   const tleData = satellite.tleData && satellite.tleData.length > 0 ? satellite.tleData[0] : null;
   const isTracking = trackingNoradId === satellite.noradId;
@@ -189,9 +190,8 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
               noradId={satellite.noradId}
               model3dUrl={satellite.model3dUrl}
               imageUrl={displayImageUrl}
-              onImageUploaded={(imageUrl) => {
-                setUploadedImageUrl(imageUrl);
-              }}
+              onImageUploaded={(imageUrl) => onImageUploaded?.(imageUrl)}
+              onImageUploadRequest={(noradId, file) => onImageUploadRequest?.(noradId, file)}
             />
           </div>
 

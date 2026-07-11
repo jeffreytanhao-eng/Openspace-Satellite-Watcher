@@ -1,6 +1,6 @@
 # 卫星守望者 · Satellite Watcher
 
-一个开源的 Web 端空间态势感知（SSA, Space Situational Awareness）应用，基于 TLE 轨道数据实时计算并可视化近地轨道卫星的位置与轨迹。支持 2D / 3D 双视角切换、时间回放、星座批量导入、标签管理与卫星图片管理。
+一个开源的 Web 端空间态势感知（SSA, Space Situational Awareness）应用，基于 TLE 轨道数据实时计算并可视化近地轨道卫星的位置与轨迹。支持 2D / 3D 双视角切换、时间回放、星座临时导入、标签管理与卫星图片管理。默认视角为东亚区域（中国上空）。
 
 **线上地址**：[https://www.wanzhixuexi.cn](https://www.wanzhixuexi.cn)（部署于阿里云香港轻量服务器）
 
@@ -11,56 +11,71 @@
 ### 可视化引擎
 
 - **2D / 3D 双视角**：基于 MapLibre GL 的 2D 地图与基于 CesiumJS 的 3D 地球，一键无缝切换
+- **默认东亚视角**：打开页面时地球/地图自动聚焦中国区域（经度 110°E，纬度 35°N）
 - **实时轨道渲染**：使用 satellite.js 的 SGP4/SDP4 算法实时计算卫星位置，绘制多圈预测轨道线
 - **卫星定位**：点击详情面板的定位图标，相机平滑飞至卫星当前位置
-- **3D 模型**：支持为卫星上传自定义 3D 模型（glTF/GLB 格式），基于 `<model-viewer>` 渲染
-- **NASA 图片搜索**：集成 NASA 媒体库，一键搜索并为卫星设置配图
+- **3D 模型**：部分卫星预置 GLB 3D 模型，基于 `<model-viewer>` 渲染，自动旋转展示
+- **NASA 图片搜索**：集成 NASA 媒体库，一键搜索卫星配图
 
 ### 卫星管理
 
-- **卫星列表**：支持按 NORAD ID、名称、国家、对象类型（载荷 / 火箭体 / 碎片）、发射年份、轨道高度、活跃状态、标签多维度筛选
-- **批量操作**：一键显示/隐藏、批量删除、批量打标签
-- **详情面板**：展示卫星元数据、TLE 原文、轨道参数（近地点 / 远地点 / 周期 / 倾角 / 偏心率）、自定义图片
-- **标签系统**：自定义标签与颜色，为卫星打标分类
+- **卫星列表**：支持按 NORAD ID、名称、国家、对象类型（载荷 / 火箭体 / 碎片）、发射年份、轨道高度、活跃状态多维度筛选
+- **批量操作**：一键显示/隐藏卫星
+- **详情面板**：展示卫星元数据、TLE 原文、轨道参数（近地点 / 远地点 / 周期 / 倾角 / 偏心率）、图片和3D模型
+- **标签系统**：查看预设标签分类（当前版本标签写入功能暂不开放）
 
-### 数据导入
+### 数据导入（临时）
 
-- **Celestrak API 导入**：按关键字或 NORAD ID 从 Celestrak 实时拉取 TLE
-- **星座批量导入**：预置主流星座（Starlink、Iridium、GPS、OneWeb、北斗等）一键导入
-- **文件导入**：支持上传标准 TLE 格式文本文件
-- **轨道数据刷新**：一键从 Celestrak 同步所有已收录卫星的最新 TLE，自动写入数据库并清除轨道缓存
+- **Celestrak 导入**：按分类（stations/visual/starlink/gps等）或 NORAD ID/名称 从 Celestrak 实时拉取 TLE
+- **星座批量导入**：预置主流星座（Starlink、Iridium、GPS、北斗等）一键导入
+- **文件导入**：支持标准 TLE 格式文本文件（纯前端解析，不上传服务器）
+- **单次导入上限**：100颗卫星，页面总数上限 200颗
+- **数据隔离**：用户导入/删除/隐藏操作仅在当前浏览器会话中生效，刷新页面恢复服务器默认数据
+
+### 数据管理（需密码）
+
+- **轨道数据刷新（TLE）**：输入密码后从 Celestrak 同步所有默认卫星的最新 TLE，自动写入数据库，永久生效
+- **图片上传**：输入密码后为卫星上传自定义图片（≤2MB），写入数据库永久保存
+- **密码记忆**：密码验证通过后保存在当前标签页会话中（sessionStorage），关闭标签页清除
 
 ### 时间控制
 
 - **时间回放**：可拖动时间轴查看历史或未来时刻的卫星位置
 - **播放控制**：支持多档倍速播放 / 暂停 / 重置至当前时刻
-- **轨道预测**：基于 TLE 轨道根数预测未来多圈轨迹，不随时间播放而变形
+- **轨道预测**：基于 TLE 轨道根数预测未来多圈轨迹
 - **轨道缓存**：自动缓存计算好的轨道点，重复查看同一时刻无需重新计算
 
-### 管理员功能
+---
 
-- **密码保护**：管理员操作（添加/删除/导入/刷新）需输入管理密码
-- **图片上传**：支持为卫星上传自定义图片
-- **种子数据初始化**：`POST /api/admin/seed` 一键初始化默认卫星数据集
+## API 服务
 
-### API 服务
+| 路由 | 方法 | 需要密码 | 说明 |
+|------|------|---------|------|
+| `/api/space-objects` | GET | 否 | 获取所有默认卫星（含 TLE、图片） |
+| `/api/tle/refresh` | POST | **是** | 从 Celestrak 刷新 TLE 并写入数据库 |
+| `/api/tle/import/celestrak` | POST | 否 | 按分类从 Celestrak 导入（代理，单次≤100颗） |
+| `/api/tle/import/constellation` | GET/POST | 否 | 获取/导入星座列表 |
+| `/api/tle/import/search` | GET | 否 | 按名称/ID搜索 Celestrak |
+| `/api/nasa-media` | GET | 否 | 检索 NASA 媒体库 |
+| `/api/nasa-image/proxy` | GET | 否 | NASA 图片代理（解决跨域） |
+| `/api/admin/upload-image` | POST | **是** | 上传卫星图片到数据库 |
+| `/api/admin/seed` | POST | **是** | 初始化种子数据 |
+| `/api/tags` | GET | 否 | 获取标签列表 |
 
-| 路由 | 功能 |
-|------|------|
-| `GET /api/space-objects` | 获取所有卫星（含 TLE、标签、图片） |
-| `POST /api/space-objects` | 新增/更新卫星 |
-| `DELETE /api/space-objects` | 删除卫星 |
-| `GET /api/space-objects/search` | 多条件检索卫星 |
-| `POST /api/tle/refresh` | 从 Celestrak 刷新所有卫星的最新 TLE |
-| `POST /api/tle/import/celestrak` | 从 Celestrak 按关键字/ID 导入 TLE |
-| `POST /api/tle/import/constellation` | 按星座批量导入 |
-| `POST /api/tle/import/file` | 从文件导入 TLE |
-| `GET /api/tle/import/search` | 搜索 Celestrak 卫星目录 |
-| `GET /api/nasa-media` | 检索 NASA 媒体库 |
-| `GET /api/nasa-image/proxy` | NASA 图片代理（解决跨域） |
-| `POST /api/admin/upload-image` | 上传卫星图片（管理员） |
-| `POST /api/admin/seed` | 初始化种子数据（管理员） |
-| `GET/POST /api/tags` | 标签管理 |
+> 写操作（新增/删除/修改卫星、标签）暂不开放，将在用户系统版本中引入。
+
+---
+
+## 安全防护
+
+应用部署在公网环境下，已实施多层防护抵御 DDoS 与滥用：
+
+| 防护层 | 机制 |
+|-------|------|
+| **Nginx 层** | 分层限流（静态资源30r/s、普通API 10r/s、导入API 2r/s、敏感操作5r/min）；每IP并发连接≤10；全局并发≤100；`client_max_body_size 3m`；隐藏版本号；HTTP→HTTPS跳转 |
+| **Next.js Middleware 层** | 内存级 IP 限流；全局并发≤50 返回 503；安全响应头（X-Frame-Options、X-Content-Type-Options、CSP） |
+| **API 参数校验层** | Celestrak GROUP 白名单防注入；搜索参数长度≤100字符；pageSize 上限100；导入结果截断到100颗；文件上传API禁用 |
+| **密码验证** | `crypto.timingSafeEqual` 时序安全比较；敏感操作（TLE刷新、图片上传）需密码；密码保存在 sessionStorage |
 
 ---
 
@@ -79,7 +94,6 @@
 | **3D 模型** | @google/model-viewer | WebGL glTF/GLB 模型查看器 |
 | **状态管理** | Zustand | 轻量全局状态，支持选择器订阅 |
 | **数据库** | PostgreSQL + Prisma ORM | 关系型数据库与类型安全 ORM |
-| **包管理** | npm | 标准包管理器 |
 
 ### 项目结构
 
@@ -87,44 +101,43 @@
 src/
 ├── app/                      # Next.js App Router
 │   ├── api/                  # API 路由
-│   │   ├── admin/            # 管理员接口（seed、图片上传）
+│   │   ├── admin/            # 管理员接口（seed、图片上传，需密码）
 │   │   ├── nasa-image/       # NASA 图片代理
 │   │   ├── nasa-media/       # NASA 媒体检索
-│   │   ├── space-objects/    # 卫星数据 CRUD
-│   │   ├── tags/             # 标签接口
+│   │   ├── space-objects/    # 卫星数据查询
+│   │   ├── tags/             # 标签查询
 │   │   └── tle/
-│   │       ├── import/       # TLE 导入接口（Celestrak/星座/文件/搜索）
-│   │       └── refresh/      # TLE 刷新接口（从 Celestrak 同步最新数据）
+│   │       ├── import/       # TLE 导入（Celestrak代理/星座/搜索）
+│   │       └── refresh/      # TLE 刷新（需密码，写DB）
 │   ├── layout.tsx
 │   └── page.tsx              # 主页面
 ├── components/
-│   ├── HomePage.tsx          # 主页面布局与逻辑
+│   ├── HomePage.tsx          # 主页面布局与逻辑（含密码弹窗）
 │   ├── ui/                   # 业务 UI 组件
 │   │   ├── FilterPanel.tsx       # 筛选面板
-│   │   ├── ImportModal.tsx       # 导入弹窗
+│   │   ├── ImportModal.tsx       # 导入弹窗（支持滚动）
 │   │   ├── SatelliteDetailPanel.tsx  # 卫星详情面板
 │   │   ├── SatelliteList.tsx     # 卫星列表
 │   │   ├── TimeControlBar.tsx    # 时间控制
-│   │   ├── TagManager.tsx        # 标签管理
 │   │   └── ...
 │   └── visualization/        # 可视化组件
-│       ├── CesiumGlobe.tsx       # 3D 地球
-│       ├── MapLibreMap.tsx       # 2D 地图
-│       ├── OrbitLine.tsx         # 轨道线
-│       └── SatelliteMarker.tsx   # 卫星标记
-├── hooks/                    # 自定义 Hooks
-│   ├── useCesium.ts
-│   └── useMapLibre.ts
-├── lib/                      # 工具库
+│       ├── CesiumGlobe.tsx       # 3D 地球（默认东亚视角）
+│       ├── MapLibreMap.tsx       # 2D 地图（默认东亚视角）
+│       └── ...
+├── lib/
 │   ├── api/client.ts         # API 客户端
+│   ├── security.ts           # 密码验证（timingSafeEqual）
 │   ├── tle/                  # TLE 解析与轨道计算
-│   ├── cesium/positions.ts   # Cesium 坐标转换
 │   ├── prisma.ts             # Prisma 客户端
 │   ├── translations.ts       # 国家/类型翻译
-│   └── mock/satellites.ts    # 种子卫星数据
+│   └── mock/satellites.ts    # 默认卫星数据（DB不可用时fallback）
+├── middleware.ts             # 全局IP限流+安全头
 └── store/                    # Zustand 状态
     ├── satelliteStore.ts
     └── timeStore.ts
+
+deploy/
+└── nginx-secure.conf         # Nginx 安全加固配置（含限流）
 
 prisma/
 └── schema.prisma             # 数据库模型定义
@@ -141,23 +154,31 @@ public/
 ```
 ┌─────────────┐    HTTPS     ┌──────────────────────┐    TLS     ┌──────────────────┐
 │  国内用户    │ ───────────→ │ 阿里云香港轻量服务器   │ ────────→  │ Neon Postgres    │
-│             │  (BGP线路)   │                      │  (公网)    │  (新加坡, Serverless)
-│             │              │  Nginx (443/80)      │            └──────────────────┘
-│             │              │    ↓ proxy_pass      │
-│             │              │  PM2 → Next.js       │ ────────→  ┌──────────────────┐
-│             │              │  standalone (3000)   │  (HTTPS)   │ Celestrak / NASA │
-└─────────────┘              │  - SSR 页面渲染       │            │ (外部数据 API)    │
-                             │  - API Routes        │            └──────────────────┘
-                             │  - 静态资源/3D模型    │
+│             │  (BGP线路)   │                      │  (公网)    │  (新加坡)         │
+│             │              │  Nginx (443)         │            └──────────────────┘
+│             │              │  · SSL终端            │
+│             │              │  · IP限流/并发限制     │ ────────→  ┌──────────────────┐
+│             │              │  · 静态缓存/Gzip      │  (HTTPS)   │ Celestrak / NASA │
+│             │              │    ↓ proxy_pass      │            │ (外部数据API)     │
+│             │              │  PM2 → Next.js       │            └──────────────────┘
+│             │              │  standalone (3000)   │
+│             │              │  · SSR页面/API        │
+└─────────────┘              │  · 密码验证+限流      │
+                             │  · 客户端状态隔离     │
                              └──────────────────────┘
 ```
 
 核心链路：**国内用户 → 香港轻量服务器（Nginx + Next.js 全栈应用）→ 新加坡 Neon Postgres 数据库**
 
-- **Nginx**：HTTPS 终端（Let's Encrypt 证书）、HTTP→HTTPS 跳转、静态资源缓存、Gzip 压缩
+- **Nginx**：HTTPS 终端（Let's Encrypt）、HTTP→HTTPS、IP 频率限制、并发连接限制、静态资源缓存、Gzip、安全响应头、隐藏版本信息
 - **PM2**：进程守护、开机自启、内存限制（500MB）
-- **Neon Postgres**：Serverless PostgreSQL，按用量计费，免运维
-- **Vercel**：持续部署备份（`openspace-satellite-watcher.vercel.app`）
+- **Neon Postgres**：Serverless PostgreSQL，免运维，新加坡节点近香港
+
+### 数据模型说明
+
+- **服务器默认数据**：数据库中存储 12 颗默认卫星的基础信息和 TLE 数据，所有用户共享
+- **用户操作（临时）**：导入、删除、隐藏卫星等操作在浏览器端 Zustand store 中完成，刷新页面恢复默认
+- **管理员操作（永久）**：TLE 刷新和图片上传需密码验证，成功后写入数据库，所有用户可见
 
 ---
 
@@ -166,7 +187,7 @@ public/
 ### 环境要求
 
 - Node.js ≥ 18.17
-- PostgreSQL ≥ 14（或使用 Neon 云端数据库）
+- PostgreSQL ≥ 14（或使用 Neon 云端数据库；本地无数据库时自动使用内置默认数据）
 - npm ≥ 9
 
 ### 安装与启动
@@ -177,32 +198,27 @@ npm install
 
 # 2. 配置环境变量
 cp .env.example .env
-# 编辑 .env，填入 DATABASE_URL 和 ADMIN_PASSWORD
+# 编辑 .env，填入 DATABASE_URL 和 ADMIN_PASSWORD（本地开发可不填DATABASE_URL，使用内置默认数据）
 
-# 3. 初始化数据库
-npx prisma db push
-
-# 4. （可选）初始化种子卫星数据
-# 启动后通过 UI 导入或调用 POST /api/admin/seed
-
-# 5. 启动开发服务器
+# 3. 启动开发服务器
 npm run dev
 ```
 
 访问 [http://localhost:3000](http://localhost:3000)
 
+> 本地开发无需配置 PostgreSQL，API 会自动 fallback 到内置的 12 颗默认卫星数据。
+
 ### 环境变量
 
 | 变量 | 说明 | 必填 |
 |------|------|------|
-| `DATABASE_URL` | PostgreSQL 连接字符串（Pooled 连接，用于 Prisma 操作） | ✅ |
-| `POSTGRES_URL_NON_POOLING` | PostgreSQL 直连字符串（无 PgBouncer，用于迁移） | 推荐 |
-| `ADMIN_PASSWORD` | 管理员操作密码（导入/删除/刷新/上传图片等） | ✅ |
-| `NODE_ENV` | 运行环境（`development` / `production`） | 生产必填 |
+| `DATABASE_URL` | PostgreSQL 连接字符串 | 生产必填 |
+| `ADMIN_PASSWORD` | 操作密码（TLE刷新、图片上传） | ✅ |
+| `NODE_ENV` | 运行环境 | 生产必填 |
 
-### 默认种子卫星
+### 默认卫星
 
-初始化种子数据后包含 12 颗默认卫星：
+初始化后包含 12 颗默认卫星：
 
 | NORAD ID | 名称 | 说明 |
 |----------|------|------|
@@ -223,107 +239,44 @@ npm run dev
 
 ## 部署方式
 
-### 方式一：Vercel（推荐，零配置）
-
-Vercel 是 Next.js 官方托管平台，适合快速上线与原型验证。
+### 方式一：Vercel（零配置）
 
 1. 将代码推送到 GitHub
 2. 在 Vercel 控制台导入仓库
-3. 在 Storage 中创建 Neon Postgres 数据库
-4. 添加环境变量：`ADMIN_PASSWORD`
-5. Deploy，自动完成构建与部署
+3. 添加环境变量：`DATABASE_URL`、`ADMIN_PASSWORD`
+4. Deploy
 
-Vercel 会自动配置 Neon 连接串，部署后在 Vercel 域名设置中添加自定义域名即可。
+### 方式二：自建香港轻量服务器（当前生产环境）
 
-### 方式二：自建服务器（香港轻量服务器方案，免备案）
-
-适用于国内用户访问、免备案、成本可控的场景。核心思路：本地构建 Next.js standalone 产物，上传到服务器运行。
+适用于国内用户访问、免备案场景。
 
 详细部署文档参见 [HK_Deploy.md](./HK_Deploy.md)。
 
-#### 快速概要
+部署要点：
+- 本地构建 Next.js standalone 产物（避免服务器内存不足）
+- 上传到服务器后 PM2 启动，内存限制 500MB
+- Nginx 配置 SSL + 限流（使用 [deploy/nginx-secure.conf](./deploy/nginx-secure.conf)）
+- Nginx 限流区域需在 `/etc/nginx/nginx.conf` 的 `http{}` 块中添加 `limit_req_zone` 指令
+
+### 部署更新流程
 
 ```bash
-# 服务器环境（Ubuntu/Debian）
-apt install nginx
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt install -y nodejs
-npm install -g pm2
-
-# 本地构建（在开发机执行，避免服务器内存不足）
-# next.config.mjs 中设置 output: 'standalone'
+# 1. 本地构建
 npm run build
-# 将 .next/standalone/、.next/static/、public/ 打包上传到服务器 /app
 
-# 服务器启动
-cd /app
-cat > ecosystem.config.cjs << 'EOF'
-module.exports = {
-  apps: [{
-    name: 'satellite',
-    script: './server.js',
-    cwd: '/app',
-    node_args: '--max-old-space-size=500',
-    env: {
-      NODE_ENV: 'production',
-      PORT: 3000,
-      HOSTNAME: '0.0.0.0',
-      DATABASE_URL: 'postgresql://...',
-      POSTGRES_URL_NON_POOLING: 'postgresql://...',
-      ADMIN_PASSWORD: 'your-password'
-    }
-  }]
-};
-EOF
-pm2 start ecosystem.config.cjs
-pm2 save && pm2 startup
+# 2. 打包
+Remove-Item -Recurse -Force "app-pkg" -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Path "app-pkg" | Out-Null
+Copy-Item -Recurse ".next/standalone/." "app-pkg/"
+New-Item -ItemType Directory -Path "app-pkg/.next/static" -Force | Out-Null
+Copy-Item -Recurse ".next/static/." "app-pkg/.next/static/"
+Copy-Item -Recurse "public" "app-pkg/public"
+Compress-Archive -Path "app-pkg/*" -DestinationPath "app-pkg.tar.gz" -Force
 
-# Nginx 配置 HTTPS 反代
-certbot --nginx -d your-domain.com -d www.your-domain.com
+# 3. 上传到服务器并重启
+scp app-pkg.tar.gz root@server:/tmp/
+ssh root@server "cd /app && tar xzf /tmp/app-pkg.tar.gz && pm2 restart satellite"
 ```
-
-### 方式三：阿里云国内 ECS（需 ICP 备案）
-
-适用于生产环境、数据本地化、需要极低延迟的场景。需域名备案（约 7-20 工作日）。架构：
-
-```
-用户 → CDN → ECS（Next.js）→ RDS PostgreSQL
-```
-
-部署流程与方式二类似，但需额外配置安全组、RDS 白名单、ICP 备案等。建议服务器规格 2 核 2GB 以上，构建时添加 4GB swap。
-
----
-
-## 两种部署方式对比
-
-| 维度 | Vercel + Neon | 自建香港服务器 |
-|------|---------------|---------------|
-| 上手难度 | 低，一键部署 | 中，需基础运维 |
-| 月成本 | 免费额度内可用 | ~28 元/月（轻量服务器） |
-| 国内访问速度 | 一般（无中国大陆节点） | 快（BGP 线路 ~30-60ms） |
-| 备案要求 | 不需要 | 不需要（香港节点） |
-| 数据库 | Neon Serverless 免运维 | Neon 或自建 |
-| 扩展性 | 自动扩缩容 | 需手动升级配置 |
-| 数据持久化 | 云端数据库 | 云端数据库 |
-| 适用场景 | 原型、海外用户、快速验证 | 国内用户生产环境 |
-
----
-
-## 后续更新部署
-
-**Vercel**：推送到 GitHub 自动部署。
-
-**香港服务器**（增量更新，单文件 API 变更时）：
-
-```bash
-# 本地构建（临时加上 output: 'standalone'）
-npm run build
-# 上传变更的编译文件
-scp .next/standalone/.next/server/app/api/xxx/route.js root@server:/app/.next/server/app/api/xxx/route.js
-# 重启
-ssh root@server "pm2 restart satellite"
-```
-
-完整重新部署参见 [HK_Deploy.md](./HK_Deploy.md)。
 
 ---
 

@@ -20,8 +20,20 @@ export async function POST(request: NextRequest) {
       page = 1,
       pageSize = 20
     } = body;
-    
-    const skip = (page - 1) * pageSize;
+
+    // pageSize 上限保护
+    const safePageSize = Math.min(Math.max(1, parseInt(pageSize) || 20), 100);
+    const safePage = Math.max(1, parseInt(page) || 1);
+
+    // 字符串参数长度限制
+    if (name && String(name).length > 100) {
+      return NextResponse.json({ success: false, error: '搜索名称过长' }, { status: 400 });
+    }
+    if (country && String(country).length > 50) {
+      return NextResponse.json({ success: false, error: '国家参数过长' }, { status: 400 });
+    }
+
+    const skip = (safePage - 1) * safePageSize;
     const filters: Record<string, unknown> = {};
     
     if (noradId) {

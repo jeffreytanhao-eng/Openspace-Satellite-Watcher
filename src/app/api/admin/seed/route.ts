@@ -1,115 +1,99 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { ObjectType, Source } from '@prisma/client';
 import { mockSatellites, mockTags } from '@/lib/mock/satellites';
+import { Source, ObjectType } from '@prisma/client';
+import { verifyPassword } from '@/lib/security';
 
-// Re-seed the database with default LEO satellites.
-// Usage: POST /api/admin/seed  (with header X-Admin-Token: <ADMIN_SEED_TOKEN>)
+function parseTLEEpoch(line1: string): Date {
+  const yearStr = line1.slice(18, 20).trim();
+  const dayStr = line1.slice(20, 32).trim();
+  const fullYear = parseInt(yearStr, 10) >= 57 ? 1900 + parseInt(yearStr, 10) : 2000 + parseInt(yearStr, 10);
+  const dayOfYear = parseFloat(dayStr);
+  const start = new Date(Date.UTC(fullYear, 0, 1));
+  return new Date(start.getTime() + (dayOfYear - 1) * 86400000);
+}
+
+// POST：管理员初始化种子数据
 export async function POST(request: NextRequest) {
-  const token = request.headers.get('x-admin-token');
-  const expected = process.env.ADMIN_SEED_TOKEN;
-  if (!expected || token !== expected) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  if (!verifyPassword(request)) {
+    return NextResponse.json({ success: false, error: '需要管理员权限' }, { status: 401 });
   }
 
   try {
-    // 1. Remove non-LEO satellites no longer in the default dataset
-    const nonLeoNoradIds = [40730, 44231]; // GPS BIIF-10 (MEO), BEIDOU-2 G8 (GEO)
-    const deleted = await prisma.spaceObject.deleteMany({
-      where: { noradId: { in: nonLeoNoradIds } },
-    });
-
-    // 2. Remove orphaned tag
-    await prisma.userTag.deleteMany({ where: { name: '导航卫星' } });
-
-    // 3. Upsert default satellites + TLE data
-    let satCount = 0;
-    let tleCount = 0;
+    let satellitesCreated = 0;
+    let tleCreated = 0;
+    let tagsCreated = 0;
 
     for (const sat of mockSatellites) {
-      const epochStr = sat.tleData.line1.substring(18, 32).trim();
-      const year = 2000 + parseInt(epochStr.substring(0, 2));
-      const dayOfYear = parseFloat(epochStr.substring(2));
-      const epoch = new Date(year, 0, 1);
-      epoch.setDate(epoch.getDate() + dayOfYear - 1);
-
-      const spaceObject = await prisma.spaceObject.upsert({
+      const epoch = parseTLEEpoch(sat.tleData.line1);
+      await prisma.spaceObject.upsert({
         where: { noradId: sat.noradId },
         update: {
           name: sat.name,
-          country: sat.country,
-          objectType: sat.objectType as ObjectType,
+          country: sat.country || null,
+          objectType: (sat.objectType as ObjectType) || ObjectType.PAYLOAD,
           launchDate: sat.launchDate ? new Date(sat.launchDate) : null,
           launchSite: sat.launchSite || null,
           owner: sat.owner || null,
-          isActive: sat.isActive,
-          model3dUrl: (sat as any).model3dUrl || null,
-          imageUrl: (sat as any).imageUrl || null,
+          isActive: sat.isActive !== false,
+          model3dUrl: sat.model3dUrl || null,
+          imageUrl: sat.imageUrl || null,
         },
         create: {
           noradId: sat.noradId,
           name: sat.name,
-          country: sat.country,
-          objectType: sat.objectType as ObjectType,
+          country: sat.country || null,
+          objectType: (sat.objectType as ObjectType) || ObjectType.PAYLOAD,
           launchDate: sat.launchDate ? new Date(sat.launchDate) : null,
           launchSite: sat.launchSite || null,
           owner: sat.owner || null,
-          isActive: sat.isActive,
-          model3dUrl: (sat as any).model3dUrl || null,
-          imageUrl: (sat as any).imageUrl || null,
+          isActive: sat.isActive !== false,
+          model3dUrl: sat.model3dUrl || null,
+          imageUrl: sat.imageUrl || null,
         },
       });
+      satellitesCreated++;
 
-      await prisma.tLEData.upsert({
-        where: {
-          spaceObjectId_epoch: {
-            spaceObjectId: spaceObject.id,
-            epoch,
+      const spaceObject = await prisma.spaceObject.findUnique({ where: { noradId: sat.noradId } });
+      if (spaceObject) {
+        await prisma.tLEData.upsert({
+          where: {
+            spaceObjectId_epoch: { spaceObjectId: spaceObject.id, epoch },
           },
-        },
-        update: {
-          line1: sat.tleData.line1,
-          line2: sat.tleData.line2,
-          source: Source.CELESTRAK_API,
-        },
-        create: {
-          spaceObjectId: spaceObject.id,
-          line1: sat.tleData.line1,
-          line2: sat.tleData.line2,
-          epoch,
-          source: Source.CELESTRAK_API,
-        },
-      });
-
-      satCount++;
-      tleCount++;
+          update: {
+            line1: sat.tleData.line1,
+            line2: sat.tleData.line2,
+            name: sat.tleData.name || sat.name,
+            source: Source.CELESTRAK_API,
+          },
+          create: {
+            spaceObjectId: spaceObject.id,
+            name: sat.tleData.name || sat.name,
+            line1: sat.tleData.line1,
+            line2: sat.tleData.line2,
+            epoch,
+            source: Source.CELESTRAK_API,
+          },
+        });
+        tleCreated++;
+      }
     }
 
-    // 4. Upsert tags
-    let tagCount = 0;
     for (const tag of mockTags) {
       await prisma.userTag.upsert({
         where: { name: tag.name },
         update: { color: tag.color },
         create: { name: tag.name, color: tag.color },
       });
-      tagCount++;
+      tagsCreated++;
     }
 
     return NextResponse.json({
       success: true,
-      data: {
-        deletedNonLeo: deleted.count,
-        satellites: satCount,
-        tleRecords: tleCount,
-        tags: tagCount,
-      },
+      data: { satellites: satellitesCreated, tleRecords: tleCreated, tags: tagsCreated },
     });
   } catch (error) {
     console.error('Seed error:', error);
-    return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Seed failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: '种子数据初始化失败' }, { status: 500 });
   }
 }

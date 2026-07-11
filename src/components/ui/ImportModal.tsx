@@ -17,6 +17,8 @@ export interface ImportResult {
   success: number;
   failed: number;
   failures: ImportFailure[];
+  truncated?: boolean;
+  limit?: number;
 }
 
 interface ImportedSatellite {
@@ -30,16 +32,21 @@ export interface ImportSummary {
   imported: number;
   skipped: number;
   remaining: number;
+  message?: string;
 }
 
 interface ImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (satellites?: ImportedSatellite[]) => Promise<ImportSummary | void> | ImportSummary | void;
+  onFileImport?: (file: File) => Promise<ImportSummary>;
+  importLimit?: number;
+  totalLimit?: number;
+  currentCount?: number;
 }
 
 const CELESTRAK_CATEGORIES = [
-  { name: 'starlink', label: 'Starlink', description: 'SpaceX Starlink (可能受限)', disabled: false },
+  { name: 'starlink', label: 'Starlink', description: 'SpaceX Starlink (最多100颗)' },
   { name: 'gps-ops', label: 'GPS', description: 'GPS 运营卫星' },
   { name: 'glo-ops', label: 'GLONASS', description: 'GLONASS 运营卫星' },
   { name: 'galileo', label: 'Galileo', description: 'Galileo 卫星' },
@@ -55,10 +62,19 @@ const CELESTRAK_CATEGORIES = [
 
 type ImportMode = 'celestrak' | 'file';
 
-export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalProps) {
+export default function ImportModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  onFileImport,
+  importLimit = 100,
+  totalLimit = 200,
+  currentCount = 0,
+}: ImportModalProps) {
   const [importMode, setImportMode] = useState<ImportMode>('celestrak');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedConstellation, setSelectedConstellation] = useState<string>('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -71,6 +87,7 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
     setImportMode('celestrak');
     setSearchQuery('');
     setSelectedCategory('');
+    setSelectedConstellation('');
     setUploadFile(null);
     setIsImporting(false);
     setProgress(0);
@@ -109,53 +126,99 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
     }
   };
 
+  const CONSTELLATIONS = [
+    { name: 'Starlink', label: 'Starlink', description: 'SpaceX Starlink 星座（截断至100颗）' },
+    { name: 'GPS', label: 'GPS', description: '美国 GPS 导航星座' },
+    { name: 'GLONASS', label: 'GLONASS', description: '俄罗斯 GLONASS 导航星座' },
+    { name: 'Galileo', label: 'Galileo', description: '欧洲 Galileo 导航星座' },
+    { name: '北斗', label: '北斗', description: '中国北斗导航星座' },
+  ];
+
   const startImport = async () => {
     setIsImporting(true);
     setProgress(0);
     setImportResult(null);
     setError(null);
 
+    // 检查总数限制
+    if (currentCount >= totalLimit) {
+      setError(`当前已有 ${currentCount} 颗卫星，已达到上限 ${totalLimit} 颗。请先删除一些卫星再导入。`);
+      setIsImporting(false);
+      return;
+    }
+
     try {
+      if (importMode === 'file' && onFileImport && uploadFile) {
+        setProgress(50);
+        const summary = await onFileImport(uploadFile);
+        setProgress(100);
+        setImportResult({
+          total: summary.imported + summary.skipped,
+          success: summary.imported,
+          failed: 0,
+          failures: [],
+        });
+        setImportSummary(summary);
+        return;
+      }
+
       let response;
+      setProgress(30);
 
       if (importMode === 'celestrak') {
-        // If search query is entered, search by NORAD/name; otherwise use category
         if (searchQuery.trim()) {
-          setProgress(30);
           response = await apiClient.searchTLEFromCelestrak(searchQuery.trim());
-        } else {
-          if (!selectedCategory) {
-            setError('请输入 NORAD ID/名称或选择分类');
-            setIsImporting(false);
-            return;
-          }
-          setProgress(30);
+        } else if (selectedConstellation) {
+          response = await apiClient.importTLEFromConstellation(selectedConstellation);
+        } else if (selectedCategory) {
           response = await apiClient.importTLEFromCelestrak(selectedCategory);
-        }
-      } else {
-        if (!uploadFile) {
-          setError('请选择文件');
+        } else {
+          setError('请输入 NORAD ID/名称或选择分类/星座');
           setIsImporting(false);
           return;
         }
-        setProgress(30);
-        response = await apiClient.importTLEFromFile(uploadFile);
+      }
+
+      if (!response) {
+        setError('无响应数据');
+        return;
       }
 
       setProgress(100);
 
       if (response.success && response.data) {
-        const data = response.data as { importReport?: ImportResult; satellites?: ImportedSatellite[] } & ImportResult;
-        const report = data.importReport || data;
+        const data = response.data as { importReport?: ImportResult; satellites?: ImportedSatellite[] };
+        const report = data.importReport;
+
+        // 应用导入上限（单批100颗）
+        let satellites = data.satellites || [];
+        let truncated = false;
+        if (satellites.length > importLimit) {
+          satellites = satellites.slice(0, importLimit);
+          truncated = true;
+        }
+
+        // 检查总数限制
+        const availableSlots = totalLimit - currentCount;
+        if (satellites.length > availableSlots) {
+          satellites = satellites.slice(0, availableSlots);
+          truncated = true;
+        }
+
         setImportResult({
-          total: report.total,
-          success: report.success,
-          failed: report.failed,
-          failures: report.failures || []
+          total: report?.total || satellites.length,
+          success: satellites.length,
+          failed: report?.failed || 0,
+          failures: report?.failures || [],
+          truncated: truncated || !!report?.truncated,
+          limit: importLimit,
         });
-        if (data.satellites && data.satellites.length > 0) {
-          const summary = await onSuccess?.(data.satellites);
-          if (summary) setImportSummary(summary);
+
+        if (satellites.length > 0) {
+          const summary = await onSuccess?.(satellites);
+          if (summary) {
+            setImportSummary(summary);
+          }
         } else {
           await onSuccess?.();
         }
@@ -173,6 +236,7 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
     setImportMode('celestrak');
     setSearchQuery('');
     setSelectedCategory('');
+    setSelectedConstellation('');
     setUploadFile(null);
     setProgress(0);
     setImportResult(null);
@@ -184,25 +248,29 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-space-950/80 backdrop-blur-sm"
-        onClick={handleClose}
-      />
+      <div className="absolute inset-0 bg-space-950/80 backdrop-blur-sm" onClick={handleClose} />
 
-      <div className="relative w-full max-w-2xl mx-4 bg-space-900 border border-space-700 rounded-xl shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-space-700">
+      <div className="relative w-full max-w-2xl mx-4 max-h-[90vh] bg-space-900 border border-space-700 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-space-700 shrink-0">
           <h2 className="text-space-100 font-semibold text-lg">批量导入卫星数据</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-space-400 hover:text-space-100 hover:bg-space-700/50"
-            onClick={handleClose}
-          >
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-space-400 hover:text-space-100 hover:bg-space-700/50" onClick={handleClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1 min-h-0">
+          {/* 容量提示 */}
+          <div className="mb-4 p-2 bg-space-800/50 rounded-lg text-xs text-space-500 flex justify-between">
+            <span>当前已有 {currentCount} 颗卫星</span>
+            <span>上限 {totalLimit} 颗</span>
+          </div>
+
+          {/* 提示：导入为临时操作 */}
+          <div className="mb-4 p-2 bg-space-800/50 rounded-lg text-xs text-space-500">
+            导入的卫星仅本次会话可见，刷新页面后恢复默认数据。
+            <br />单次导入最多 {importLimit} 颗，总数不超过 {totalLimit} 颗。
+          </div>
+
           {importResult ? (
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-4">
@@ -220,7 +288,13 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
                 </div>
               </div>
 
-              {/* Actual import summary (deduplication + 200 limit) */}
+              {importResult.truncated && (
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-yellow-400 text-sm flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  为保证性能，结果已截断至 {importResult.limit} 颗卫星
+                </div>
+              )}
+
               {importSummary && (
                 <div className="bg-cosmic-blue/10 border border-cosmic-blue/30 rounded-lg p-4">
                   <h3 className="text-cosmic-blue text-sm font-medium mb-3 flex items-center gap-2">
@@ -238,13 +312,11 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
                     </div>
                     <div>
                       <p className="text-cosmic-cyan font-bold text-lg">{importSummary.remaining}</p>
-                      <p className="text-space-400 text-xs">可下次导入</p>
+                      <p className="text-space-400 text-xs">超出限制</p>
                     </div>
                   </div>
-                  {importSummary.remaining > 0 && (
-                    <p className="text-space-400 text-xs mt-3 text-center">
-                      点击"继续导入"可导入剩余 {importSummary.remaining} 颗卫星
-                    </p>
+                  {importSummary.message && (
+                    <p className="text-yellow-400 text-xs mt-3 text-center">{importSummary.message}</p>
                   )}
                 </div>
               )}
@@ -257,16 +329,11 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
                   </h3>
                   <div className="max-h-60 overflow-y-auto space-y-2">
                     {importResult.failures.slice(0, 20).map((failure, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 bg-space-700/30 rounded-lg p-3"
-                      >
+                      <div key={index} className="flex items-start gap-3 bg-space-700/30 rounded-lg p-3">
                         <XCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-space-100 text-sm font-medium truncate">
-                              {failure.name}
-                            </span>
+                            <span className="text-space-100 text-sm font-medium truncate">{failure.name}</span>
                             <span className="text-space-500 text-xs">NORAD: {failure.noradId}</span>
                           </div>
                           <p className="text-red-400 text-xs">{failure.reason}</p>
@@ -274,25 +341,15 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
                       </div>
                     ))}
                     {importResult.failures.length > 20 && (
-                      <p className="text-space-500 text-xs text-center py-2">
-                        还有 {importResult.failures.length - 20} 条失败记录未显示
-                      </p>
+                      <p className="text-space-500 text-xs text-center py-2">还有 {importResult.failures.length - 20} 条失败记录未显示</p>
                     )}
                   </div>
                 </div>
               )}
 
               <div className="flex justify-end gap-3">
-                <Button
-                  variant="outline"
-                  className="bg-space-800/50 hover:bg-space-700/50 border-space-700"
-                  onClick={resetImport}
-                >
-                  继续导入
-                </Button>
-                <Button onClick={handleClose}>
-                  关闭
-                </Button>
+                <Button variant="outline" className="bg-space-800/50 hover:bg-space-700/50 border-space-700" onClick={resetImport}>继续导入</Button>
+                <Button onClick={handleClose}>关闭</Button>
               </div>
             </div>
           ) : (
@@ -301,9 +358,7 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
                 <button
                   onClick={() => setImportMode('celestrak')}
                   className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    importMode === 'celestrak'
-                      ? 'bg-cosmic-blue text-white shadow-lg'
-                      : 'text-space-400 hover:text-space-100 hover:bg-space-700/50'
+                    importMode === 'celestrak' ? 'bg-cosmic-blue text-white shadow-lg' : 'text-space-400 hover:text-space-100 hover:bg-space-700/50'
                   }`}
                 >
                   <Download className="h-4 w-4" />
@@ -312,9 +367,7 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
                 <button
                   onClick={() => setImportMode('file')}
                   className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    importMode === 'file'
-                      ? 'bg-cosmic-blue text-white shadow-lg'
-                      : 'text-space-400 hover:text-space-100 hover:bg-space-700/50'
+                    importMode === 'file' ? 'bg-cosmic-blue text-white shadow-lg' : 'text-space-400 hover:text-space-100 hover:bg-space-700/50'
                   }`}
                 >
                   <Upload className="h-4 w-4" />
@@ -336,97 +389,80 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
                     <span className="text-cosmic-blue text-sm">{progress}%</span>
                   </div>
                   <div className="h-2 bg-space-700 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-cosmic-blue to-cosmic-purple transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    />
+                    <div className="h-full bg-gradient-to-r from-cosmic-blue to-cosmic-purple transition-all duration-300" style={{ width: `${progress}%` }} />
                   </div>
                 </div>
               )}
 
               {importMode === 'celestrak' && (
                 <div className="space-y-4">
-                  {/* Search by NORAD or name */}
                   <div className="space-y-2">
-                    <p className="text-space-400 text-sm">按 NORAD ID 或名称搜索特定卫星：</p>
+                    <p className="text-space-400 text-sm">按 NORAD ID 或名称搜索：</p>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-space-500" />
                         <Input
                           type="text"
-                          placeholder="输入 NORAD ID (如 25544) 或卫星名称 (如 Hubble)"
+                          placeholder="NORAD ID (如 25544) 或名称 (如 Hubble)"
                           value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && searchQuery.trim()) {
-                              startImport();
-                            }
-                          }}
+                          onChange={(e) => { setSearchQuery(e.target.value); setSelectedCategory(''); setSelectedConstellation(''); }}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && searchQuery.trim()) startImport(); }}
                           className="pl-9 bg-space-800/50 border-space-700"
                         />
                       </div>
-                      <Button
-                        onClick={startImport}
-                        disabled={isImporting || !searchQuery.trim()}
-                        className="bg-cosmic-blue hover:bg-cosmic-blue/80"
-                      >
-                        搜索
-                      </Button>
+                      <Button onClick={startImport} disabled={isImporting || !searchQuery.trim()} className="bg-cosmic-blue hover:bg-cosmic-blue/80">搜索</Button>
                     </div>
-                    <p className="text-space-500 text-xs">输入 NORAD ID 精确查找，或输入名称模糊搜索</p>
                   </div>
 
-                  {/* Divider */}
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-space-700" />
-                    <span className="text-space-500 text-xs">或按分类批量导入</span>
+                    <span className="text-space-500 text-xs">按星座导入</span>
                     <div className="flex-1 h-px bg-space-700" />
                   </div>
 
-                  {/* Category selection */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {CELESTRAK_CATEGORIES.map((category) => (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {CONSTELLATIONS.map((c) => (
                       <button
-                        key={category.name}
-                        onClick={() => {
-                          setSelectedCategory(category.name);
-                          setSearchQuery('');
-                        }}
-                        className={`p-3 rounded-lg border text-left transition-all ${
-                          selectedCategory === category.name && !searchQuery
-                            ? 'border-cosmic-blue bg-cosmic-blue/20'
-                            : 'border-space-700 bg-space-800/30 hover:bg-space-700/50 hover:border-space-600'
+                        key={c.name}
+                        onClick={() => { setSelectedConstellation(c.name); setSearchQuery(''); setSelectedCategory(''); }}
+                        className={`p-2 rounded-lg border text-left transition-all text-sm ${
+                          selectedConstellation === c.name ? 'border-cosmic-blue bg-cosmic-blue/20' : 'border-space-700 bg-space-800/30 hover:bg-space-700/50'
                         }`}
                       >
-                        <p className="text-space-100 font-medium text-sm">{category.label}</p>
-                        <p className="text-space-500 text-xs mt-1">{category.description}</p>
+                        <p className="text-space-100 font-medium">{c.label}</p>
+                        <p className="text-space-500 text-xs mt-0.5">{c.description}</p>
                       </button>
                     ))}
                   </div>
 
-                  {/* Start import button for category mode */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-space-700" />
+                    <span className="text-space-500 text-xs">按分类批量导入</span>
+                    <div className="flex-1 h-px bg-space-700" />
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {CELESTRAK_CATEGORIES.filter(c => !['starlink', 'gps-ops', 'glo-ops', 'galileo', 'beidou'].includes(c.name)).map((category) => (
+                      <button
+                        key={category.name}
+                        onClick={() => { setSelectedCategory(category.name); setSearchQuery(''); setSelectedConstellation(''); }}
+                        className={`p-2 rounded-lg border text-left transition-all text-sm ${
+                          selectedCategory === category.name && !searchQuery && !selectedConstellation
+                            ? 'border-cosmic-blue bg-cosmic-blue/20'
+                            : 'border-space-700 bg-space-800/30 hover:bg-space-700/50'
+                        }`}
+                      >
+                        <p className="text-space-100 font-medium">{category.label}</p>
+                        <p className="text-space-500 text-xs mt-0.5">{category.description}</p>
+                      </button>
+                    ))}
+                  </div>
+
                   {!searchQuery.trim() && (
                     <div className="flex justify-end gap-3 pt-2">
-                      <Button
-                        variant="outline"
-                        className="bg-space-800/50 hover:bg-space-700/50 border-space-700"
-                        onClick={handleClose}
-                      >
-                        取消
-                      </Button>
-                      <Button
-                        onClick={startImport}
-                        disabled={isImporting || (!searchQuery.trim() && !selectedCategory)}
-                        className="bg-cosmic-blue hover:bg-cosmic-blue/80"
-                      >
-                        {isImporting ? (
-                          <span className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            导入中...
-                          </span>
-                        ) : (
-                          '开始导入'
-                        )}
+                      <Button variant="outline" className="bg-space-800/50 hover:bg-space-700/50 border-space-700" onClick={handleClose}>取消</Button>
+                      <Button onClick={startImport} disabled={isImporting || (!searchQuery.trim() && !selectedCategory && !selectedConstellation)} className="bg-cosmic-blue hover:bg-cosmic-blue/80">
+                        {isImporting ? <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />导入中...</span> : '开始导入'}
                       </Button>
                     </div>
                   )}
@@ -441,18 +477,10 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
                     className={`relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
-                      uploadFile
-                        ? 'border-cosmic-blue bg-cosmic-blue/10'
-                        : 'border-space-700 bg-space-800/30 hover:border-space-600 hover:bg-space-700/30'
+                      uploadFile ? 'border-cosmic-blue bg-cosmic-blue/10' : 'border-space-700 bg-space-800/30 hover:border-space-600 hover:bg-space-700/30'
                     }`}
                   >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".txt,.tle"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
+                    <input ref={fileInputRef} type="file" accept=".txt,.tle" onChange={handleFileChange} className="hidden" />
                     <Upload className={`h-8 w-8 mx-auto mb-3 ${uploadFile ? 'text-cosmic-blue' : 'text-space-500'}`} />
                     {uploadFile ? (
                       <>
@@ -462,7 +490,7 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
                     ) : (
                       <>
                         <p className="text-space-300 text-sm">点击或拖拽文件到此处</p>
-                        <p className="text-space-500 text-xs mt-1">支持 .txt 和 .tle 格式</p>
+                        <p className="text-space-500 text-xs mt-1">支持 .txt 和 .tle 格式，客户端解析不上传</p>
                       </>
                     )}
                   </div>
@@ -471,26 +499,9 @@ export default function ImportModal({ isOpen, onClose, onSuccess }: ImportModalP
 
               {importMode === 'file' && (
                 <div className="flex justify-end gap-3 mt-6">
-                  <Button
-                    variant="outline"
-                    className="bg-space-800/50 hover:bg-space-700/50 border-space-700"
-                    onClick={handleClose}
-                  >
-                    取消
-                  </Button>
-                  <Button
-                    onClick={startImport}
-                    disabled={isImporting}
-                    className="bg-cosmic-blue hover:bg-cosmic-blue/80"
-                  >
-                    {isImporting ? (
-                      <span className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        导入中...
-                      </span>
-                    ) : (
-                      '开始导入'
-                    )}
+                  <Button variant="outline" className="bg-space-800/50 hover:bg-space-700/50 border-space-700" onClick={handleClose}>取消</Button>
+                  <Button onClick={startImport} disabled={isImporting || !uploadFile} className="bg-cosmic-blue hover:bg-cosmic-blue/80">
+                    {isImporting ? <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />导入中...</span> : '开始导入'}
                   </Button>
                 </div>
               )}

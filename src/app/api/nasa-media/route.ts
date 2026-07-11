@@ -127,6 +127,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: '缺少查询参数' }, { status: 400 });
   }
 
+  // 参数长度限制
+  if (query.length > 100) {
+    return NextResponse.json({ success: false, error: '搜索内容过长' }, { status: 400 });
+  }
+
   try {
     const strategies = getSearchStrategies(query);
 

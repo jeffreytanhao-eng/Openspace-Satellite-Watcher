@@ -53,6 +53,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // 参数长度限制
+    if (query.length > 100) {
+      return NextResponse.json(
+        { success: false, error: '搜索内容过长' },
+        { status: 400 }
+      );
+    }
+
     // Determine if query is a NORAD ID (numeric) or a name
     const isNumeric = /^\d+$/.test(query.trim());
     const paramName = isNumeric ? 'CATNR' : 'NAME';

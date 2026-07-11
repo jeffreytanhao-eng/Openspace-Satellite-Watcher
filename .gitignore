@@ -15,17 +15,28 @@ prisma/migrations/
 prisma/dev.db
 prisma/dev.db-journal
 
-# Cesium static assets (copied from node_modules by next.config.mjs)
+# Cesium static assets
 public/cesium/
 
-# Graphify knowledge graph (generated artifacts)
+# Graphify
 graphify-out/
 .graphify_uncached.txt
 
 # Debug logs
 .dbg/
 
-# TypeScript build cache
+# TypeScript cache
 *.tsbuildinfo
 .vercel
-.env*
+
+# Build deploy package
+app-pkg/
+app-pkg.tar.gz
+
+# Server config backup
+satellite-nginx.conf
+
+# Environment files
+.env.hk
+.env.production
+.env.vercel

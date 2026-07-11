@@ -103,6 +103,14 @@ export async function POST(request: NextRequest) {
     const tleText = await response.text();
     const results = parseTLEText(tleText);
 
+    // 限制单次导入最多 100 颗
+    const IMPORT_LIMIT = 100;
+    let truncated = false;
+    if (results.satellites.length > IMPORT_LIMIT) {
+      results.satellites = results.satellites.slice(0, IMPORT_LIMIT);
+      truncated = true;
+    }
+
     return NextResponse.json({
       success: true,
       data: {
@@ -111,6 +119,8 @@ export async function POST(request: NextRequest) {
           success: results.success,
           failed: results.failed,
           failures: results.failures,
+          truncated,
+          limit: IMPORT_LIMIT,
         },
         satellites: results.satellites,
       },

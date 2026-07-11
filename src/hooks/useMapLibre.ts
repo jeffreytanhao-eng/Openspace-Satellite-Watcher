@@ -33,8 +33,8 @@ export function useMapLibre() {
     const map = new maplibre.Map({
       container,
       style: createDarkMapStyle(),
-      center: [0, 0],
-      zoom: 2,
+      center: [110, 35],
+      zoom: 3,
       minZoom: 1,
       maxZoom: 10,
       attributionControl: false,
@@ -201,8 +201,8 @@ export function useMapLibre() {
     if (!instance) return;
 
     instance.map.flyTo({
-      center: [0, 0],
-      zoom: 2,
+      center: [110, 35],
+      zoom: 3,
       duration: 1500
     });
   }, []);
@@ -463,8 +463,8 @@ function createDarkMapStyle(): maplibregl.StyleSpecification {
         }
       }
     ],
-    center: [0, 0],
-    zoom: 2,
+    center: [110, 35],
+    zoom: 3,
     pitch: 0,
     bearing: 0
   };

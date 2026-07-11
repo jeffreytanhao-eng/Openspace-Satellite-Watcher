@@ -1,6 +1,14 @@
 import { create } from 'zustand';
-import type { TLEData } from '@/lib/tle/parser';
-import type { ObjectType } from '@prisma/client';
+
+export type ObjectType = 'PAYLOAD' | 'ROCKET_BODY' | 'DEBRIS' | 'UNKNOWN';
+
+export interface TLEData {
+  id?: string;
+  name: string;
+  line1: string;
+  line2: string;
+  epoch: Date;
+}
 
 export interface SpaceObject {
   id: string;
@@ -8,15 +16,16 @@ export interface SpaceObject {
   name: string;
   country?: string;
   objectType: ObjectType;
-  launchDate?: Date;
-  launchSite?: string;
-  owner?: string;
+  launchDate?: Date | string | null;
+  launchSite?: string | null;
+  owner?: string | null;
   isActive: boolean;
   model3dUrl?: string | null;
   imageUrl?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   tleData: TLEData[];
+  tags?: { id: string; name: string; color: string }[];
 }
 
 export interface OrbitCacheEntry {
@@ -57,7 +66,9 @@ export interface SatelliteStoreActions {
   setSatellites: (satellites: SpaceObject[]) => void;
   addSatellites: (satellites: SpaceObject[]) => void;
   removeSatellite: (noradId: number) => void;
+  removeSatellites: (noradIds: number[]) => void;
   updateSatellite: (satellite: SpaceObject) => void;
+  updateSatelliteImage: (noradId: number, imageUrl: string) => void;
   setSelectedSatellite: (satellite: SpaceObject | null) => void;
   setViewMode: (mode: ViewMode) => void;
   setTimeState: (timeState: Partial<TimeState>) => void;
@@ -70,9 +81,13 @@ export interface SatelliteStoreActions {
   clearError: () => void;
   triggerFocus: () => void;
   setTracking: (noradId: number | null) => void;
+  resetToDefault: () => void;
 }
 
-const MAX_SATELLITES = 1000;
+const MAX_SATELLITES = 200;
+
+// 默认12颗卫星直接在前端定义，避免依赖服务器
+const defaultSatellites: SpaceObject[] = [];
 
 export const useSatelliteStore = create<SatelliteStoreState & SatelliteStoreActions>((set, get) => ({
   satellites: [],
@@ -93,7 +108,7 @@ export const useSatelliteStore = create<SatelliteStoreState & SatelliteStoreActi
   setSatellites: (satellites) => {
     if (satellites.length > MAX_SATELLITES) {
       console.warn(`卫星数量超过限制 ${MAX_SATELLITES}，将只加载前 ${MAX_SATELLITES} 个`);
-      set({ satellites: satellites.slice(0, MAX_SATELLITES), error: `卫星数量超过限制，仅显示前 ${MAX_SATELLITES} 个` });
+      set({ satellites: satellites.slice(0, MAX_SATELLITES), error: `卫星数量超过限制（最多${MAX_SATELLITES}颗），仅显示前 ${MAX_SATELLITES} 个` });
     } else {
       set({ satellites, error: null });
     }
@@ -101,12 +116,15 @@ export const useSatelliteStore = create<SatelliteStoreState & SatelliteStoreActi
 
   addSatellites: (satellites) => {
     const current = get().satellites;
+    const currentCount = current.length;
     const newSatellites = satellites.filter(s => !current.some(c => c.noradId === s.noradId));
-    const combined = [...current, ...newSatellites];
-    
-    if (combined.length > MAX_SATELLITES) {
-      console.warn(`卫星数量超过限制 ${MAX_SATELLITES}`);
-      set({ satellites: combined.slice(0, MAX_SATELLITES), error: `卫星数量超过限制，仅显示前 ${MAX_SATELLITES} 个` });
+    const canAdd = Math.max(0, MAX_SATELLITES - currentCount);
+    const toAdd = newSatellites.slice(0, canAdd);
+    const overflow = newSatellites.length - toAdd.length;
+    const combined = [...current, ...toAdd];
+
+    if (overflow > 0) {
+      set({ satellites: combined, error: `最多显示${MAX_SATELLITES}颗卫星，已忽略 ${overflow} 颗` });
     } else {
       set({ satellites: combined, error: null });
     }
@@ -120,12 +138,32 @@ export const useSatelliteStore = create<SatelliteStoreState & SatelliteStoreActi
     }));
   },
 
+  removeSatellites: (noradIds) => {
+    const deleteSet = new Set(noradIds);
+    set(state => ({
+      satellites: state.satellites.filter(s => !deleteSet.has(s.noradId)),
+      visibleSatellites: state.visibleSatellites.filter(id => !deleteSet.has(id)),
+      selectedSatellite: state.selectedSatellite && deleteSet.has(state.selectedSatellite.noradId) ? null : state.selectedSatellite
+    }));
+  },
+
   updateSatellite: (satellite) => {
     set(state => ({
-      satellites: state.satellites.map(s => 
+      satellites: state.satellites.map(s =>
         s.noradId === satellite.noradId ? satellite : s
       ),
       selectedSatellite: state.selectedSatellite?.noradId === satellite.noradId ? satellite : state.selectedSatellite
+    }));
+  },
+
+  updateSatelliteImage: (noradId, imageUrl) => {
+    set(state => ({
+      satellites: state.satellites.map(s =>
+        s.noradId === noradId ? { ...s, imageUrl } : s
+      ),
+      selectedSatellite: state.selectedSatellite?.noradId === noradId
+        ? { ...state.selectedSatellite, imageUrl }
+        : state.selectedSatellite
     }));
   },
 
@@ -185,7 +223,11 @@ export const useSatelliteStore = create<SatelliteStoreState & SatelliteStoreActi
 
   setTracking: (noradId) => {
     set({ trackingNoradId: noradId });
-  }
+  },
+
+  resetToDefault: () => {
+    set({ satellites: defaultSatellites, visibleSatellites: [], selectedSatellite: null, orbitCache: new Map() });
+  },
 }));
 
 export const useSatellites = () => useSatelliteStore(state => state.satellites);
