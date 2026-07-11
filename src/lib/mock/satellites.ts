@@ -55,7 +55,7 @@ export const mockSatellites = [
     },
   },
   {
-    noradId: 53421,
+    noradId: 53239,
     name: 'CSS (WENTIAN)',
     country: 'CHN',
     objectType: 'PAYLOAD',
@@ -65,8 +65,23 @@ export const mockSatellites = [
     isActive: true,
     tleData: {
       name: 'CSS (WENTIAN)',
-      line1: '1 53421U 22077A   26188.92184537  .00006844  00000+0  92847-4 0  9991',
-      line2: '2 53421  41.4698 196.0052 0002962 276.1812  83.8689 15.58032789296398',
+      line1: '1 53239U 22085A   26191.59979599  .00001397  00000+0  22374-4 0  9991',
+      line2: '2 53239  41.4687 179.6858 0002649 286.3424  73.7123 15.58017112288235',
+    },
+  },
+  {
+    noradId: 54216,
+    name: 'CSS (MENGTIAN)',
+    country: 'CHN',
+    objectType: 'PAYLOAD',
+    launchDate: '2022-10-31',
+    launchSite: 'Wenchang',
+    owner: 'CMSA',
+    isActive: true,
+    tleData: {
+      name: 'CSS (MENGTIAN)',
+      line1: '1 54216U 22143A   26192.17670403  .00001365  00000+0  21953-4 0  9996',
+      line2: '2 54216  41.4681 176.1877 0002261 281.6943  78.3641 15.58018743296317',
     },
   },
   // ===== 更多 LEO 对地观测卫星（TLE from Celestrak 2026-07-08）=====
