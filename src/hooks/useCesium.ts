@@ -143,10 +143,10 @@ export function useCesium() {
       } catch { /* ignore */ }
 
       viewer.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(110, 35, 20000000),
+        destination: Cesium.Cartesian3.fromDegrees(110, 20, 22000000),
         orientation: {
-          heading: 0.0,
-          pitch: Cesium.Math.toRadians(-90),
+          heading: Cesium.Math.toRadians(0),
+          pitch: Cesium.Math.toRadians(-50),
           roll: 0.0,
         },
       });
@@ -226,10 +226,10 @@ export function useCesium() {
     const inst = cesiumRef.current;
     if (!inst) return;
     inst.viewer.camera.flyTo({
-      destination: inst.Cesium.Cartesian3.fromDegrees(110, 35, 20000000),
+      destination: inst.Cesium.Cartesian3.fromDegrees(110, 20, 22000000),
       orientation: {
-        heading: 0.0,
-        pitch: inst.Cesium.Math.toRadians(-90),
+        heading: inst.Cesium.Math.toRadians(0),
+        pitch: inst.Cesium.Math.toRadians(-50),
         roll: 0.0,
       },
       duration: 1.5,

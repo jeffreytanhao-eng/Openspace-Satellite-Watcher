@@ -235,7 +235,7 @@ export default function HomePage() {
       const headers: Record<string, string> = { 'x-admin-password': password };
       const resp = await fetch('/api/tle/refresh', {
         method: 'POST', headers: { 'Content-Type': 'application/json', ...headers },
-        body: JSON.stringify({ noradIds: allSatellites.map(s => s.noradId) }),
+        body: JSON.stringify({}),
       });
       const result = await resp.json();
       if (resp.status === 401) {

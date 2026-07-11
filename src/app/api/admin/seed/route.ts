@@ -14,12 +14,27 @@ function parseTLEEpoch(line1: string): Date {
 }
 
 // POST：管理员初始化种子数据
+// 若 body 包含 reset: true，则先删除所有非默认卫星
 export async function POST(request: NextRequest) {
   if (!verifyPassword(request)) {
     return NextResponse.json({ success: false, error: '需要管理员权限' }, { status: 401 });
   }
 
   try {
+    let body: { reset?: boolean } = {};
+    try { body = await request.json(); } catch { /* no body */ }
+    const defaultNoradIds = mockSatellites.map(s => s.noradId);
+
+    if (body.reset) {
+      // 删除所有非默认卫星及其TLE数据
+      await prisma.tLEData.deleteMany({
+        where: { spaceObject: { noradId: { notIn: defaultNoradIds } } },
+      });
+      await prisma.spaceObject.deleteMany({
+        where: { noradId: { notIn: defaultNoradIds } },
+      });
+    }
+
     let satellitesCreated = 0;
     let tleCreated = 0;
     let tagsCreated = 0;

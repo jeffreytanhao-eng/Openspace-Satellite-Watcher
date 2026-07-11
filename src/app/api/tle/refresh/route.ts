@@ -74,13 +74,14 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
-    const noradIds: number[] = body.noradIds;
-    if (!Array.isArray(noradIds) || noradIds.length === 0) {
-      return NextResponse.json({ success: false, error: '请提供要刷新的卫星 NORAD ID 列表' }, { status: 400 });
+    // 从数据库获取所有已存在的卫星ID（不接受前端传来的ID，避免临时导入的卫星被写入DB）
+    const dbSatellites = await prisma.spaceObject.findMany({ select: { noradId: true } });
+    const noradIds = dbSatellites.map(s => s.noradId);
+    if (noradIds.length === 0) {
+      return NextResponse.json({ success: false, error: '数据库中没有卫星数据，请先初始化种子数据' }, { status: 400 });
     }
     if (noradIds.length > 200) {
-      return NextResponse.json({ success: false, error: '单次最多刷新 200 颗卫星' }, { status: 400 });
+      return NextResponse.json({ success: false, error: `卫星数量过多(${noradIds.length})，单次最多刷新 200 颗` }, { status: 400 });
     }
 
     const updated: ParsedTLE[] = [];
