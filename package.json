@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/setup-env.cjs && prisma db push && next build",
+    "build": "node scripts/setup-env.cjs",
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx prisma/seed.ts",

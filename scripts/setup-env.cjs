@@ -1,35 +1,54 @@
 // Setup environment variables for Prisma before build
 // On Vercel, Neon integration provides POSTGRES_PRISMA_URL instead of DATABASE_URL
+// Prisma CLI reads from .env file by default (not .env.production)
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
-const envVars = {};
-
-// Map Vercel Neon env vars to Prisma expected vars
-if (process.env.POSTGRES_PRISMA_URL && !process.env.DATABASE_URL) {
-  envVars.DATABASE_URL = process.env.POSTGRES_PRISMA_URL;
+// Map Vercel Neon env vars
+if (!process.env.DATABASE_URL && process.env.POSTGRES_PRISMA_URL) {
+  process.env.DATABASE_URL = process.env.POSTGRES_PRISMA_URL;
 }
-if (process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
-  envVars.DATABASE_URL = process.env.POSTGRES_URL;
+if (!process.env.DATABASE_URL && process.env.POSTGRES_URL) {
+  process.env.DATABASE_URL = process.env.POSTGRES_URL;
 }
-if (process.env.DATABASE_URL_UNPOOLED && !process.env.POSTGRES_URL_NON_POOLING) {
-  envVars.POSTGRES_URL_NON_POOLING = process.env.DATABASE_URL_UNPOOLED;
+if (!process.env.POSTGRES_URL_NON_POOLING && process.env.DATABASE_URL_UNPOOLED) {
+  process.env.POSTGRES_URL_NON_POOLING = process.env.DATABASE_URL_UNPOOLED;
 }
-
-if (Object.keys(envVars).length > 0) {
-  const envFile = path.join(__dirname, '..', '.env.production');
-  let content = '';
-  if (fs.existsSync(envFile)) {
-    content = fs.readFileSync(envFile, 'utf8');
+// Also write to .env file so Prisma CLI can read it
+const envPath = path.join(__dirname, '..', '.env');
+let envContent = '';
+if (fs.existsSync(envPath)) {
+  envContent = fs.readFileSync(envPath, 'utf8');
+}
+if (process.env.DATABASE_URL) {
+  if (envContent.match(/^DATABASE_URL=/m)) {
+    envContent = envContent.replace(/^DATABASE_URL=.*$/m, `DATABASE_URL="${process.env.DATABASE_URL}"`);
+  } else {
+    envContent += `\nDATABASE_URL="${process.env.DATABASE_URL}"\n`;
   }
-  for (const [key, val] of Object.entries(envVars)) {
-    // Remove existing entry if present
-    content = content.replace(new RegExp(`^${key}=.*$`, 'm'), '');
-    content += `${key}="${val}"\n`;
-    console.log(`[setup-env] Set ${key}`);
-  }
-  fs.writeFileSync(envFile, content);
-  console.log('[setup-env] Wrote env vars to .env.production');
+  fs.writeFileSync(envPath, envContent);
+  console.log('[setup-env] DATABASE_URL configured');
 } else {
-  console.log('[setup-env] No env mapping needed');
+  console.log('[setup-env] DATABASE_URL already set or not needed');
 }
+
+// Now run prisma db push
+console.log('[setup-env] Running: prisma db push');
+const prismaResult = spawnSync('npx', ['prisma', 'db push'], {
+  stdio: 'inherit',
+  env: process.env,
+  cwd: path.join(__dirname, '..'),
+});
+if (prismaResult.status !== 0) {
+  process.exit(prismaResult.status || 1);
+}
+
+// Then run next build
+console.log('[setup-env] Running: next build');
+const nextResult = spawnSync('npx', ['next', 'build'], {
+  stdio: 'inherit',
+  env: process.env,
+  cwd: path.join(__dirname, '..'),
+});
+process.exit(nextResult.status || 0);
