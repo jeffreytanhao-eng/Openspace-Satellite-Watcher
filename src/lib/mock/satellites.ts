@@ -69,21 +69,6 @@ export const mockSatellites = [
       line2: '2 53421  41.4698 196.0052 0002962 276.1812  83.8689 15.58032789296398',
     },
   },
-  {
-    noradId: 54219,
-    name: 'CSS (MENGTIAN)',
-    country: 'CHN',
-    objectType: 'PAYLOAD',
-    launchDate: '2022-10-31',
-    launchSite: 'Wenchang',
-    owner: 'CMSA',
-    isActive: true,
-    tleData: {
-      name: 'CSS (MENGTIAN)',
-      line1: '1 54219U 22090A   26188.93512791  .00006844  00000+0  92847-4 0  9997',
-      line2: '2 54219  41.4712 196.0089 0002973 276.1678  83.8823 15.58032789296390',
-    },
-  },
   // ===== 更多 LEO 对地观测卫星（TLE from Celestrak 2026-07-08）=====
   {
     noradId: 25994,
