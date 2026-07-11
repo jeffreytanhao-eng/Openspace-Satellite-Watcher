@@ -1,54 +1,32 @@
-// Setup environment variables for Prisma before build
-// On Vercel, Neon integration provides POSTGRES_PRISMA_URL instead of DATABASE_URL
-// Prisma CLI reads from .env file by default (not .env.production)
-const fs = require('fs');
-const path = require('path');
+// Setup environment variables for Vercel builds
+// Usage:
+//   postinstall: node scripts/setup-env.cjs postinstall  -> runs prisma generate with DATABASE_URL
+//   build:       node scripts/setup-env.cjs              -> runs next build with DATABASE_URL
 const { spawnSync } = require('child_process');
 
 // Map Vercel Neon env vars
-if (!process.env.DATABASE_URL && process.env.POSTGRES_PRISMA_URL) {
-  process.env.DATABASE_URL = process.env.POSTGRES_PRISMA_URL;
-}
-if (!process.env.DATABASE_URL && process.env.POSTGRES_URL) {
-  process.env.DATABASE_URL = process.env.POSTGRES_URL;
+if (!process.env.DATABASE_URL) {
+  if (process.env.POSTGRES_PRISMA_URL) {
+    process.env.DATABASE_URL = process.env.POSTGRES_PRISMA_URL;
+  } else if (process.env.POSTGRES_URL) {
+    process.env.DATABASE_URL = process.env.POSTGRES_URL;
+  } else {
+    // Fallback: set a dummy URL so prisma generate doesn't fail at postinstall
+    // prisma generate only parses the schema, doesn't connect to the DB
+    process.env.DATABASE_URL = 'postgresql://placeholder:placeholder@localhost:5432/placeholder?schema=public';
+  }
 }
 if (!process.env.POSTGRES_URL_NON_POOLING && process.env.DATABASE_URL_UNPOOLED) {
   process.env.POSTGRES_URL_NON_POOLING = process.env.DATABASE_URL_UNPOOLED;
 }
-// Also write to .env file so Prisma CLI can read it
-const envPath = path.join(__dirname, '..', '.env');
-let envContent = '';
-if (fs.existsSync(envPath)) {
-  envContent = fs.readFileSync(envPath, 'utf8');
-}
-if (process.env.DATABASE_URL) {
-  if (envContent.match(/^DATABASE_URL=/m)) {
-    envContent = envContent.replace(/^DATABASE_URL=.*$/m, `DATABASE_URL="${process.env.DATABASE_URL}"`);
-  } else {
-    envContent += `\nDATABASE_URL="${process.env.DATABASE_URL}"\n`;
-  }
-  fs.writeFileSync(envPath, envContent);
-  console.log('[setup-env] DATABASE_URL configured');
-} else {
-  console.log('[setup-env] DATABASE_URL already set or not needed');
-}
 
-// Now run prisma db push
-console.log('[setup-env] Running: prisma db push');
-const prismaResult = spawnSync('npx', ['prisma', 'db push'], {
+const isPostinstall = process.argv[2] === 'postinstall';
+const cmd = isPostinstall ? ['prisma', 'generate'] : ['next', 'build'];
+console.log(`[setup-env] Running: npx ${cmd.join(' ')} (DATABASE_URL=${!!process.env.DATABASE_URL})`);
+
+const result = spawnSync('npx', cmd, {
   stdio: 'inherit',
   env: process.env,
-  cwd: path.join(__dirname, '..'),
+  cwd: require('path').join(__dirname, '..'),
 });
-if (prismaResult.status !== 0) {
-  process.exit(prismaResult.status || 1);
-}
-
-// Then run next build
-console.log('[setup-env] Running: next build');
-const nextResult = spawnSync('npx', ['next', 'build'], {
-  stdio: 'inherit',
-  env: process.env,
-  cwd: path.join(__dirname, '..'),
-});
-process.exit(nextResult.status || 0);
+process.exit(result.status || 0);
