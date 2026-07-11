@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { Source } from '@prisma/client';
 
 const CELESTRAK_BASE_URL = 'https://celestrak.org/NORAD/elements/gp.php';
-const BATCH_SIZE = 50;
+const CONCURRENCY = 5;
 
 interface ParsedTLE {
   noradId: number;
@@ -65,11 +65,9 @@ export async function POST(request: NextRequest) {
     const updated: ParsedTLE[] = [];
     const failed: { noradId: number; reason: string }[] = [];
 
-    for (let i = 0; i < noradIds.length; i += BATCH_SIZE) {
-      const batch = noradIds.slice(i, i + BATCH_SIZE);
-      const catnr = batch.join(',');
-      const url = `${CELESTRAK_BASE_URL}?CATNR=${encodeURIComponent(catnr)}&FORMAT=tle`;
-
+    // Celestrak CATNR 不支持逗号分隔，逐个并发请求
+    const fetchOne = async (noradId: number): Promise<void> => {
+      const url = `${CELESTRAK_BASE_URL}?CATNR=${noradId}&FORMAT=tle`;
       try {
         const response = await fetch(url, {
           headers: {
@@ -78,27 +76,36 @@ export async function POST(request: NextRequest) {
             'Accept-Language': 'en-US,en;q=0.9',
             'Referer': 'https://celestrak.org/',
           },
-          signal: AbortSignal.timeout(20000),
+          signal: AbortSignal.timeout(15000),
         });
 
         if (!response.ok) {
-          batch.forEach(id => failed.push({ noradId: id, reason: `Celestrak 返回 ${response.status}` }));
-          continue;
+          failed.push({ noradId, reason: `Celestrak 返回 ${response.status}` });
+          return;
         }
 
         const tleText = await response.text();
-        const parsed = parseTLEText(tleText);
-        const foundIds = new Set(parsed.map(p => p.noradId));
-        updated.push(...parsed);
+        if (tleText.includes('Invalid query') || tleText.includes('No GP data')) {
+          failed.push({ noradId, reason: 'Celestrak 未找到该卫星数据' });
+          return;
+        }
 
-        batch.forEach(id => {
-          if (!foundIds.has(id)) {
-            failed.push({ noradId: id, reason: 'Celestrak 未返回该卫星的 TLE 数据' });
-          }
-        });
+        const parsed = parseTLEText(tleText);
+        const found = parsed.find(p => p.noradId === noradId);
+        if (found) {
+          updated.push(found);
+        } else {
+          failed.push({ noradId, reason: 'TLE 数据解析失败' });
+        }
       } catch {
-        batch.forEach(id => failed.push({ noradId: id, reason: '请求超时或网络错误' }));
+        failed.push({ noradId, reason: '请求超时或网络错误' });
       }
+    };
+
+    // 并发控制：每次 CONCURRENCY 个请求
+    for (let i = 0; i < noradIds.length; i += CONCURRENCY) {
+      const chunk = noradIds.slice(i, i + CONCURRENCY);
+      await Promise.all(chunk.map(id => fetchOne(id)));
     }
 
     // 写回数据库
