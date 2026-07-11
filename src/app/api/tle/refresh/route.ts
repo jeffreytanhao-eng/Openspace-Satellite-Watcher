@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { Source } from '@prisma/client';
 
 const CELESTRAK_BASE_URL = 'https://celestrak.org/NORAD/elements/gp.php';
 const BATCH_SIZE = 50;
@@ -8,6 +10,17 @@ interface ParsedTLE {
   name: string;
   line1: string;
   line2: string;
+  epoch: Date;
+}
+
+function parseEpoch(line1: string): Date {
+  const yearStr = line1.slice(18, 20).trim();
+  const dayStr = line1.slice(20, 32).trim();
+  const fullYear = parseInt(yearStr, 10) >= 57 ? 1900 + parseInt(yearStr, 10) : 2000 + parseInt(yearStr, 10);
+  const dayOfYear = parseFloat(dayStr);
+  const start = new Date(Date.UTC(fullYear, 0, 1));
+  const ms = (dayOfYear - 1) * 86400000;
+  return new Date(start.getTime() + ms);
 }
 
 function parseTLEText(tleText: string): ParsedTLE[] {
@@ -26,7 +39,8 @@ function parseTLEText(tleText: string): ParsedTLE[] {
       if (line1?.startsWith('1') && line2?.startsWith('2')) {
         const noradId = parseInt(line1.slice(2, 7).trim());
         if (!isNaN(noradId)) {
-          results.push({ noradId, name, line1, line2 });
+          const epoch = parseEpoch(line1);
+          results.push({ noradId, name, line1, line2, epoch });
         }
         i += 2;
       }
@@ -51,7 +65,6 @@ export async function POST(request: NextRequest) {
     const updated: ParsedTLE[] = [];
     const failed: { noradId: number; reason: string }[] = [];
 
-    // 分批请求 Celestrak（避免 URL 过长）
     for (let i = 0; i < noradIds.length; i += BATCH_SIZE) {
       const batch = noradIds.slice(i, i + BATCH_SIZE);
       const catnr = batch.join(',');
@@ -75,12 +88,9 @@ export async function POST(request: NextRequest) {
 
         const tleText = await response.text();
         const parsed = parseTLEText(tleText);
-
-        // 匹配返回结果与请求的 NORAD ID
         const foundIds = new Set(parsed.map(p => p.noradId));
         updated.push(...parsed);
 
-        // 标记未找到的
         batch.forEach(id => {
           if (!foundIds.has(id)) {
             failed.push({ noradId: id, reason: 'Celestrak 未返回该卫星的 TLE 数据' });
@@ -91,14 +101,63 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 写回数据库
+    let dbUpdated = 0;
+    for (const tle of updated) {
+      const spaceObject = await prisma.spaceObject.findUnique({
+        where: { noradId: tle.noradId },
+        select: { id: true },
+      });
+      if (!spaceObject) continue;
+
+      // 更新卫星名称（可能有变更）
+      await prisma.spaceObject.update({
+        where: { noradId: tle.noradId },
+        data: { name: tle.name },
+      });
+
+      // 插入或更新 TLE 数据（upsert 按 spaceObjectId+epoch 唯一键）
+      await prisma.tLEData.upsert({
+        where: {
+          spaceObjectId_epoch: {
+            spaceObjectId: spaceObject.id,
+            epoch: tle.epoch,
+          },
+        },
+        create: {
+          spaceObjectId: spaceObject.id,
+          line1: tle.line1,
+          line2: tle.line2,
+          epoch: tle.epoch,
+          source: Source.CELESTRAK_API,
+        },
+        update: {
+          line1: tle.line1,
+          line2: tle.line2,
+          fetchedAt: new Date(),
+        },
+      });
+      dbUpdated++;
+    }
+
+    // 清除过期轨道缓存（让后续请求用新 TLE 重新计算）
+    await prisma.orbitCache.deleteMany({
+      where: {
+        spaceObject: {
+          noradId: { in: updated.map(t => t.noradId) },
+        },
+      },
+    });
+
     return NextResponse.json({
       success: true,
       data: {
-        updated,
+        updated: updated.map(({ noradId, name, line1, line2 }) => ({ noradId, name, line1, line2 })),
         failed,
         total: noradIds.length,
         updatedCount: updated.length,
         failedCount: failed.length,
+        dbUpdated,
       },
     });
   } catch (error) {
