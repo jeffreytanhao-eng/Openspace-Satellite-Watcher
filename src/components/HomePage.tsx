@@ -146,8 +146,10 @@ export default function HomePage() {
 
   // 密码弹窗状态
   const [passwordModal, setPasswordModal] = useState<{
-    isOpen: boolean; action: 'refreshTLE' | 'uploadImage'; noradId?: number; file?: File;
+    isOpen: boolean; action: 'refreshTLE' | 'uploadImage'; noradId?: number;
   }>({ isOpen: false, action: 'refreshTLE' });
+  // 图片上传授权时间戳（密码验证通过后递增，触发子组件打开文件选择器）
+  const [uploadAuthTs, setUploadAuthTs] = useState<{ noradId: number; ts: number } | null>(null);
   const startPlayback = useTimeStore(state => state.startPlayback);
 
   // 初始化：从数据库加载默认卫星
@@ -265,29 +267,40 @@ export default function HomePage() {
     }
   };
 
-  // 图片上传：需要密码验证（写入DB永久保存）
-  const handleImageUploadRequest = (noradId: number, file: File) => {
+  // 图片上传第一步：请求密码验证 -> 密码通过后触发子组件打开文件选择器
+  const handleRequestUploadAuth = (noradId: number) => {
     const savedPw = typeof window !== 'undefined' ? sessionStorage.getItem(SAVED_PASSWORD_KEY) : null;
     if (savedPw) {
-      doImageUpload(noradId, file, savedPw);
+      // 密码已验证过，直接授权打开文件选择器
+      setUploadAuthTs({ noradId, ts: Date.now() });
     } else {
-      setPasswordModal({ isOpen: true, action: 'uploadImage', noradId, file });
+      setPasswordModal({ isOpen: true, action: 'uploadImage', noradId });
     }
   };
 
-  const doImageUpload = async (noradId: number, file: File, password: string) => {
-    setPasswordModal(m => ({ ...m, isOpen: false }));
-    sessionStorage.setItem(SAVED_PASSWORD_KEY, password);
+  // 图片上传第二步：用户选完文件后，用已验证的密码上传到服务器
+  const handleImageUploadFile = async (noradId: number, file: File) => {
+    const password = typeof window !== 'undefined' ? sessionStorage.getItem(SAVED_PASSWORD_KEY) : null;
+    if (!password) {
+      window.dispatchEvent(new CustomEvent('satellite-image-upload-error', { detail: { noradId, error: '未验证密码，请重试' } }));
+      return;
+    }
     try {
       const resp = await apiClient.uploadSatelliteImage(noradId, file, password);
       if (resp.success && resp.data) {
         updateSatelliteImage(noradId, (resp.data as any).imageUrl);
+        window.dispatchEvent(new CustomEvent('satellite-image-upload-success', { detail: { noradId, success: true } }));
+      } else {
+        throw new Error((resp as any).error || '上传失败');
       }
     } catch (e) {
-      if ((e as Error).message.includes('401') || (e as Error).message.includes('权限')) {
+      const msg = (e as Error).message || '上传失败';
+      if (msg.includes('401') || msg.includes('权限')) {
         sessionStorage.removeItem(SAVED_PASSWORD_KEY);
+        window.dispatchEvent(new CustomEvent('satellite-image-upload-error', { detail: { noradId, error: '密码错误，请重新输入' } }));
+      } else {
+        window.dispatchEvent(new CustomEvent('satellite-image-upload-error', { detail: { noradId, error: msg } }));
       }
-      console.error('Image upload failed:', e);
     }
   };
 
@@ -363,8 +376,11 @@ export default function HomePage() {
   const handlePasswordSubmit = (password: string) => {
     if (passwordModal.action === 'refreshTLE') {
       doRefreshTLE(password);
-    } else if (passwordModal.action === 'uploadImage' && passwordModal.noradId && passwordModal.file) {
-      doImageUpload(passwordModal.noradId, passwordModal.file, password);
+    } else if (passwordModal.action === 'uploadImage' && passwordModal.noradId) {
+      setPasswordModal(m => ({ ...m, isOpen: false }));
+      sessionStorage.setItem(SAVED_PASSWORD_KEY, password);
+      // 密码验证通过，授权打开文件选择器
+      setUploadAuthTs({ noradId: passwordModal.noradId, ts: Date.now() });
     }
   };
 
@@ -453,8 +469,9 @@ export default function HomePage() {
                         <SatelliteDetailPanel
                           satellite={selectedSatellite} onClose={() => setSelectedSatellite(null)}
                           tags={tags} getSatelliteTags={getSatelliteTags}
-                          onImageUploaded={(imageUrl) => updateSatelliteImage(selectedSatellite.noradId, imageUrl)}
-                          onImageUploadRequest={handleImageUploadRequest}
+                          onRequestUploadAuth={handleRequestUploadAuth}
+                          onImageUploadFile={handleImageUploadFile}
+                          uploadGrantedAt={uploadAuthTs && uploadAuthTs.noradId === selectedSatellite.noradId ? uploadAuthTs.ts : 0}
                         />
                       </div>
                     )}

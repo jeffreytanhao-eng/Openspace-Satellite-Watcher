@@ -26,8 +26,9 @@ interface SatelliteDetailPanelProps {
   onClose: () => void;
   tags?: Tag[];
   getSatelliteTags?: (satellite: SpaceObject) => Tag[];
-  onImageUploaded?: (imageUrl: string) => void;
-  onImageUploadRequest?: (noradId: number, file: File) => void;
+  onRequestUploadAuth?: (noradId: number) => void;
+  onImageUploadFile?: (noradId: number, file: File) => void;
+  uploadGrantedAt?: number;
 }
 
 function calculateOrbitData(satellite: SpaceObject) {
@@ -57,7 +58,7 @@ function calculateOrbitData(satellite: SpaceObject) {
   }
 }
 
-export default function SatelliteDetailPanel({ satellite, onClose, tags = [], getSatelliteTags, onImageUploaded, onImageUploadRequest }: SatelliteDetailPanelProps) {
+export default function SatelliteDetailPanel({ satellite, onClose, tags = [], getSatelliteTags, onRequestUploadAuth, onImageUploadFile, uploadGrantedAt }: SatelliteDetailPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedSection, setExpandedSection] = useState<'orbit' | 'tle'>('orbit');
   const [showTagSelector, setShowTagSelector] = useState(false);
@@ -190,8 +191,9 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
               noradId={satellite.noradId}
               model3dUrl={satellite.model3dUrl}
               imageUrl={displayImageUrl}
-              onImageUploaded={(imageUrl) => onImageUploaded?.(imageUrl)}
-              onImageUploadRequest={(noradId, file) => onImageUploadRequest?.(noradId, file)}
+              onRequestUploadAuth={(id) => onRequestUploadAuth?.(id)}
+              onImageUploadFile={(id, file) => onImageUploadFile?.(id, file)}
+              uploadGrantedAt={uploadGrantedAt}
             />
           </div>
 

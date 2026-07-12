@@ -1,18 +1,19 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Upload, X, Check, AlertCircle } from 'lucide-react';
+import { Upload, X, Check, AlertCircle, Lock } from 'lucide-react';
 
 interface SatelliteMediaProps {
   satelliteName: string;
   noradId: number;
   model3dUrl?: string | null;
   imageUrl?: string | null;
-  onImageUploadRequest?: (noradId: number, file: File) => void;
-  onImageUploaded?: (imageUrl: string) => void;
+  onRequestUploadAuth: (noradId: number) => void;
+  onImageUploadFile: (noradId: number, file: File) => void;
+  uploadGrantedAt?: number; // timestamp when password auth passed -> opens file picker
 }
 
-export default function SatelliteMedia({ satelliteName, noradId, model3dUrl, imageUrl, onImageUploadRequest, onImageUploaded }: SatelliteMediaProps) {
+export default function SatelliteMedia({ satelliteName, noradId, model3dUrl, imageUrl, onRequestUploadAuth, onImageUploadFile, uploadGrantedAt }: SatelliteMediaProps) {
   const [modelError, setModelError] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
   const [showFullImage, setShowFullImage] = useState(false);
@@ -36,8 +37,49 @@ export default function SatelliteMedia({ satelliteName, noradId, model3dUrl, ima
     return () => el.removeEventListener('error', handleError);
   }, [model3dUrl]);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Password auth granted (uploadGrantedAt changes) -> open file picker
+  useEffect(() => {
+    if (uploadGrantedAt && uploadGrantedAt > 0) {
+      fileInputRef.current?.click();
+    }
+  }, [uploadGrantedAt]);
+
+  // Expose upload result methods via window events from parent
+  useEffect(() => {
+    const onSuccess = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      if (d && d.noradId === noradId && d.success) {
+        setUploading(false);
+        setUploadSuccess(true);
+        setUploadError(null);
+        setTimeout(() => setUploadSuccess(false), 3000);
+      }
+    };
+    const onError = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      if (d && d.noradId === noradId && d.error) {
+        setUploading(false);
+        setUploadError(d.error);
+      }
+    };
+    window.addEventListener('satellite-image-upload-success', onSuccess);
+    window.addEventListener('satellite-image-upload-error', onError);
+    return () => {
+      window.removeEventListener('satellite-image-upload-success', onSuccess);
+      window.removeEventListener('satellite-image-upload-error', onError);
+    };
+  }, [noradId]);
+
+  const handleUploadClick = () => {
+    setUploadError(null);
+    setUploadSuccess(false);
+    // Ask parent to verify password first
+    onRequestUploadAuth(noradId);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (fileInputRef.current) fileInputRef.current.value = '';
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -51,28 +93,8 @@ export default function SatelliteMedia({ satelliteName, noradId, model3dUrl, ima
 
     setUploading(true);
     setUploadError(null);
-    setUploadSuccess(false);
-
-    try {
-      onImageUploadRequest?.(noradId, file);
-      // 本地预览（密码验证后会永久保存）
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result as string;
-        setUploadSuccess(true);
-        onImageUploaded?.(dataUrl);
-        setImageFailed(false);
-        setTimeout(() => setUploadSuccess(false), 3000);
-        setUploading(false);
-      };
-      reader.onerror = () => { setUploadError('图片读取失败'); setUploading(false); };
-      reader.readAsDataURL(file);
-    } catch (err) {
-      setUploadError((err as Error).message || '上传失败');
-      setUploading(false);
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+    // Send file to parent for server upload (with password)
+    onImageUploadFile(noradId, file);
   };
 
   const hasModel = model3dUrl && !modelError;
@@ -83,18 +105,29 @@ export default function SatelliteMedia({ satelliteName, noradId, model3dUrl, ima
     <div className="space-y-3">
       <div className="flex items-center justify-end">
         <button
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1 text-xs text-space-500 hover:text-cosmic-blue transition-colors"
+          onClick={handleUploadClick}
+          disabled={uploading}
+          className="flex items-center gap-1 text-xs text-space-500 hover:text-cosmic-blue transition-colors disabled:opacity-50"
           title="上传图片（需要密码，永久保存到服务器）"
         >
-          <Upload className="h-3 w-3" />
-          <span>{hasImage ? '替换图片' : '上传图片'}</span>
+          {uploading ? (
+            <>
+              <div className="w-3 h-3 border-2 border-cosmic-blue border-t-transparent rounded-full animate-spin" />
+              <span>上传中...</span>
+            </>
+          ) : (
+            <>
+              <Lock className="h-3 w-3" />
+              <Upload className="h-3 w-3" />
+              <span>{hasImage ? '替换图片' : '上传图片'}</span>
+            </>
+          )}
         </button>
       </div>
 
       <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" onChange={handleFileSelect} />
 
-      {noMedia && (
+      {noMedia && !uploading && (
         <div className="flex flex-col items-center justify-center h-32 bg-space-800/30 rounded-lg border border-space-700/50">
           <svg className="w-8 h-8 text-space-600 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -105,12 +138,6 @@ export default function SatelliteMedia({ satelliteName, noradId, model3dUrl, ima
         </div>
       )}
 
-      {uploading && (
-        <div className="flex items-center justify-center gap-2 py-2 text-cosmic-blue text-xs">
-          <div className="w-3 h-3 border-2 border-cosmic-blue border-t-transparent rounded-full animate-spin" />
-          处理中...
-        </div>
-      )}
       {uploadError && (
         <div className="flex items-center justify-center gap-2 py-2 text-red-400 text-xs">
           <AlertCircle className="h-3 w-3" />
@@ -120,7 +147,7 @@ export default function SatelliteMedia({ satelliteName, noradId, model3dUrl, ima
       {uploadSuccess && (
         <div className="flex items-center justify-center gap-2 py-2 text-green-400 text-xs">
           <Check className="h-3 w-3" />
-          已上传（需输入密码后永久保存）
+          上传成功
         </div>
       )}
 
