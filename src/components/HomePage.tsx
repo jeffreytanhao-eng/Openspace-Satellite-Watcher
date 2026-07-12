@@ -66,20 +66,32 @@ function PasswordModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (password: string) => void;
+  onSubmit: (password: string) => Promise<boolean> | boolean;
   title: string;
   description?: string;
 }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
-  useEffect(() => { if (isOpen) { setPassword(''); setError(null); } }, [isOpen]);
+  useEffect(() => { if (isOpen) { setPassword(''); setError(null); setVerifying(false); } }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!password.trim()) { setError('请输入密码'); return; }
-    onSubmit(password);
+    setVerifying(true);
+    setError(null);
+    try {
+      const ok = await onSubmit(password);
+      if (!ok) {
+        setError('密码错误');
+        setVerifying(false);
+      }
+    } catch {
+      setError('验证失败，请重试');
+      setVerifying(false);
+    }
   };
 
   return (
@@ -97,12 +109,13 @@ function PasswordModal({
           onKeyDown={e => e.key === 'Enter' && handleSubmit()}
           placeholder="请输入操作密码"
           autoFocus
-          className="w-full px-3 py-2 bg-space-800 border border-space-700 rounded-lg text-space-100 text-sm focus:outline-none focus:border-cosmic-blue"
+          disabled={verifying}
+          className="w-full px-3 py-2 bg-space-800 border border-space-700 rounded-lg text-space-100 text-sm focus:outline-none focus:border-cosmic-blue disabled:opacity-50"
         />
         {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
         <div className="flex gap-2 mt-4 justify-end">
-          <Button variant="outline" size="sm" className="bg-space-800/50 border-space-700" onClick={onClose}>取消</Button>
-          <Button size="sm" onClick={handleSubmit} disabled={!password.trim()}>确认</Button>
+          <Button variant="outline" size="sm" className="bg-space-800/50 border-space-700" onClick={onClose} disabled={verifying}>取消</Button>
+          <Button size="sm" onClick={handleSubmit} disabled={!password.trim() || verifying}>{verifying ? '验证中...' : '确认'}</Button>
         </div>
       </div>
     </div>
@@ -373,15 +386,33 @@ export default function HomePage() {
   const handleSearch = (query: string) => setSearchQuery(query);
   const getSatelliteTags = (_s: SpaceObject): Tag[] => [];
 
-  const handlePasswordSubmit = (password: string) => {
+  const handlePasswordSubmit = async (password: string): Promise<boolean> => {
+    // 先验证密码是否正确（调用验证API）
+    try {
+      const verifyResp = await fetch('/api/admin/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+      });
+      if (verifyResp.status === 401) {
+        sessionStorage.removeItem(SAVED_PASSWORD_KEY);
+        return false;
+      }
+      if (!verifyResp.ok) return false;
+    } catch {
+      return false;
+    }
+
+    // 密码正确，执行对应操作
+    sessionStorage.setItem(SAVED_PASSWORD_KEY, password);
     if (passwordModal.action === 'refreshTLE') {
+      setPasswordModal(m => ({ ...m, isOpen: false }));
       doRefreshTLE(password);
     } else if (passwordModal.action === 'uploadImage' && passwordModal.noradId) {
       setPasswordModal(m => ({ ...m, isOpen: false }));
-      sessionStorage.setItem(SAVED_PASSWORD_KEY, password);
       // 密码验证通过，授权打开文件选择器
       setUploadAuthTs({ noradId: passwordModal.noradId, ts: Date.now() });
     }
+    return true;
   };
 
   return (
