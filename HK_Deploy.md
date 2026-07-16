@@ -9,12 +9,7 @@
 ## 服务器规格
 
 - **服务商**：阿里云轻量应用服务器
-- **配置**：1 核 1GB / 40GB ESSD
-- **带宽**：30Mbps（BGP线路）
-- **系统**：Ubuntu 22.04 LTS
-- **月费**：~25元
 - **数据库**：Neon Postgres（新加坡，Serverless）
-- **SSL**：Let's Encrypt 免费证书
 
 ---
 
