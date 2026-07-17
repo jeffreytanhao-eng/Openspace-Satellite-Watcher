@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { ObjectType, Source } from '@prisma/client';
 import { mockSatellites } from '@/lib/mock/satellites';
 import { verifyPassword } from '@/lib/security';
+import { getCached, setCache } from '@/lib/cache';
+
+const CACHE_KEY = 'space-objects';
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function parseTLEEpoch(line1: string): Date {
   const yearStr = line1.slice(18, 20).trim();
@@ -61,6 +65,10 @@ function serializeSatellite(s: any) {
 
 // GET：从数据库读取所有默认卫星（无需密码），DB不可用时返回内置默认数据
 export async function GET() {
+  // Check cache first
+  const cached = getCached<ReturnType<typeof NextResponse.json>>(CACHE_KEY, CACHE_TTL);
+  if (cached) return cached;
+
   try {
     const satellites = await prisma.spaceObject.findMany({
       include: {
@@ -71,11 +79,13 @@ export async function GET() {
     });
 
     const data = satellites.map(serializeSatellite);
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data,
       pagination: { page: 1, pageSize: 500, total: data.length, totalPages: 1 },
     });
+    setCache(CACHE_KEY, response);
+    return response;
   } catch (error) {
     console.warn('DB unavailable, returning mock satellites:', (error as Error).message);
     const data = getMockSatellites().map(serializeSatellite);

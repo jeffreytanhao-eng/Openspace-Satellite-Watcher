@@ -40,3 +40,6 @@ satellite-nginx.conf
 .env.hk
 .env.production
 .env.vercel
+
+# PM2 config (contains secrets)
+ecosystem.config.cjs

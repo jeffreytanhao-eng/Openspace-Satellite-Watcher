@@ -152,31 +152,36 @@ public/
 ## 生产架构
 
 ```
-┌─────────────┐    HTTPS     ┌──────────────────────┐    TLS     ┌──────────────────┐
-│  国内用户    │ ───────────→ │ 阿里云香港轻量服务器   │ ────────→  │ Neon Postgres    │
-│             │  (BGP线路)   │                      │  (公网)    │  (新加坡)         │
-│             │              │  Nginx (443)         │            └──────────────────┘
-│             │              │  · SSL终端            │
-│             │              │  · IP限流/并发限制     │ ────────→  ┌──────────────────┐
-│             │              │  · 静态缓存/Gzip      │  (HTTPS)   │ Celestrak / NASA │
-│             │              │    ↓ proxy_pass      │            │ (外部数据API)     │
-│             │              │  PM2 → Next.js       │            └──────────────────┘
-│             │              │  standalone (3000)   │
-│             │              │  · SSR页面/API        │
-└─────────────┘              │  · 密码验证+限流      │
-                             │  · 客户端状态隔离     │
-                             └──────────────────────┘
+┌─────────────┐    HTTPS     ┌──────────────────────────┐    HTTPS   ┌──────────────────┐
+│  国内用户    │ ───────────→ │ 阿里云香港轻量服务器       │ ────────→ │ Celestrak / NASA │
+│             │  (BGP线路)   │                          │           │ (外部数据API)     │
+│             │              │  Nginx (443)             │           └──────────────────┘
+│             │              │  · SSL终端                │
+│             │              │  · IP限流/并发限制         │
+│             │              │  · 静态缓存/Gzip          │
+│             │              │    ↓ proxy_pass          │
+│             │              │  PM2 → Next.js (3000)    │
+│             │              │  · SSR页面/API            │
+│             │              │  · API内存缓存             │
+│             │              │  · 密码验证+限流           │ ────┐
+│             │              │  · 客户端状态隔离          │     │
+│             │              │                          │     ↓
+│             │              │                          │  PostgreSQL (本地)
+│             │              │                          │  · 13颗默认卫星
+│             │              │                          │  · TLE/标签/图片
+└─────────────┘              └──────────────────────────┘
 ```
 
-核心链路：**国内用户 → 香港轻量服务器（Nginx + Next.js 全栈应用）→ 新加坡 Neon Postgres 数据库**
+核心链路：**国内用户 → 香港轻量服务器（Nginx + Next.js + 本地 PostgreSQL）→ 外部 API（Celestrak/NASA）**
 
 - **Nginx**：HTTPS 终端（Let's Encrypt）、HTTP→HTTPS、IP 频率限制、并发连接限制、静态资源缓存、Gzip、安全响应头、隐藏版本信息
-- **PM2**：进程守护、开机自启、内存限制（500MB）
-- **Neon Postgres**：Serverless PostgreSQL，免运维，新加坡节点近香港
+- **PM2**：进程守护、开机自启、内存限制（512MB）
+- **本地 PostgreSQL**：卫星数据存储，API 响应 <25ms（首次 ~200ms + 内存缓存 5min TTL）
+- **API 内存缓存**：`/api/space-objects` 等读接口 5 分钟 TTL 缓存，缓存命中 <25ms
 
 ### 数据模型说明
 
-- **服务器默认数据**：数据库中存储 12 颗默认卫星的基础信息和 TLE 数据，所有用户共享
+- **服务器默认数据**：数据库中存储 13 颗默认卫星的基础信息和 TLE 数据，所有用户共享
 - **用户操作（临时）**：导入、删除、隐藏卫星等操作在浏览器端 Zustand store 中完成，刷新页面恢复默认
 - **管理员操作（永久）**：TLE 刷新和图片上传需密码验证，成功后写入数据库，所有用户可见
 
@@ -206,19 +211,20 @@ npm run dev
 
 访问 [http://localhost:3000](http://localhost:3000)
 
-> 本地开发无需配置 PostgreSQL，API 会自动 fallback 到内置的 12 颗默认卫星数据。
+> 本地开发无需配置 PostgreSQL，API 会自动 fallback 到内置的 13 颗默认卫星数据。
 
 ### 环境变量
 
 | 变量 | 说明 | 必填 |
 |------|------|------|
 | `DATABASE_URL` | PostgreSQL 连接字符串 | 生产必填 |
+| `POSTGRES_URL_NON_POOLING` | Prisma schema 使用的数据库连接字符串 | 生产必填 |
 | `ADMIN_PASSWORD` | 操作密码（TLE刷新、图片上传） | ✅ |
 | `NODE_ENV` | 运行环境 | 生产必填 |
 
 ### 默认卫星
 
-初始化后包含 12 颗默认卫星：
+初始化后包含 13 颗默认卫星：
 
 | NORAD ID | 名称 | 说明 |
 |----------|------|------|
@@ -229,10 +235,11 @@ npm run dev
 | 20580 | HST | 哈勃太空望远镜 |
 | 27424 | AQUA | NASA 地球观测卫星 |
 | 25994 | TERRA | NASA 地球观测卫星 |
+| 28376 | AURA | NASA 大气观测卫星 |
+| 39084 | LANDSAT 8 | NASA 陆地观测卫星 |
 | 39634 | SENTINEL-1A | 欧空局雷达卫星 |
 | 43013 | NOAA 20 (JPSS-1) | NOAA 气象卫星 |
 | 44714 | STARLINK-1008 | Starlink 卫星 |
-| 53421 | STARLINK-4545 | Starlink 卫星 |
 | 41270 | NOAA 16 DEB | NOAA 16 碎片（演示用） |
 
 ---
@@ -253,29 +260,22 @@ npm run dev
 详细部署文档参见 [HK_Deploy.md](./HK_Deploy.md)。
 
 部署要点：
-- 本地构建 Next.js standalone 产物（避免服务器内存不足）
-- 上传到服务器后 PM2 启动，内存限制 500MB
+- 服务器安装本地 PostgreSQL，数据存储在本地，API 响应 <25ms
+- 一键部署脚本 `deploy.ps1`：自动上传、解压、迁移、启动
 - Nginx 配置 SSL + 限流（使用 [deploy/nginx-secure.conf](./deploy/nginx-secure.conf)）
-- Nginx 限流区域需在 `/etc/nginx/nginx.conf` 的 `http{}` 块中添加 `limit_req_zone` 指令
+- PM2 进程管理 + API 内存缓存（5min TTL）
 
 ### 部署更新流程
 
-```bash
+```powershell
 # 1. 本地构建
 npm run build
 
-# 2. 打包
-Remove-Item -Recurse -Force "app-pkg" -ErrorAction SilentlyContinue
-New-Item -ItemType Directory -Path "app-pkg" | Out-Null
-Copy-Item -Recurse ".next/standalone/." "app-pkg/"
-New-Item -ItemType Directory -Path "app-pkg/.next/static" -Force | Out-Null
-Copy-Item -Recurse ".next/static/." "app-pkg/.next/static/"
-Copy-Item -Recurse "public" "app-pkg/public"
-Compress-Archive -Path "app-pkg/*" -DestinationPath "app-pkg.tar.gz" -Force
+# 2. 打包（含 node_modules，非 standalone）
+tar -czf app-pkg.tar.gz .next node_modules ecosystem.config.cjs package.json
 
-# 3. 上传到服务器并重启
-scp app-pkg.tar.gz root@server:/tmp/
-ssh root@server "cd /app && tar xzf /tmp/app-pkg.tar.gz && pm2 restart satellite"
+# 3. 一键部署
+powershell -ExecutionPolicy Bypass -File deploy.ps1
 ```
 
 ---
