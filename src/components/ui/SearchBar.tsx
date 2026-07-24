@@ -36,6 +36,18 @@ export default function SearchBar({
   }, []);
   const [filteredSatellites, setFilteredSatellites] = useState<SpaceObject[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // 点击外部关闭搜索下拉面板
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const filtered = satellites.filter(satellite => {
@@ -91,7 +103,7 @@ export default function SearchBar({
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <form onSubmit={handleSubmit} className="relative">
         <div className="relative">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-space-500" />

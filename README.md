@@ -272,7 +272,7 @@ npm run dev
 npm run build
 
 # 2. 打包（含 node_modules，非 standalone）
-tar -czf app-pkg.tar.gz .next node_modules ecosystem.config.cjs package.json
+tar -czf app-pkg.tar.gz .next public node_modules ecosystem.config.cjs package.json
 
 # 3. 一键部署
 powershell -ExecutionPolicy Bypass -File deploy.ps1

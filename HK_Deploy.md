@@ -124,7 +124,7 @@ module.exports = {
 npm run build
 
 # 2. 打包
-tar -czf app-pkg.tar.gz .next node_modules ecosystem.config.cjs package.json
+tar -czf app-pkg.tar.gz .next public node_modules ecosystem.config.cjs package.json
 
 # 3. 一键部署（自动上传、解压、数据库迁移、PM2重启、健康检查）
 powershell -ExecutionPolicy Bypass -File deploy.ps1
@@ -273,7 +273,7 @@ systemctl start fail2ban
 ```powershell
 # 一键部署（推荐）
 npm run build
-tar -czf app-pkg.tar.gz .next node_modules ecosystem.config.cjs package.json
+tar -czf app-pkg.tar.gz .next public node_modules ecosystem.config.cjs package.json
 powershell -ExecutionPolicy Bypass -File deploy.ps1
 ```
 

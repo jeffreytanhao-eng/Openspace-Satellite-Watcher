@@ -25,6 +25,13 @@ export default function SatelliteMedia({ satelliteName, noradId, model3dUrl, ima
 
   useEffect(() => {
     if (model3dUrl && typeof window !== 'undefined') {
+      // 使用本地 Draco 解码器，避免从 Google CDN 下载（国内访问慢）
+      // 必须在 import model-viewer 之前设置，因为模块初始化时读取此值
+      const w = window as unknown as { ModelViewerElement?: { dracoDecoderLocation?: string } };
+      if (!w.ModelViewerElement) w.ModelViewerElement = {} as { dracoDecoderLocation?: string };
+      if (!w.ModelViewerElement!.dracoDecoderLocation) {
+        w.ModelViewerElement!.dracoDecoderLocation = '/draco/';
+      }
       import('@google/model-viewer').catch(() => setModelError(true));
     }
   }, [model3dUrl]);

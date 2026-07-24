@@ -38,6 +38,7 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   const trackingNoradId = useSatelliteStore(state => state.trackingNoradId);
   const setTracking = useSatelliteStore(state => state.setTracking);
   const allSatellites = useSatelliteStore(state => state.satellites);
+  const setSelectedSatelliteStore = useSatelliteStore(state => state.setSelectedSatellite);
 
   // Initialize Cesium viewer once - use a ref to track init state across StrictMode
   useEffect(() => {
@@ -73,11 +74,12 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
 
   // Update satellite positions when time changes (every frame during playback)
   useEffect(() => {
-    if (!isReady || !viewer || !initCompleted.current || !satellites.length) return;
+    if (!isReady || !viewer || !initCompleted.current) return;
 
     const visibleIds = new Set(visibleSatellites);
     const filteredSatellites = satellites.filter(s => visibleIds.has(s.noradId));
 
+    // 即使卫星列表为空也要执行，以清理 Cesium 中残留的卫星实体
     updateSatellitePositions(filteredSatellites, currentTime);
   }, [satellites, currentTime, visibleSatellites, isReady, viewer, updateSatellitePositions]);
 
@@ -86,12 +88,13 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   // Skip orbit updates while tracking to prevent visual jumping.
   const isTrackingRef = useRef(false);
   useEffect(() => {
-    if (!isReady || !viewer || !initCompleted.current || !satellites.length) return;
+    if (!isReady || !viewer || !initCompleted.current) return;
     if (isTrackingRef.current) return; // Freeze orbits during tracking
 
     const visibleIds = new Set(visibleSatellites);
     const filteredSatellites = satellites.filter(s => visibleIds.has(s.noradId));
 
+    // 即使卫星列表为空也要执行，以清理 Cesium 中残留的轨道实体
     updateOrbits(filteredSatellites, currentTime);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [satellites, visibleSatellites, isReady, viewer, updateOrbits]);
@@ -121,12 +124,29 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     }
   }, [trackingNoradId, isReady, viewer, allSatellites, startTracking, stopTracking, regenerateOrbit]);
 
-  // Stop tracking when user clicks on the globe (left-click)
+  // Click on globe: pick satellite entity → enter detail + auto-tracking;
+  // click empty space → stop tracking
   useEffect(() => {
     if (!isReady || !viewer) return;
     const Cesium = (window as unknown as { Cesium: typeof import('cesium') }).Cesium;
     const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-    handler.setInputAction(() => {
+    handler.setInputAction((movement: { position: { x: number; y: number } }) => {
+      // 先检测是否点中了卫星实体
+      const picked = viewer.scene.pick(movement.position);
+      if (Cesium.defined(picked) && picked.id && typeof picked.id === 'object' && 'id' in picked.id) {
+        const entityId = String((picked.id as { id: unknown }).id);
+        const match = entityId.match(/^satellite-(\d+)$/);
+        if (match) {
+          const noradId = parseInt(match[1], 10);
+          const sat = useSatelliteStore.getState().satellites.find(s => s.noradId === noradId);
+          if (sat) {
+            setSelectedSatelliteStore(sat);
+            setTracking(noradId);
+            return;
+          }
+        }
+      }
+      // 没点中卫星：如果在 tracking，停止
       if (useSatelliteStore.getState().trackingNoradId !== null) {
         setTracking(null);
       }
@@ -135,7 +155,7 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     return () => {
       handler.destroy();
     };
-  }, [isReady, viewer, setTracking]);
+  }, [isReady, viewer, setTracking, setSelectedSatelliteStore]);
 
   const handleResetView = useCallback(() => {
     resetView();

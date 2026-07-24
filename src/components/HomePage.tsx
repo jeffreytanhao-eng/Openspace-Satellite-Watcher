@@ -13,7 +13,7 @@ import { createSatrec, calculateOrbitParams } from '@/lib/tle/orbit';
 import { translateCountry } from '@/lib/translations';
 import { buildSatellitesFromTLE, parseTLETextClient, IMPORT_LIMIT_PER_BATCH, MAX_TOTAL_SATELLITES } from '@/lib/default-satellites';
 import { apiClient } from '@/lib/api/client';
-import { Upload, Tags, RefreshCw, RotateCcw, Lock } from 'lucide-react';
+import { Upload, Tags, RefreshCw, RotateCcw, Lock, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const CesiumGlobe = dynamic(() => import('@/components/visualization/CesiumGlobe'), {
@@ -155,11 +155,12 @@ export default function HomePage() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showTagManager, setShowTagManager] = useState(false);
   const [isRefreshingTLE, setIsRefreshingTLE] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
 
   // 密码弹窗状态
   const [passwordModal, setPasswordModal] = useState<{
-    isOpen: boolean; action: 'refreshTLE' | 'uploadImage'; noradId?: number;
+    isOpen: boolean; action: 'refreshTLE' | 'uploadImage' | 'sync'; noradId?: number;
   }>({ isOpen: false, action: 'refreshTLE' });
   // 图片上传授权时间戳（密码验证通过后递增，触发子组件打开文件选择器）
   const [uploadAuthTs, setUploadAuthTs] = useState<{ noradId: number; ts: number } | null>(null);
@@ -276,6 +277,52 @@ export default function HomePage() {
       setRefreshMessage('刷新失败，请检查网络连接');
     } finally {
       setIsRefreshingTLE(false);
+      setTimeout(() => setRefreshMessage(null), 5000);
+    }
+  };
+
+  // 数据库同步：HK ↔ Neon 双向同步
+  const handleSync = () => {
+    const savedPw = typeof window !== 'undefined' ? sessionStorage.getItem(SAVED_PASSWORD_KEY) : null;
+    if (savedPw) {
+      doSync(savedPw);
+    } else {
+      setPasswordModal({ isOpen: true, action: 'sync' });
+    }
+  };
+
+  const doSync = async (password: string) => {
+    setPasswordModal(m => ({ ...m, isOpen: false }));
+    sessionStorage.setItem(SAVED_PASSWORD_KEY, password);
+    setIsSyncing(true);
+    setRefreshMessage(null);
+    try {
+      const resp = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'x-admin-password': password },
+      });
+      const result = await resp.json();
+      if (resp.status === 401) {
+        sessionStorage.removeItem(SAVED_PASSWORD_KEY);
+        setRefreshMessage('密码错误，请重试');
+        return;
+      }
+      if (!result.success) {
+        setRefreshMessage(`同步失败: ${result.data?.error || '未知错误'}`);
+        return;
+      }
+      const { direction, count } = result.data;
+      const dirText = direction === 'hk-to-neon' ? 'HK → Neon' : direction === 'neon-to-hk' ? 'Neon → HK' : '无需同步';
+      setRefreshMessage(`数据库同步完成：${dirText}，共 ${count} 颗卫星`);
+      // 同步后重新加载数据
+      const satsResp = await apiClient.getSpaceObjects();
+      const dbSats = (satsResp.data || []).map(normalizeSatellite);
+      setSatellites(dbSats);
+      setVisibleSatellites(dbSats.map(s => s.noradId));
+    } catch {
+      setRefreshMessage('同步失败，请检查网络连接');
+    } finally {
+      setIsSyncing(false);
       setTimeout(() => setRefreshMessage(null), 5000);
     }
   };
@@ -411,6 +458,9 @@ export default function HomePage() {
       setPasswordModal(m => ({ ...m, isOpen: false }));
       // 密码验证通过，授权打开文件选择器
       setUploadAuthTs({ noradId: passwordModal.noradId, ts: Date.now() });
+    } else if (passwordModal.action === 'sync') {
+      setPasswordModal(m => ({ ...m, isOpen: false }));
+      doSync(password);
     }
     return true;
   };
@@ -440,6 +490,12 @@ export default function HomePage() {
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingTLE ? 'animate-spin' : ''}`} />
             {isRefreshingTLE ? '刷新中...' : '轨道数据刷新'}
           </Button>
+          <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300"
+            onClick={handleSync} disabled={isSyncing}
+            title="同步 HK 与 Neon 数据库（需要密码）">
+            <Database className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? '同步中...' : '数据同步'}
+          </Button>
           <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300" onClick={() => setShowImportModal(true)}>
             <Upload className="h-4 w-4 mr-2" />导入数据
           </Button>
@@ -452,9 +508,12 @@ export default function HomePage() {
           <ViewSwitcher />
         </div>
 
-        <button onClick={() => setShowSidebar(!showSidebar)} className="p-2 text-space-400 hover:text-cosmic-blue transition-colors">
-          {showSidebar ? '◀' : '▶'}
-        </button>
+        <div className="flex items-center">
+          <span className="text-space-500/30 text-[10px] font-medium tracking-[0.15em] pointer-events-none select-none mr-3 hidden sm:inline">谭谈 - 万智</span>
+          <button onClick={() => setShowSidebar(!showSidebar)} className="p-2 text-space-400 hover:text-cosmic-blue transition-colors">
+            {showSidebar ? '◀' : '▶'}
+          </button>
+        </div>
       </header>
 
       {refreshMessage && (
@@ -552,9 +611,11 @@ export default function HomePage() {
         isOpen={passwordModal.isOpen}
         onClose={() => setPasswordModal(m => ({ ...m, isOpen: false }))}
         onSubmit={handlePasswordSubmit}
-        title={passwordModal.action === 'refreshTLE' ? 'TLE 轨道数据刷新' : '上传图片'}
+        title={passwordModal.action === 'refreshTLE' ? 'TLE 轨道数据刷新' : passwordModal.action === 'sync' ? '数据库同步' : '上传图片'}
         description={passwordModal.action === 'refreshTLE'
           ? '刷新操作将批量请求 Celestrak 获取最新 TLE 数据，请输入操作密码。'
+          : passwordModal.action === 'sync'
+          ? '将 HK 本地数据库与 Neon 云数据库进行双向同步，请输入操作密码。'
           : '图片将永久保存到服务器，请输入操作密码。'}
       />
 

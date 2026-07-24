@@ -18,8 +18,8 @@ export async function GET() {
     });
     const data = tags.map(t => ({
       ...t,
-      createdAt: t.createdAt.toISOString(),
-      updatedAt: t.updatedAt.toISOString(),
+      createdAt: t.createdAt instanceof Date ? t.createdAt.toISOString() : (t.createdAt ?? null),
+      updatedAt: t.updatedAt instanceof Date ? t.updatedAt.toISOString() : (t.updatedAt ?? null),
     }));
     const response = NextResponse.json({ success: true, data });
     setCache(CACHE_KEY, response);

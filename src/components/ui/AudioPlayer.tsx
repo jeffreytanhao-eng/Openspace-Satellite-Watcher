@@ -20,7 +20,11 @@ export default function AudioPlayer() {
     audio.preload = 'auto';
     audioRef.current = audio;
 
-    const handleCanPlay = () => setIsReady(true);
+    const handleCanPlay = () => {
+      setIsReady(true);
+      // 默认自动播放背景音乐（浏览器 autoplay policy 可能阻止，失败时静默处理）
+      audio.play().catch(() => {});
+    };
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
 

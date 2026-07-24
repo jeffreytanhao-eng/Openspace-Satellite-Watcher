@@ -18,6 +18,9 @@ prisma/dev.db-journal
 # Cesium static assets
 public/cesium/
 
+# Original GLB backups (created by compress-models.mjs, ~45MB)
+public/models/original/
+
 # Graphify
 graphify-out/
 .graphify_uncached.txt

@@ -322,7 +322,8 @@ export function useCesium() {
   // --- Continuous satellite tracking ---
   // Uses preUpdate event to keep camera centered on the satellite.
   // Avoids viewer.trackedEntity which can cause orbit entity re-evaluation.
-  const trackedSatRef = useRef<{ satellite: SpaceObject; listener: () => void } | null>(null);
+  const trackedSatRef = useRef<{ satellite: SpaceObject; listener: () => void; wheelHandler: () => void } | null>(null);
+  const trackingRangeRef = useRef(2500000);
 
   const startTracking = useCallback((satellite: SpaceObject) => {
     const inst = cesiumRef.current;
@@ -331,41 +332,68 @@ export function useCesium() {
     // Stop any previous tracking
     if (trackedSatRef.current) {
       trackedSatRef.current.listener();
+      trackedSatRef.current.wheelHandler();
       trackedSatRef.current = null;
     }
 
     const { Cesium } = inst;
     const viewer = inst.viewer;
 
+    // Reset tracking range on new tracking session
+    trackingRangeRef.current = 2500000;
+
     // Fly to satellite first
     flyToSatellite(satellite);
 
+    // Disable Cesium's default zoom so it doesn't conflict with our custom wheel handler.
+    // lookAt() locks the camera each frame; default zoom tries to move camera position
+    // which gets overwritten, causing inconsistent zoom behavior (especially zoom-out).
+    viewer.scene.screenSpaceCameraController.enableZoom = false;
+
     // Track via preUpdate: on each frame, center camera on satellite position
     // using the app's simulation time (NOT viewer.clock.currentTime).
-    const TRACKING_RANGE = 2500000; // 2500 km, fixed to avoid RangeError
-
     const listener = viewer.scene.preUpdate.addEventListener(() => {
       const simTime = useTimeStore.getState().currentTime;
       const pos = calculateSatellitePosition(satellite.tleData, simTime);
       if (!pos) return;
       viewer.camera.lookAt(
         pos,
-        new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), TRACKING_RANGE)
+        new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), trackingRangeRef.current)
       );
     });
 
-    trackedSatRef.current = { satellite, listener };
+    // Use native DOM wheel event instead of Cesium's ScreenSpaceEventHandler.
+    // Cesium's internal WHEEL handler can swallow/alter the event before our handler runs,
+    // causing zoom-out (deltaY > 0) to not work reliably. Native listener with
+    // preventDefault + capture phase ensures we receive the raw event first.
+    const canvas = viewer.scene.canvas as HTMLCanvasElement;
+    const wheelListener = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // deltaY > 0 = 滚轮向下 = 拉远；deltaY < 0 = 滚轮向上 = 拉近
+      const factor = e.deltaY > 0 ? 1.15 : 0.87;
+      trackingRangeRef.current = Math.max(500000, Math.min(20000000, trackingRangeRef.current * factor));
+    };
+    canvas.addEventListener('wheel', wheelListener, { capture: true, passive: false });
+
+    trackedSatRef.current = {
+      satellite,
+      listener,
+      wheelHandler: () => canvas.removeEventListener('wheel', wheelListener, { capture: true } as EventListenerOptions),
+    };
   }, [flyToSatellite]);
 
   const stopTracking = useCallback(() => {
     if (trackedSatRef.current) {
       trackedSatRef.current.listener();
+      trackedSatRef.current.wheelHandler();
       trackedSatRef.current = null;
     }
-    // Release camera from lookAt lock
+    // Release camera from lookAt lock and restore default zoom
     const inst = cesiumRef.current;
     if (inst) {
       inst.viewer.camera.lookAtTransform(inst.Cesium.Matrix4.IDENTITY);
+      inst.viewer.scene.screenSpaceCameraController.enableZoom = true;
     }
   }, []);
 
@@ -388,6 +416,7 @@ export function useCesium() {
     return () => {
       if (trackedSatRef.current) {
         trackedSatRef.current.listener();
+        trackedSatRef.current.wheelHandler();
         trackedSatRef.current = null;
       }
     };

@@ -38,12 +38,15 @@
     "zustand": "^4.5.4"
   },
   "devDependencies": {
+    "@gltf-transform/extensions": "^4.4.1",
+    "@gltf-transform/functions": "^4.4.1",
     "@types/geojson": "^7946.0.16",
-    "@types/node": "20.19.43",
-    "@types/react": "18.3.31",
+    "@types/node": "^20.19.43",
+    "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
     "css-loader": "^7.1.4",
+    "draco3d": "^1.5.7",
     "file-loader": "^6.2.0",
     "postcss": "^8.4.39",
     "prisma": "^5.16.0",
