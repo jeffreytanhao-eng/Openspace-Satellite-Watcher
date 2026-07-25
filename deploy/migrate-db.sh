@@ -53,8 +53,13 @@ fi
 echo "   Seed complete"
 
 # 启动应用
-echo ">> Starting PM2 app..."
-pm2 start ecosystem.config.cjs 2>/dev/null || pm2 restart satellite
+# 必须 delete + start,不能 start || restart:
+# 如果 PM2 已有旧进程,pm2 start 会报 "already exists" 被吞掉,
+# fallback 到 pm2 restart 会用旧配置(可能缺少新增的环境变量),
+# 导致应用启动失败。
+echo ">> Starting PM2 app (delete + start to ensure fresh config)..."
+pm2 delete satellite 2>/dev/null || true
+pm2 start ecosystem.config.cjs
 pm2 save
 
 # 验证

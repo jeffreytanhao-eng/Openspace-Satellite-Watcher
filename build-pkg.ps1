@@ -64,6 +64,18 @@ if (Test-Path "$SCRIPT_DIR\prisma") {
     Copy-Item "$SCRIPT_DIR\prisma" $PKG_DIR -Recurse -Force
 }
 
+# Copy src/ source code (required by prisma/seed.ts which uses @/lib/* path aliases)
+if (Test-Path "$SCRIPT_DIR\src") {
+    Write-Host "  Copying src/ (for seed.ts @/ path aliases)..." -ForegroundColor DarkGray
+    Copy-Item "$SCRIPT_DIR\src" $PKG_DIR -Recurse -Force
+}
+
+# Copy tsconfig.json (tsx reads path aliases from here to resolve @/ -> src/)
+if (Test-Path "$SCRIPT_DIR\tsconfig.json") {
+    Write-Host "  Copying tsconfig.json (for @/ path alias resolution)..." -ForegroundColor DarkGray
+    Copy-Item "$SCRIPT_DIR\tsconfig.json" $PKG_DIR -Force
+}
+
 # Copy PM2 config
 Copy-Item "$SCRIPT_DIR\ecosystem.config.cjs" $PKG_DIR -Force
 
