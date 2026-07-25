@@ -99,11 +99,16 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [satellites, visibleSatellites, isReady, viewer, updateOrbits]);
 
-  // Handle selected satellite
+  // Handle selected satellite: 选中时显示 3D 模型 + 飞向卫星;取消选中切回光点
   useEffect(() => {
-    if (!isReady || !selectedSatellite) return;
-    setSelectedSatellite(selectedSatellite.noradId);
-    flyToSatellite(selectedSatellite);
+    if (!isReady) return;
+    if (selectedSatellite) {
+      setSelectedSatellite(selectedSatellite.noradId);
+      flyToSatellite(selectedSatellite);
+    } else {
+      // 取消选中:切回光点显示
+      setSelectedSatellite(null);
+    }
   }, [selectedSatellite, isReady, flyToSatellite, setSelectedSatellite, focusTrigger]);
 
   // Handle tracking: start/stop continuous tracking when trackingNoradId changes

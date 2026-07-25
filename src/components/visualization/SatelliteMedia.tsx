@@ -20,6 +20,7 @@ export default function SatelliteMedia({ satelliteName, noradId, model3dUrl, ima
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [updatedCount, setUpdatedCount] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modelViewerRef = useRef<HTMLElement | null>(null);
 
@@ -58,6 +59,7 @@ export default function SatelliteMedia({ satelliteName, noradId, model3dUrl, ima
       if (d && d.noradId === noradId && d.success) {
         setUploading(false);
         setUploadSuccess(true);
+        setUpdatedCount(d.updatedCount || 1);
         setUploadError(null);
         setTimeout(() => setUploadSuccess(false), 3000);
       }
@@ -154,7 +156,7 @@ export default function SatelliteMedia({ satelliteName, noradId, model3dUrl, ima
       {uploadSuccess && (
         <div className="flex items-center justify-center gap-2 py-2 text-green-400 text-xs">
           <Check className="h-3 w-3" />
-          上传成功
+          {updatedCount > 1 ? `上传成功(已更新 ${updatedCount} 颗同星座卫星)` : '上传成功'}
         </div>
       )}
 

@@ -394,8 +394,20 @@ export default function HomePage() {
     try {
       const resp = await apiClient.uploadSatelliteImage(noradId, file, password);
       if (resp.success && resp.data) {
-        updateSatelliteImage(noradId, (resp.data as any).imageUrl);
-        window.dispatchEvent(new CustomEvent('satellite-image-upload-success', { detail: { noradId, success: true } }));
+        const respData = resp.data as any;
+        if (respData.shared) {
+          // 星座卫星:后端批量更新了同星座所有卫星的 imageUrl
+          // 重新获取所有卫星数据,确保前端 store 一致(所有同星座卫星都有新图片)
+          const refreshResp = await apiClient.getSpaceObjects();
+          const dbSats = (refreshResp.data || []).map(normalizeSatellite);
+          setSatellites(dbSats);
+        } else {
+          // 默认卫星(不属于星座):只更新当前卫星
+          updateSatelliteImage(noradId, respData.imageUrl);
+        }
+        window.dispatchEvent(new CustomEvent('satellite-image-upload-success', {
+          detail: { noradId, success: true, updatedCount: respData.updatedCount || 1 }
+        }));
       } else {
         throw new Error((resp as any).error || '上传失败');
       }

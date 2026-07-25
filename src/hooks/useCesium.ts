@@ -271,6 +271,7 @@ export function useCesium() {
             color,
             isSelected: false,
             showLabel: true,
+            model3dUrl: sat.model3dUrl,  // 有 GLB 模型时创建隐藏的 model graphics,跟踪时才显示
           });
           inst.satelliteEntities.set(sat.noradId, { update: result.update, destroy: result.destroy });
         }
@@ -315,14 +316,24 @@ export function useCesium() {
   const setSelectedSatellite = useCallback((noradId: number | null) => {
     const inst = cesiumRef.current;
     if (!inst) return;
-    inst.satelliteEntities.forEach((ent, id) => ent.update({ isSelected: id === noradId }));
+    // 选中时切换为 3D 模型显示(有 GLB 模型的卫星),取消选中切回光点
+    inst.satelliteEntities.forEach((ent, id) => {
+      const isSelected = id === noradId;
+      ent.update({ isSelected, useModel: isSelected });
+    });
     inst.orbitEntities.forEach((ent, id) => ent.update({ isSelected: id === noradId }));
   }, []);
 
   // --- Continuous satellite tracking ---
   // Uses preUpdate event to keep camera centered on the satellite.
   // Avoids viewer.trackedEntity which can cause orbit entity re-evaluation.
-  const trackedSatRef = useRef<{ satellite: SpaceObject; listener: () => void; wheelHandler: () => void } | null>(null);
+  const trackedSatRef = useRef<{
+    satellite: SpaceObject;
+    listener: () => void;
+    wheelHandler: () => void;
+    trackedEntity: any;
+    baseScale: number;
+  } | null>(null);
   const trackingRangeRef = useRef(2500000);
 
   const startTracking = useCallback((satellite: SpaceObject) => {
@@ -333,6 +344,10 @@ export function useCesium() {
     if (trackedSatRef.current) {
       trackedSatRef.current.listener();
       trackedSatRef.current.wheelHandler();
+      // 恢复模型 scale 到 baseScale(停止手动动态缩放)
+      if (trackedSatRef.current.trackedEntity?.model && trackedSatRef.current.baseScale) {
+        trackedSatRef.current.trackedEntity.model.scale = new inst.Cesium.ConstantProperty(trackedSatRef.current.baseScale);
+      }
       trackedSatRef.current = null;
     }
 
@@ -345,13 +360,29 @@ export function useCesium() {
     // Fly to satellite first
     flyToSatellite(satellite);
 
+    // 模型显示由选中状态控制(setSelectedSatellite),跟踪不再切换 useModel
+
+    // 获取被跟踪实体和基础 scale(用于手动动态缩放)
+    // 某些模型(如 LANDSAT 8/AURA)的 Cesium 自动透视缩放失效(bounding sphere 异常),
+    // 改为每帧手动设 scale = baseScale * (REF_RANGE / range)
+    // 拉近(range 小)→ scale 增大 → 模型变大;拉远 → 缩小
+    const trackedEntity = inst.viewer.entities.getById(`satellite-${satellite.noradId}`);
+    let baseScale = 3000;
+    if (trackedEntity?.model?.scale) {
+      const val = trackedEntity.model.scale.getValue?.(viewer.clock.currentTime);
+      if (typeof val === 'number' && val > 0) baseScale = val;
+    }
+
     // Disable Cesium's default zoom so it doesn't conflict with our custom wheel handler.
     // lookAt() locks the camera each frame; default zoom tries to move camera position
     // which gets overwritten, causing inconsistent zoom behavior (especially zoom-out).
     viewer.scene.screenSpaceCameraController.enableZoom = false;
 
+    const REF_RANGE = 2500000; // 基准距离,range=REF_RANGE 时 scale=baseScale(初始不变)
+
     // Track via preUpdate: on each frame, center camera on satellite position
     // using the app's simulation time (NOT viewer.clock.currentTime).
+    // 同时手动动态缩放模型 scale(解决部分模型不能随滚轮缩放的问题)
     const listener = viewer.scene.preUpdate.addEventListener(() => {
       const simTime = useTimeStore.getState().currentTime;
       const pos = calculateSatellitePosition(satellite.tleData, simTime);
@@ -360,6 +391,12 @@ export function useCesium() {
         pos,
         new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), trackingRangeRef.current)
       );
+      // 手动动态缩放:拉近(range 小)→ scale 增大 → 模型变大
+      if (trackedEntity?.model) {
+        const range = trackingRangeRef.current;
+        const dynamicScale = baseScale * (REF_RANGE / range);
+        trackedEntity.model.scale = new Cesium.ConstantProperty(dynamicScale);
+      }
     });
 
     // Use native DOM wheel event instead of Cesium's ScreenSpaceEventHandler.
@@ -372,7 +409,8 @@ export function useCesium() {
       e.stopPropagation();
       // deltaY > 0 = 滚轮向下 = 拉远；deltaY < 0 = 滚轮向上 = 拉近
       const factor = e.deltaY > 0 ? 1.15 : 0.87;
-      trackingRangeRef.current = Math.max(500000, Math.min(20000000, trackingRangeRef.current * factor));
+      // 最小 100km 让用户能拉近看模型细节;最大 20000km
+      trackingRangeRef.current = Math.max(100000, Math.min(20000000, trackingRangeRef.current * factor));
     };
     canvas.addEventListener('wheel', wheelListener, { capture: true, passive: false });
 
@@ -380,17 +418,24 @@ export function useCesium() {
       satellite,
       listener,
       wheelHandler: () => canvas.removeEventListener('wheel', wheelListener, { capture: true } as EventListenerOptions),
+      trackedEntity,
+      baseScale,
     };
   }, [flyToSatellite]);
 
   const stopTracking = useCallback(() => {
+    const inst = cesiumRef.current;
     if (trackedSatRef.current) {
       trackedSatRef.current.listener();
       trackedSatRef.current.wheelHandler();
+      // 恢复模型 scale 到 baseScale(停止手动动态缩放)
+      // 模型显示由选中状态控制,跟踪停止不切回光点(保持选中状态)
+      if (inst && trackedSatRef.current.trackedEntity?.model && trackedSatRef.current.baseScale) {
+        trackedSatRef.current.trackedEntity.model.scale = new inst.Cesium.ConstantProperty(trackedSatRef.current.baseScale);
+      }
       trackedSatRef.current = null;
     }
     // Release camera from lookAt lock and restore default zoom
-    const inst = cesiumRef.current;
     if (inst) {
       inst.viewer.camera.lookAtTransform(inst.Cesium.Matrix4.IDENTITY);
       inst.viewer.scene.screenSpaceCameraController.enableZoom = true;

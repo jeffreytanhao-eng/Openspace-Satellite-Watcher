@@ -144,3 +144,21 @@ export const CONSTELLATIONS_METADATA: ConstellationMeta[] = [
 export function getConstellationMeta(name: string): ConstellationMeta | undefined {
   return CONSTELLATIONS_METADATA.find(c => c.name === name);
 }
+
+/**
+ * 根据卫星名判断所属星座关键字(用于 ILIKE 查询)
+ * 返回 seededCheckNameKeyword 或 null(默认卫星不属于任何星座)
+ *
+ * 用途:上传图片时,同星座卫星共享同一图片
+ * 例如上传 Starlink 卫星图片 → 所有 Starlink 卫星都更新
+ */
+export function getConstellationKeyword(name: string): string | null {
+  if (!name) return null;
+  const upper = name.toUpperCase();
+  for (const c of CONSTELLATIONS_METADATA) {
+    if (c.seededCheckNameKeyword && upper.includes(c.seededCheckNameKeyword.toUpperCase())) {
+      return c.seededCheckNameKeyword;
+    }
+  }
+  return null;
+}

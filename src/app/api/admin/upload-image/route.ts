@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/security';
 import { invalidateCache } from '@/lib/cache';
+import { getConstellationKeyword } from '@/lib/constellation-metadata';
 
 // POST：上传图片到数据库（需要密码）
 export async function POST(request: NextRequest) {
@@ -49,16 +50,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: `NORAD ID ${noradId} 不存在` }, { status: 404 });
     }
 
-    const updated = await prisma.spaceObject.update({
-      where: { noradId },
-      data: { imageUrl: dataUrl },
-      select: { id: true, noradId: true, imageUrl: true },
-    });
+    // 判断是否属于星座(同星座卫星共享图片)
+    // 例如上传 Starlink 卫星图片 → 所有 Starlink 卫星的 imageUrl 都更新
+    const constellationKeyword = getConstellationKeyword(existing.name);
+
+    let updatedCount = 1;
+    if (constellationKeyword) {
+      // 星座卫星:批量更新同星座所有卫星的 imageUrl(共享同一张图片)
+      const result = await prisma.spaceObject.updateMany({
+        where: { name: { contains: constellationKeyword, mode: 'insensitive' } },
+        data: { imageUrl: dataUrl },
+      });
+      updatedCount = result.count;
+    } else {
+      // 默认卫星(不属于星座):只更新当前卫星
+      await prisma.spaceObject.update({
+        where: { noradId },
+        data: { imageUrl: dataUrl },
+      });
+    }
 
     // 失效缓存，让下次 GET /api/space-objects 返回最新数据（包含新图片）
     invalidateCache();
 
-    return NextResponse.json({ success: true, data: updated });
+    return NextResponse.json({
+      success: true,
+      data: { noradId, imageUrl: dataUrl },
+      updatedCount,
+      shared: !!constellationKeyword,
+    });
   } catch (error) {
     console.error('Upload image error:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
