@@ -65,9 +65,10 @@ function serializeSatellite(s: any) {
 
 // GET：从数据库读取所有默认卫星（无需密码），DB不可用时返回内置默认数据
 export async function GET() {
-  // Check cache first
-  const cached = getCached<ReturnType<typeof NextResponse.json>>(CACHE_KEY, CACHE_TTL);
-  if (cached) return cached;
+  // Check cache first — 缓存的是 JSON 数据（普通对象），不是 NextResponse 对象
+  // NextResponse 响应体是流式的，只能消费一次，缓存 NextResponse 会导致后续请求返回空响应
+  const cached = getCached<unknown>(CACHE_KEY, CACHE_TTL);
+  if (cached) return NextResponse.json(cached);
 
   try {
     const satellites = await prisma.spaceObject.findMany({
@@ -79,13 +80,13 @@ export async function GET() {
     });
 
     const data = satellites.map(serializeSatellite);
-    const response = NextResponse.json({
+    const payload = {
       success: true,
       data,
       pagination: { page: 1, pageSize: 500, total: data.length, totalPages: 1 },
-    });
-    setCache(CACHE_KEY, response);
-    return response;
+    };
+    setCache(CACHE_KEY, payload);
+    return NextResponse.json(payload);
   } catch (error) {
     console.warn('DB unavailable, returning mock satellites:', (error as Error).message);
     const data = getMockSatellites().map(serializeSatellite);

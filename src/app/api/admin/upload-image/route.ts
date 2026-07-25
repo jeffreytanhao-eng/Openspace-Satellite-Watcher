@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/security';
+import { invalidateCache } from '@/lib/cache';
 
 // POST：上传图片到数据库（需要密码）
 export async function POST(request: NextRequest) {
@@ -53,6 +54,9 @@ export async function POST(request: NextRequest) {
       data: { imageUrl: dataUrl },
       select: { id: true, noradId: true, imageUrl: true },
     });
+
+    // 失效缓存，让下次 GET /api/space-objects 返回最新数据（包含新图片）
+    invalidateCache();
 
     return NextResponse.json({ success: true, data: updated });
   } catch (error) {
