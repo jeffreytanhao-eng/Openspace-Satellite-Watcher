@@ -2,7 +2,6 @@ export { default as ViewSwitcher } from './ViewSwitcher';
 export { default as TimeControlBar } from './TimeControlBar';
 export { default as TimeRangeSlider } from './TimeRangeSlider';
 export { default as SatelliteList } from './SatelliteList';
-export { default as FilterPanel } from './FilterPanel';
 export { default as SearchBar } from './SearchBar';
 export { default as SatelliteDetailPanel } from './SatelliteDetailPanel';
 export { default as OrbitParameters } from './OrbitParameters';

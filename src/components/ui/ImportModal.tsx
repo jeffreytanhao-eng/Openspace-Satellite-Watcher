@@ -19,6 +19,8 @@ export interface ImportResult {
   failures: ImportFailure[];
   truncated?: boolean;
   limit?: number;
+  skippedExisting?: number;   // 因 NORAD ID 已入库而跳过（支持分批导入）
+  skippedNonPayload?: number;  // 因非 PAYLOAD（碎片/火箭体）被过滤
 }
 
 interface ImportedSatellite {
@@ -40,25 +42,12 @@ interface ImportModalProps {
   onClose: () => void;
   onSuccess?: (satellites?: ImportedSatellite[]) => Promise<ImportSummary | void> | ImportSummary | void;
   onFileImport?: (file: File) => Promise<ImportSummary>;
+  // 星座导入已写入数据库，前端将返回的卫星 merge 到当前视图（不替换全部）
+  onConstellationImported?: (satellites?: ImportedSatellite[]) => Promise<void> | void;
   importLimit?: number;
   totalLimit?: number;
   currentCount?: number;
 }
-
-const CELESTRAK_CATEGORIES = [
-  { name: 'starlink', label: 'Starlink', description: 'SpaceX Starlink (最多100颗)' },
-  { name: 'gps-ops', label: 'GPS', description: 'GPS 运营卫星' },
-  { name: 'glo-ops', label: 'GLONASS', description: 'GLONASS 运营卫星' },
-  { name: 'galileo', label: 'Galileo', description: 'Galileo 卫星' },
-  { name: 'beidou', label: '北斗', description: '北斗导航卫星' },
-  { name: 'iridium', label: 'Iridium', description: 'Iridium 卫星' },
-  { name: 'oneweb', label: 'OneWeb', description: 'OneWeb 卫星' },
-  { name: 'weather', label: '气象卫星', description: '气象卫星' },
-  { name: 'geo', label: 'GEO', description: '地球静止轨道卫星' },
-  { name: 'iss', label: 'ISS', description: '国际空间站' },
-  { name: 'science', label: '科学卫星', description: '科学研究卫星' },
-  { name: 'military', label: '军事卫星', description: '军事卫星' },
-];
 
 type ImportMode = 'celestrak' | 'file';
 
@@ -67,13 +56,13 @@ export default function ImportModal({
   onClose,
   onSuccess,
   onFileImport,
+  onConstellationImported,
   importLimit = 100,
   totalLimit = 200,
   currentCount = 0,
 }: ImportModalProps) {
   const [importMode, setImportMode] = useState<ImportMode>('celestrak');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedConstellation, setSelectedConstellation] = useState<string>('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
@@ -86,7 +75,6 @@ export default function ImportModal({
   const handleClose = () => {
     setImportMode('celestrak');
     setSearchQuery('');
-    setSelectedCategory('');
     setSelectedConstellation('');
     setUploadFile(null);
     setIsImporting(false);
@@ -132,6 +120,9 @@ export default function ImportModal({
     { name: 'GLONASS', label: 'GLONASS', description: '俄罗斯 GLONASS 导航星座' },
     { name: 'Galileo', label: 'Galileo', description: '欧洲 Galileo 导航星座' },
     { name: '北斗', label: '北斗', description: '中国北斗导航星座' },
+    { name: '风云', label: '风云', description: '中国遥感卫星' },
+    { name: 'SBIRS', label: 'SBIRS', description: '美国军用导弹预警卫星' },
+    { name: 'SKYNET', label: 'SKYNET', description: '英国军事通信卫星' },
   ];
 
   const startImport = async () => {
@@ -170,14 +161,15 @@ export default function ImportModal({
           response = await apiClient.searchTLEFromCelestrak(searchQuery.trim());
         } else if (selectedConstellation) {
           response = await apiClient.importTLEFromConstellation(selectedConstellation);
-        } else if (selectedCategory) {
-          response = await apiClient.importTLEFromCelestrak(selectedCategory);
         } else {
-          setError('请输入 NORAD ID/名称或选择分类/星座');
+          setError('请输入 NORAD ID/名称或选择星座');
           setIsImporting(false);
           return;
         }
       }
+
+      // 星座导入已写入数据库：触发前端从DB重新加载（不调用 onSuccess 临时添加，避免重复）
+      const isConstellationImport = importMode === 'celestrak' && !!selectedConstellation && !searchQuery.trim();
 
       if (!response) {
         setError('无响应数据');
@@ -212,15 +204,48 @@ export default function ImportModal({
           failures: report?.failures || [],
           truncated: truncated || !!report?.truncated,
           limit: importLimit,
+          skippedExisting: report?.skippedExisting ?? 0,
+          skippedNonPayload: report?.skippedNonPayload ?? 0,
         });
 
-        if (satellites.length > 0) {
-          const summary = await onSuccess?.(satellites);
-          if (summary) {
-            setImportSummary(summary);
+        if (isConstellationImport) {
+          // 星座导入：后端已写入数据库，前端只需重新加载
+          // skipped 汇总：已入库跳过 + 非 PAYLOAD 过滤
+          const skippedExisting = report?.skippedExisting ?? 0;
+          const skippedNonPayload = report?.skippedNonPayload ?? 0;
+          const totalSkipped = skippedExisting + skippedNonPayload;
+
+          // 拼接提示消息：区分截断 / 已全部导入 / 非 PAYLOAD 过滤
+          const parts: string[] = [];
+          if (skippedNonPayload > 0) {
+            parts.push(`已过滤 ${skippedNonPayload} 颗非有效载荷（碎片/火箭体）`);
           }
+          if (satellites.length === 0 && skippedExisting > 0) {
+            parts.push('该星座所有卫星已导入，无需重复操作');
+          } else {
+            parts.push(`已永久保存 ${satellites.length} 颗到数据库`);
+          }
+          if (truncated) {
+            parts.push('超出部分已截断');
+          }
+
+          setImportSummary({
+            imported: satellites.length,
+            skipped: totalSkipped,
+            remaining: truncated ? satellites.length - importLimit : 0,
+            message: parts.join('；'),
+          });
+          await onConstellationImported?.(satellites);
         } else {
-          await onSuccess?.();
+          // 搜索模式：临时添加到前端
+          if (satellites.length > 0) {
+            const summary = await onSuccess?.(satellites);
+            if (summary) {
+              setImportSummary(summary);
+            }
+          } else {
+            await onSuccess?.();
+          }
         }
       } else {
         setError(response.error || '导入失败');
@@ -235,7 +260,6 @@ export default function ImportModal({
   const resetImport = () => {
     setImportMode('celestrak');
     setSearchQuery('');
-    setSelectedCategory('');
     setSelectedConstellation('');
     setUploadFile(null);
     setProgress(0);
@@ -265,9 +289,9 @@ export default function ImportModal({
             <span>上限 {totalLimit} 颗</span>
           </div>
 
-          {/* 提示：导入为临时操作 */}
+          {/* 提示：星座导入永久保存到数据库 */}
           <div className="mb-4 p-2 bg-space-800/50 rounded-lg text-xs text-space-500">
-            导入的卫星仅本次会话可见，刷新页面后恢复默认数据。
+            星座导入会永久保存到数据库，刷新页面不会丢失。
             <br />单次导入最多 {importLimit} 颗，总数不超过 {totalLimit} 颗。
           </div>
 
@@ -405,7 +429,7 @@ export default function ImportModal({
                           type="text"
                           placeholder="NORAD ID (如 25544) 或名称 (如 Hubble)"
                           value={searchQuery}
-                          onChange={(e) => { setSearchQuery(e.target.value); setSelectedCategory(''); setSelectedConstellation(''); }}
+                          onChange={(e) => { setSearchQuery(e.target.value); setSelectedConstellation(''); }}
                           onKeyDown={(e) => { if (e.key === 'Enter' && searchQuery.trim()) startImport(); }}
                           className="pl-9 bg-space-800/50 border-space-700"
                         />
@@ -424,7 +448,7 @@ export default function ImportModal({
                     {CONSTELLATIONS.map((c) => (
                       <button
                         key={c.name}
-                        onClick={() => { setSelectedConstellation(c.name); setSearchQuery(''); setSelectedCategory(''); }}
+                        onClick={() => { setSelectedConstellation(c.name); setSearchQuery(''); }}
                         className={`p-2 rounded-lg border text-left transition-all text-sm ${
                           selectedConstellation === c.name ? 'border-cosmic-blue bg-cosmic-blue/20' : 'border-space-700 bg-space-800/30 hover:bg-space-700/50'
                         }`}
@@ -435,33 +459,10 @@ export default function ImportModal({
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-space-700" />
-                    <span className="text-space-500 text-xs">按分类批量导入</span>
-                    <div className="flex-1 h-px bg-space-700" />
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {CELESTRAK_CATEGORIES.filter(c => !['starlink', 'gps-ops', 'glo-ops', 'galileo', 'beidou'].includes(c.name)).map((category) => (
-                      <button
-                        key={category.name}
-                        onClick={() => { setSelectedCategory(category.name); setSearchQuery(''); setSelectedConstellation(''); }}
-                        className={`p-2 rounded-lg border text-left transition-all text-sm ${
-                          selectedCategory === category.name && !searchQuery && !selectedConstellation
-                            ? 'border-cosmic-blue bg-cosmic-blue/20'
-                            : 'border-space-700 bg-space-800/30 hover:bg-space-700/50'
-                        }`}
-                      >
-                        <p className="text-space-100 font-medium">{category.label}</p>
-                        <p className="text-space-500 text-xs mt-0.5">{category.description}</p>
-                      </button>
-                    ))}
-                  </div>
-
                   {!searchQuery.trim() && (
                     <div className="flex justify-end gap-3 pt-2">
                       <Button variant="outline" className="bg-space-800/50 hover:bg-space-700/50 border-space-700" onClick={handleClose}>取消</Button>
-                      <Button onClick={startImport} disabled={isImporting || (!searchQuery.trim() && !selectedCategory && !selectedConstellation)} className="bg-cosmic-blue hover:bg-cosmic-blue/80">
+                      <Button onClick={startImport} disabled={isImporting || (!searchQuery.trim() && !selectedConstellation)} className="bg-cosmic-blue hover:bg-cosmic-blue/80">
                         {isImporting ? <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />导入中...</span> : '开始导入'}
                       </Button>
                     </div>

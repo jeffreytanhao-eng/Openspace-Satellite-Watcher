@@ -109,14 +109,12 @@ export async function POST(request: NextRequest) {
               spaceObjectId_epoch: { spaceObjectId: spaceObject.id, epoch },
             },
             update: {
-              name: tle.name,
               line1: tle.line1,
               line2: tle.line2,
               source: Source.CELESTRAK_API,
             },
             create: {
               spaceObjectId: spaceObject.id,
-              name: tle.name,
               line1: tle.line1,
               line2: tle.line2,
               epoch,

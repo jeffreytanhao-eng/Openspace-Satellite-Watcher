@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { ObjectType, Source } from '@prisma/client';
-import { mockSatellites } from '@/lib/mock/satellites';
+import { mockSatellites, DEFAULT_SATELLITE_NORAD_IDS } from '@/lib/mock/satellites';
 import { verifyPassword } from '@/lib/security';
 import { getCached, setCache } from '@/lib/cache';
 
 const CACHE_KEY = 'space-objects';
+const CACHE_KEY_ALL = 'space-objects-all';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function parseTLEEpoch(line1: string): Date {
@@ -63,15 +64,26 @@ function serializeSatellite(s: any) {
   };
 }
 
-// GET：从数据库读取所有默认卫星（无需密码），DB不可用时返回内置默认数据
-export async function GET() {
+// GET：从数据库读取卫星。
+// - 默认只返回 13 颗缺省卫星（DEFAULT_SATELLITE_NORAD_IDS），其余预导入星座数据需用户通过界面导入后才呈现
+// - ?all=true 返回全部卫星（供 DB 同步等高级操作使用）
+// - DB 不可用时返回内置默认数据
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const includeAll = searchParams.get('all') === 'true';
+  const cacheKey = includeAll ? CACHE_KEY_ALL : CACHE_KEY;
+
   // Check cache first — 缓存的是 JSON 数据（普通对象），不是 NextResponse 对象
   // NextResponse 响应体是流式的，只能消费一次，缓存 NextResponse 会导致后续请求返回空响应
-  const cached = getCached<unknown>(CACHE_KEY, CACHE_TTL);
+  const cached = getCached<unknown>(cacheKey, CACHE_TTL);
   if (cached) return NextResponse.json(cached);
 
   try {
+    const where = includeAll
+      ? undefined
+      : { noradId: { in: DEFAULT_SATELLITE_NORAD_IDS } };
     const satellites = await prisma.spaceObject.findMany({
+      where,
       include: {
         tleData: { take: 1, orderBy: { epoch: 'desc' } },
         tags: true,
@@ -85,7 +97,7 @@ export async function GET() {
       data,
       pagination: { page: 1, pageSize: 500, total: data.length, totalPages: 1 },
     };
-    setCache(CACHE_KEY, payload);
+    setCache(cacheKey, payload);
     return NextResponse.json(payload);
   } catch (error) {
     console.warn('DB unavailable, returning mock satellites:', (error as Error).message);

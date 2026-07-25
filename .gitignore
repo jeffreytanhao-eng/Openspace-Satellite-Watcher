@@ -46,3 +46,7 @@ satellite-nginx.conf
 
 # PM2 config (contains secrets)
 ecosystem.config.cjs
+
+# IDE internal
+.trae/
+

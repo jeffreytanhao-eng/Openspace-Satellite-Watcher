@@ -3,14 +3,11 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { ViewSwitcher, TimeControlBar, SatelliteList, FilterPanel, SearchBar, SatelliteDetailPanel, ImportModal, TagManager, AudioPlayer } from '@/components/ui';
+import { ViewSwitcher, TimeControlBar, SatelliteList, SearchBar, SatelliteDetailPanel, ImportModal, TagManager, AudioPlayer } from '@/components/ui';
 import type { ImportSummary } from '@/components/ui/ImportModal';
 import { useSatelliteStore, useSatellites, useSelectedSatellite, useVisibleSatellites, useViewMode } from '@/store/satelliteStore';
 import { useTimeStore } from '@/store/timeStore';
 import type { SpaceObject } from '@/store/satelliteStore';
-import type { FilterState } from '@/components/ui/FilterPanel';
-import { createSatrec, calculateOrbitParams } from '@/lib/tle/orbit';
-import { translateCountry } from '@/lib/translations';
 import { buildSatellitesFromTLE, parseTLETextClient, IMPORT_LIMIT_PER_BATCH, MAX_TOTAL_SATELLITES } from '@/lib/default-satellites';
 import { apiClient } from '@/lib/api/client';
 import { Upload, Tags, RefreshCw, RotateCcw, Lock, Database } from 'lucide-react';
@@ -28,18 +25,6 @@ const MapLibreMap = dynamic(() => import('@/components/visualization/MapLibreMap
 
 export interface Tag { id: string; name: string; color: string; }
 
-function inferCountry(name: string): string {
-  const upper = name.toUpperCase();
-  if (upper.includes('CSS') || upper.includes('TIANHE') || upper.includes('WENTIAN') || upper.includes('MENGTIAN')) return 'CHN';
-  if (upper.includes('BEIDOU') || upper.includes('BD-')) return 'CHN';
-  if (upper.includes('ISS') || upper.includes('ZARYA')) return 'INT';
-  if (upper.includes('STARLINK') || upper.includes('FALCON')) return 'USA';
-  if (upper.includes('GPS') || upper.includes('NOAA') || upper.includes('TERRA') || upper.includes('AQUA') || upper.includes('HST') || upper.includes('LANDSAT') || upper.includes('AURA')) return 'USA';
-  if (upper.includes('SENTINEL')) return 'EU';
-  if (upper.includes('GLONASS') || upper.includes('SOYUZ') || upper.includes('PROGRESS')) return 'RUS';
-  return 'Unknown';
-}
-
 function normalizeSatellite(raw: any): SpaceObject {
   const tleData = (raw.tleData || []).map((t: any) => ({
     id: t.id, name: t.name || raw.name, line1: t.line1, line2: t.line2,
@@ -48,7 +33,7 @@ function normalizeSatellite(raw: any): SpaceObject {
   return {
     id: raw.id || `db-${raw.noradId}`,
     noradId: Number(raw.noradId), name: raw.name,
-    country: raw.country || inferCountry(raw.name),
+    country: raw.country || inferCountryFromName(raw.name),
     objectType: raw.objectType || 'PAYLOAD',
     launchDate: raw.launchDate ? new Date(raw.launchDate) : null,
     launchSite: raw.launchSite || null, owner: raw.owner || null,
@@ -145,10 +130,6 @@ export default function HomePage() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(480);
   const isResizing = useRef(false);
-  const [filters, setFilters] = useState<FilterState>({
-    noradId: '', name: '', country: '', objectType: '', launchYear: '',
-    minAltitude: 0, maxAltitude: 40000, isActive: '',
-  });
   const [searchQuery, setSearchQuery] = useState('');
   const [tags, setTags] = useState<Tag[]>([]);
 
@@ -160,8 +141,10 @@ export default function HomePage() {
 
   // 密码弹窗状态
   const [passwordModal, setPasswordModal] = useState<{
-    isOpen: boolean; action: 'refreshTLE' | 'uploadImage' | 'sync'; noradId?: number;
+    isOpen: boolean; action: 'refreshTLE' | 'uploadImage' | 'sync' | 'advanced'; noradId?: number;
   }>({ isOpen: false, action: 'refreshTLE' });
+  // 高级功能解锁状态：控制"轨道数据刷新"、"数据同步"、"标签管理"三个敏感按钮的可见性
+  const [advancedUnlocked, setAdvancedUnlocked] = useState(false);
   // 图片上传授权时间戳（密码验证通过后递增，触发子组件打开文件选择器）
   const [uploadAuthTs, setUploadAuthTs] = useState<{ noradId: number; ts: number } | null>(null);
   const startPlayback = useTimeStore(state => state.startPlayback);
@@ -196,6 +179,10 @@ export default function HomePage() {
     if (viewParam === '2d' || viewParam === '3d') setViewMode(viewParam);
   }, [searchParams, setViewMode]);
 
+  // 高级功能默认隐藏，用户必须点击"高级功能"按钮才能解锁
+  // （即使 sessionStorage 中有密码，页面加载后也不自动解锁）
+  // 解锁后，敏感操作（TLE刷新/图片上传/同步）可在本会话内复用密码，无需重复输入
+
   useEffect(() => {
     if (!isLoading) {
       const timer = setTimeout(() => startPlayback(), 500);
@@ -203,7 +190,7 @@ export default function HomePage() {
     }
   }, [isLoading, startPlayback]);
 
-  // 普通导入：临时添加到前端（不写DB，刷新恢复默认）
+  // 普通导入：临时添加到前端（仅用于按 NORAD ID/名称搜索场景；星座导入走 onConstellationImported 从DB重新加载）
   const handleImportSuccess = useCallback((importedSatellites?: { noradId: number; name: string; line1: string; line2: string }[]): ImportSummary | void => {
     if (!importedSatellites || importedSatellites.length === 0) return;
     const existingIds = new Set(allSatellites.map(s => s.noradId));
@@ -223,6 +210,32 @@ export default function HomePage() {
     };
   }, [allSatellites, visibleSatellites, addSatellitesAction, setVisibleSatellites]);
 
+  // 星座导入回调：将后端返回的星座卫星 merge 到当前视图（不替换 13 颗缺省卫星）
+  // 后端已将数据写入数据库，这里只更新前端显示
+  const handleConstellationImported = useCallback(async (
+    importedSatellites?: { noradId: number; name: string; line1: string; line2: string }[]
+  ) => {
+    if (!importedSatellites || importedSatellites.length === 0) {
+      clearOrbitCache();
+      return;
+    }
+    // 过滤掉已在当前视图中的卫星（避免重复）
+    const existingIds = new Set(allSatellites.map(s => s.noradId));
+    // 将导入响应的 {noradId, name, line1, line2} 转换为 normalizeSatellite 期望的格式
+    const newSats = importedSatellites
+      .filter(sat => !existingIds.has(sat.noradId))
+      .map(sat => normalizeSatellite({
+        noradId: sat.noradId,
+        name: sat.name,
+        tleData: [{ name: sat.name, line1: sat.line1, line2: sat.line2, epoch: new Date() }],
+      }));
+    if (newSats.length > 0) {
+      setSatellites([...allSatellites, ...newSats]);
+      setVisibleSatellites([...visibleSatellites, ...newSats.map(s => s.noradId)]);
+    }
+    clearOrbitCache();
+  }, [allSatellites, visibleSatellites, setSatellites, setVisibleSatellites, clearOrbitCache]);
+
   const handleFileImport = useCallback(async (file: File): Promise<ImportSummary> => {
     const text = await file.text();
     const parsed = parseTLETextClient(text);
@@ -230,6 +243,20 @@ export default function HomePage() {
     const result = handleImportSuccess(parsed);
     return result || { imported: 0, skipped: 0, remaining: 0 };
   }, [handleImportSuccess]);
+
+  // 高级功能按钮：未解锁→弹密码框；已解锁→重新锁定
+  const handleAdvancedClick = () => {
+    if (advancedUnlocked) {
+      setAdvancedUnlocked(false);
+      return;
+    }
+    const savedPw = typeof window !== 'undefined' ? sessionStorage.getItem(SAVED_PASSWORD_KEY) : null;
+    if (savedPw) {
+      setAdvancedUnlocked(true);
+    } else {
+      setPasswordModal({ isOpen: true, action: 'advanced' });
+    }
+  };
 
   // TLE 刷新：需要密码验证
   const handleRefreshTLE = async () => {
@@ -314,8 +341,8 @@ export default function HomePage() {
       const { direction, count } = result.data;
       const dirText = direction === 'hk-to-neon' ? 'HK → Neon' : direction === 'neon-to-hk' ? 'Neon → HK' : '无需同步';
       setRefreshMessage(`数据库同步完成：${dirText}，共 ${count} 颗卫星`);
-      // 同步后重新加载数据
-      const satsResp = await apiClient.getSpaceObjects();
+      // 同步后重新加载数据（同步是高级操作，加载全部卫星）
+      const satsResp = await apiClient.getSpaceObjects(true);
       const dbSats = (satsResp.data || []).map(normalizeSatellite);
       setSatellites(dbSats);
       setVisibleSatellites(dbSats.map(s => s.noradId));
@@ -381,45 +408,16 @@ export default function HomePage() {
   const handleDeleteSatellite = (noradId: number) => removeSatellite(noradId);
   const handleBatchDelete = (noradIds: number[]) => removeSatellites(noradIds);
 
-  const calculateAltitude = (satellite: SpaceObject): number | null => {
-    if (!satellite.tleData || satellite.tleData.length === 0) return null;
-    try {
-      const satrec = createSatrec(satellite.tleData[0]);
-      const params = calculateOrbitParams(satrec);
-      return Math.round((params.perigeeAltitude + params.apogeeAltitude) / 2);
-    } catch { return null; }
-  };
-
+  // 简化后的过滤逻辑：仅按搜索框（NORAD ID 或名称）过滤，移除了左侧的 FilterPanel
+  // 原有的国别/类型/状态/发射年份/轨道高度筛选已不再需要（数据已预导入为 PAYLOAD）
   const filteredSatellites = useMemo(() => {
-    return allSatellites.filter(satellite => {
-      if (filters.noradId && !satellite.noradId.toString().includes(filters.noradId)) return false;
-      if (filters.name && !satellite.name.toLowerCase().includes(filters.name.toLowerCase())) return false;
-      if (filters.country) {
-        const KNOWN_COUNTRIES = ['中国', '美国', '俄罗斯', '欧洲', '日本', '印度'];
-        const codes = (satellite.country || '').split('/').map(c => c.trim()).filter(Boolean);
-        const translated = codes.map(code => translateCountry(code)).filter(Boolean) as string[];
-        if (filters.country === '其他') {
-          if (translated.some(c => KNOWN_COUNTRIES.includes(c))) return false;
-        } else { if (!translated.includes(filters.country)) return false; }
-      }
-      const typeMap: Record<string, string> = { '有效载荷': 'PAYLOAD', '火箭体': 'ROCKET_BODY', '碎片': 'DEBRIS', '未知': 'UNKNOWN' };
-      if (filters.objectType && satellite.objectType !== typeMap[filters.objectType]) return false;
-      if (filters.launchYear && satellite.launchDate) {
-        const launchYear = new Date(satellite.launchDate).getFullYear().toString();
-        if (launchYear !== filters.launchYear) return false;
-      }
-      if (filters.isActive) {
-        if (satellite.isActive !== (filters.isActive === 'active')) return false;
-      }
-      const altitude = calculateAltitude(satellite);
-      if (altitude !== null && (altitude < filters.minAltitude || altitude > filters.maxAltitude)) return false;
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        if (!satellite.name.toLowerCase().includes(q) && !satellite.noradId.toString().includes(q)) return false;
-      }
-      return true;
-    });
-  }, [allSatellites, filters, searchQuery]);
+    if (!searchQuery) return allSatellites;
+    const q = searchQuery.toLowerCase();
+    return allSatellites.filter(satellite =>
+      satellite.name.toLowerCase().includes(q) ||
+      satellite.noradId.toString().includes(q)
+    );
+  }, [allSatellites, searchQuery]);
 
   const handleSatelliteClick = (satellite: SpaceObject) => setSelectedSatellite(satellite);
   const handleToggleVisibility = (noradId: number) => {
@@ -429,7 +427,6 @@ export default function HomePage() {
   const handleDeselectAll = () => setVisibleSatellites([]);
   const handleBatchShow = (noradIds: number[]) => setVisibleSatellites([...new Set([...visibleSatellites, ...noradIds])]);
   const handleBatchHide = (noradIds: number[]) => setVisibleSatellites(visibleSatellites.filter(id => !noradIds.includes(id)));
-  const handleFilterChange = (newFilters: FilterState) => setFilters(newFilters);
   const handleSearch = (query: string) => setSearchQuery(query);
   const getSatelliteTags = (_s: SpaceObject): Tag[] => [];
 
@@ -461,6 +458,9 @@ export default function HomePage() {
     } else if (passwordModal.action === 'sync') {
       setPasswordModal(m => ({ ...m, isOpen: false }));
       doSync(password);
+    } else if (passwordModal.action === 'advanced') {
+      setPasswordModal(m => ({ ...m, isOpen: false }));
+      setAdvancedUnlocked(true);
     }
     return true;
   };
@@ -484,26 +484,36 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300"
-            onClick={handleRefreshTLE} disabled={isRefreshingTLE || allSatellites.length === 0}
-            title="从 Celestrak 同步最新 TLE 轨道数据（需要密码）">
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingTLE ? 'animate-spin' : ''}`} />
-            {isRefreshingTLE ? '刷新中...' : '轨道数据刷新'}
-          </Button>
-          <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300"
-            onClick={handleSync} disabled={isSyncing}
-            title="同步 HK 与 Neon 数据库（需要密码）">
-            <Database className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? '同步中...' : '数据同步'}
-          </Button>
+          {advancedUnlocked && (
+            <>
+              <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300"
+                onClick={handleRefreshTLE} disabled={isRefreshingTLE || allSatellites.length === 0}
+                title="从 Celestrak 同步最新 TLE 轨道数据（仅刷新TLE，不影响元数据）">
+                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingTLE ? 'animate-spin' : ''}`} />
+                {isRefreshingTLE ? '刷新中...' : '轨道数据刷新'}
+              </Button>
+              <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300"
+                onClick={handleSync} disabled={isSyncing}
+                title="同步 HK 与 Neon 数据库（需要密码）">
+                <Database className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                {isSyncing ? '同步中...' : '数据同步'}
+              </Button>
+              <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300" onClick={() => setShowTagManager(true)}>
+                <Tags className="h-4 w-4 mr-2" />标签管理
+              </Button>
+            </>
+          )}
           <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300" onClick={() => setShowImportModal(true)}>
             <Upload className="h-4 w-4 mr-2" />导入数据
           </Button>
           <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300" onClick={handleReset} title="重置为服务器默认卫星">
             <RotateCcw className="h-4 w-4 mr-2" />重置
           </Button>
-          <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300" onClick={() => setShowTagManager(true)}>
-            <Tags className="h-4 w-4 mr-2" />标签管理
+          <Button variant="outline" size="sm" className={`h-9 border-space-700 text-space-300 ${advancedUnlocked ? 'bg-cosmic-blue/20 border-cosmic-blue/50 text-cosmic-blue' : 'bg-space-800/50 hover:bg-space-700/50'}`}
+            onClick={handleAdvancedClick}
+            title={advancedUnlocked ? '点击重新隐藏高级功能' : '输入密码解锁轨道刷新、数据同步、标签管理'}>
+            <Lock className="h-4 w-4 mr-2" />
+            {advancedUnlocked ? '已解锁' : '高级功能'}
           </Button>
           <ViewSwitcher />
         </div>
@@ -524,7 +534,7 @@ export default function HomePage() {
 
       {allSatellites.length > 0 && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 px-3 py-1 text-xs text-space-500 pointer-events-none">
-          {allSatellites.length} 颗卫星（导入/删除仅本次有效 · TLE刷新和图片上传需密码）
+          {allSatellites.length} 颗卫星（星座导入永久保存 · 高级功能需密码）
         </div>
       )}
 
@@ -536,9 +546,6 @@ export default function HomePage() {
               <SearchBar satellites={allSatellites} onSearch={handleSearch} onSelectSatellite={handleSatelliteClick} />
             </div>
             <div className="flex-1 flex overflow-hidden">
-              <div className="w-48 border-r border-space-800 shrink-0">
-                <FilterPanel satellites={allSatellites} onFilterChange={handleFilterChange} filteredCount={filteredSatellites.length} />
-              </div>
               <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
                 {isLoading ? (
                   <div className="flex items-center justify-center flex-1"><div className="w-8 h-8 border-2 border-cosmic-blue border-t-transparent rounded-full animate-spin"></div></div>
@@ -602,6 +609,7 @@ export default function HomePage() {
       <ImportModal
         isOpen={showImportModal} onClose={() => setShowImportModal(false)}
         onSuccess={handleImportSuccess} onFileImport={handleFileImport}
+        onConstellationImported={handleConstellationImported}
         importLimit={IMPORT_LIMIT_PER_BATCH} totalLimit={MAX_TOTAL_SATELLITES} currentCount={allSatellites.length}
       />
 
@@ -611,12 +619,21 @@ export default function HomePage() {
         isOpen={passwordModal.isOpen}
         onClose={() => setPasswordModal(m => ({ ...m, isOpen: false }))}
         onSubmit={handlePasswordSubmit}
-        title={passwordModal.action === 'refreshTLE' ? 'TLE 轨道数据刷新' : passwordModal.action === 'sync' ? '数据库同步' : '上传图片'}
-        description={passwordModal.action === 'refreshTLE'
-          ? '刷新操作将批量请求 Celestrak 获取最新 TLE 数据，请输入操作密码。'
-          : passwordModal.action === 'sync'
-          ? '将 HK 本地数据库与 Neon 云数据库进行双向同步，请输入操作密码。'
-          : '图片将永久保存到服务器，请输入操作密码。'}
+        title={
+          passwordModal.action === 'refreshTLE' ? 'TLE 轨道数据刷新'
+          : passwordModal.action === 'sync' ? '数据库同步'
+          : passwordModal.action === 'advanced' ? '解锁高级功能'
+          : '上传图片'
+        }
+        description={
+          passwordModal.action === 'refreshTLE'
+            ? '刷新操作将批量请求 Celestrak 获取最新 TLE 数据（仅刷新TLE，不影响元数据），请输入操作密码。'
+            : passwordModal.action === 'sync'
+            ? '将 HK 本地数据库与 Neon 云数据库进行双向同步，请输入操作密码。'
+            : passwordModal.action === 'advanced'
+            ? '解锁后将显示轨道数据刷新、数据同步、标签管理三个功能，请输入操作密码。'
+            : '图片将永久保存到服务器，请输入操作密码。'
+        }
       />
 
       <AudioPlayer />

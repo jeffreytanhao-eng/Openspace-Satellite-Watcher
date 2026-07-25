@@ -43,7 +43,12 @@ class ApiClient {
         }));
         throw new Error(errorData.error || `请求失败: ${response.status}`);
       }
-      return await response.json();
+      // 防御性检查：响应体可能为空（热重载/中间件中断/缓存竞态），避免 "Unexpected end of JSON input"
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        throw new Error('服务器返回空响应，请刷新页面重试');
+      }
+      return JSON.parse(text);
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         throw new Error('请求已取消');
@@ -52,9 +57,12 @@ class ApiClient {
     }
   }
 
-  // 获取默认卫星
-  public async getSpaceObjects(): Promise<ApiResponse<any[]>> {
-    return this.request('/space-objects');
+  // 获取卫星列表
+  // - includeAll=false（默认）：只返回 13 颗缺省卫星
+  // - includeAll=true：返回全部卫星（供 DB 同步等高级操作使用）
+  public async getSpaceObjects(includeAll: boolean = false): Promise<ApiResponse<any[]>> {
+    const query = includeAll ? '?all=true' : '';
+    return this.request(`/space-objects${query}`);
   }
 
   // 获取标签

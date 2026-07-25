@@ -86,6 +86,8 @@ const COUNTRY_TRANSLATIONS: Record<string, string> = {
   IR: '伊朗',
   PK: '巴基斯坦', PAK: '巴基斯坦',
   EG: '埃及',
+  INT: '国际',
+  UNK: '未知', UNKNOWN: '未知',
 };
 
 const OBJECT_TYPE_TRANSLATIONS: Record<string, string> = {

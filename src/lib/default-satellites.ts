@@ -1,19 +1,6 @@
 import type { SpaceObject, ObjectType } from '@/store/satelliteStore';
 import { mockSatellites } from './mock/satellites';
-
-// 从名称推断国家
-function inferCountry(name: string): string {
-  const upper = name.toUpperCase();
-  if (upper.includes('CSS') || upper.includes('TIANHE') || upper.includes('WENTIAN') || upper.includes('MENGTIAN')) return 'CHN';
-  if (upper.includes('BEIDOU') || upper.includes('BD-')) return 'CHN';
-  if (upper.includes('ISS') || upper.includes('ZARYA')) return 'INT';
-  if (upper.includes('STARLINK') || upper.includes('FALCON')) return 'USA';
-  if (upper.includes('GPS') || upper.includes('NOAA') || upper.includes('TERRA') || upper.includes('AQUA') || upper.includes('HST') || upper.includes('LANDSAT') || upper.includes('AURA')) return 'USA';
-  if (upper.includes('SENTINEL')) return 'EU';
-  if (upper.includes('GLONASS') || upper.includes('SOYUZ') || upper.includes('PROGRESS')) return 'RUS';
-  if (upper.includes('GALILEO') || upper.includes('IRIDIUM')) return 'INT';
-  return 'Unknown';
-}
+import { inferCountryFromName } from './translations';
 
 function parseTLE(line2: string) {
   const inclination = parseFloat(line2.slice(8, 16));
@@ -82,7 +69,7 @@ export function buildSatellitesFromTLE(
         id: `imported-${r.noradId}-${Date.now()}-${idx}`,
         noradId: r.noradId,
         name: r.name,
-        country: inferCountry(r.name),
+        country: inferCountryFromName(r.name),
         objectType: 'PAYLOAD' as ObjectType,
         isActive: true,
         model3dUrl: null,

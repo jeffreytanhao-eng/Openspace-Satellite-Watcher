@@ -26,8 +26,9 @@ const RATE_LIMITS: Record<string, RateLimit> = {
   '/api/tags': { windowMs: 60_000, max: 30 },
   '/api/nasa-image/proxy': { windowMs: 60_000, max: 20 },
   '/api/nasa-media': { windowMs: 60_000, max: 20 },
-  // 外部API代理/CPU密集：严格
-  '/api/tle/import': { windowMs: 60_000, max: 10 },
+  // 外部API代理/CPU密集：已预导入星座走 isConstellationSeeded 早返回（<100ms），
+  // 未预导入的才请求 Celestrak（慢）。放宽到 60/min，避免正常使用被限流
+  '/api/tle/import': { windowMs: 60_000, max: 60 },
   '/api/space-objects/search': { windowMs: 60_000, max: 15 },
   // 需要密码的敏感操作：非常严格
   '/api/tle/refresh': { windowMs: 60_000, max: 5 },

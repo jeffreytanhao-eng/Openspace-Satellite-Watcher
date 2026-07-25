@@ -1,12 +1,20 @@
 import { PrismaClient, ObjectType, Source } from '@prisma/client';
 import { mockSatellites, mockTags } from '../src/lib/mock/satellites';
+import { CONSTELLATIONS_METADATA } from '../src/lib/constellation-metadata';
+import { importConstellation, IMPORT_LIMIT } from '../src/lib/constellation-import';
+import { parseEpoch } from '../src/lib/tle-utils';
 
 const prisma = new PrismaClient();
 
 /**
- * Seed script — imports mock satellite data and tags into the database.
+ * Seed script — 导入缺省卫星 + 标签 + 预导入星座到数据库。
  * Run with: npx prisma db seed
  * Or:       npx tsx prisma/seed.ts
+ *
+ * 幂等性：
+ * - 缺省卫星用 upsert（重复运行只更新不重复创建）
+ * - 星座预导入用 skipIfExists=true（已入库星座跳过，避免每次部署都打 Celestrak 8 次）
+ * - 容错：单星座 Celestrak 拉取失败不中断，记录警告继续
  */
 async function main() {
   console.log('Seeding database...');
@@ -28,13 +36,8 @@ async function main() {
   let tleCount = 0;
 
   for (const sat of mockSatellites) {
-    // Parse TLE epoch from line1 (columns 19-32: YYDDD.FFFFFFF)
-    // e.g. "26189.15353387" → year 2026, day 189
-    const epochStr = sat.tleData.line1.substring(18, 32).trim();
-    const year = 2000 + parseInt(epochStr.substring(0, 2));
-    const dayOfYear = parseFloat(epochStr.substring(2));
-    const epoch = new Date(year, 0, 1);
-    epoch.setDate(epoch.getDate() + dayOfYear - 1);
+    // parseEpoch 来自共享 tle-utils（含 1957 阈值判断，修正了原 seed.ts 的 bug）
+    const epoch = parseEpoch(sat.tleData.line1);
 
     const spaceObject = await prisma.spaceObject.upsert({
       where: { noradId: sat.noradId },
@@ -46,8 +49,8 @@ async function main() {
         launchSite: sat.launchSite || null,
         owner: sat.owner || null,
         isActive: sat.isActive,
-        model3dUrl: (sat as any).model3dUrl || null,
-        imageUrl: (sat as any).imageUrl || null,
+        model3dUrl: sat.model3dUrl || null,
+        imageUrl: sat.imageUrl || null,
       },
       create: {
         noradId: sat.noradId,
@@ -58,8 +61,8 @@ async function main() {
         launchSite: sat.launchSite || null,
         owner: sat.owner || null,
         isActive: sat.isActive,
-        model3dUrl: (sat as any).model3dUrl || null,
-        imageUrl: (sat as any).imageUrl || null,
+        model3dUrl: sat.model3dUrl || null,
+        imageUrl: sat.imageUrl || null,
       },
     });
 
@@ -107,6 +110,48 @@ async function main() {
   }
 
   console.log(`  Tags: ${tagCount}`);
+
+  // 3. Seed constellations from Celestrak (best-effort, idempotent)
+  // 预入库 8 个星座，使前端首次启动即有数据，不依赖用户手动点击导入。
+  // skipIfExists=true：已入库星座跳过，避免每次部署都 fetch Celestrak。
+  console.log('Seeding constellations from Celestrak...');
+  let constellationImported = 0;
+  let constellationSkipped = 0;
+  let constellationFailed = 0;
+
+  for (let i = 0; i < CONSTELLATIONS_METADATA.length; i++) {
+    const meta = CONSTELLATIONS_METADATA[i];
+    const progress = `[${i + 1}/${CONSTELLATIONS_METADATA.length}] ${meta.name}`;
+    try {
+      const result = await importConstellation(meta, {
+        prisma,
+        limit: IMPORT_LIMIT,
+        timeoutMs: 15000,
+        skipIfExists: true,
+      });
+      if (result.skipped) {
+        console.log(`  ${progress}: skipped (already seeded)`);
+        constellationSkipped++;
+      } else if (result.success) {
+        console.log(
+          `  ${progress}: ${result.upserted} satellites${result.truncated ? ' (truncated)' : ''}${
+            result.dbFailures.length > 0 ? `, ${result.dbFailures.length} db failures` : ''
+          }`
+        );
+        constellationImported++;
+      } else {
+        console.warn(`  ${progress}: FAILED — ${result.error}`);
+        constellationFailed++;
+      }
+    } catch (e) {
+      console.warn(`  ${progress}: ERROR — ${(e as Error).message}`);
+      constellationFailed++;
+    }
+  }
+  console.log(
+    `  Constellations: ${constellationImported} imported, ${constellationSkipped} skipped, ${constellationFailed} failed`
+  );
+
   console.log('Seed completed successfully!');
 }
 
