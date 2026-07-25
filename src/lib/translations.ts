@@ -178,6 +178,7 @@ const COUNTRY_KEYWORD_MAP: { keyword: string; country: string }[] = [
   { keyword: 'ISS', country: 'US' },
   { keyword: 'SPACEX', country: 'US' },
   { keyword: 'SKYSAT', country: 'US' },
+  { keyword: 'SBIRS', country: 'US' }, // 美国军用导弹预警卫星
   { keyword: 'WORLDVIEW', country: 'US' },
   { keyword: 'GEOEYE', country: 'US' },
   { keyword: 'QUICKBIRD', country: 'US' },
@@ -206,6 +207,8 @@ const COUNTRY_KEYWORD_MAP: { keyword: string; country: string }[] = [
   { keyword: 'AEOLUS', country: 'EU' },
   { keyword: 'CRYOSAT', country: 'EU' },
   { keyword: 'SWARM', country: 'EU' },
+  // 英国
+  { keyword: 'SKYNET', country: 'UK' }, // 英国军事通信卫星
   // 日本
   { keyword: 'QZS', country: 'JP' },
   { keyword: 'QZSS', country: 'JP' },

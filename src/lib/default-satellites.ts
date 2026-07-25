@@ -35,7 +35,7 @@ export function getDefaultSatellites(): SpaceObject[] {
       id: `default-${idx}`,
       noradId: sat.noradId,
       name: sat.name,
-      country: sat.country || inferCountry(sat.name),
+      country: sat.country || inferCountryFromName(sat.name),
       objectType: (sat.objectType as ObjectType) || 'PAYLOAD',
       launchDate: sat.launchDate || null,
       launchSite: sat.launchSite || null,

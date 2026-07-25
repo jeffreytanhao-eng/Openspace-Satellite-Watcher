@@ -28,6 +28,16 @@ interface ImportedSatellite {
   name: string;
   line1: string;
   line2: string;
+  // 完整元数据字段（星座导入 API 返回，搜索模式不返回这些字段所以都设为可选）
+  // 让前端 normalizeSatellite 直接消费，避免 fallback 到 inferCountryFromName 推断
+  country?: string | null;
+  objectType?: string;
+  launchDate?: string | null;
+  launchSite?: string | null;
+  owner?: string | null;
+  isActive?: boolean;
+  model3dUrl?: string | null;
+  imageUrl?: string | null;
 }
 
 export interface ImportSummary {

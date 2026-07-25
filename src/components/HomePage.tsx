@@ -9,6 +9,7 @@ import { useSatelliteStore, useSatellites, useSelectedSatellite, useVisibleSatel
 import { useTimeStore } from '@/store/timeStore';
 import type { SpaceObject } from '@/store/satelliteStore';
 import { buildSatellitesFromTLE, parseTLETextClient, IMPORT_LIMIT_PER_BATCH, MAX_TOTAL_SATELLITES } from '@/lib/default-satellites';
+import { inferCountryFromName } from '@/lib/translations';
 import { apiClient } from '@/lib/api/client';
 import { Upload, Tags, RefreshCw, RotateCcw, Lock, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -219,19 +220,37 @@ export default function HomePage() {
       clearOrbitCache();
       return;
     }
-    // 过滤掉已在当前视图中的卫星（避免重复）
-    const existingIds = new Set(allSatellites.map(s => s.noradId));
-    // 将导入响应的 {noradId, name, line1, line2} 转换为 normalizeSatellite 期望的格式
-    const newSats = importedSatellites
-      .filter(sat => !existingIds.has(sat.noradId))
-      .map(sat => normalizeSatellite({
-        noradId: sat.noradId,
-        name: sat.name,
-        tleData: [{ name: sat.name, line1: sat.line1, line2: sat.line2, epoch: new Date() }],
-      }));
-    if (newSats.length > 0) {
-      setSatellites([...allSatellites, ...newSats]);
-      setVisibleSatellites([...visibleSatellites, ...newSats.map(s => s.noradId)]);
+    try {
+      // 过滤掉已在当前视图中的卫星（避免重复）
+      const existingIds = new Set(allSatellites.map(s => s.noradId));
+      // 将导入响应转换为 normalizeSatellite 期望的格式
+      // 后端返回完整字段（country/imageUrl/objectType/launchDate 等），全部透传给 normalizeSatellite
+      // 避免前端因缺失 country 而回退到 inferCountryFromName 推断（SBIRS/SKYNET 等可能推断为 UNK）
+      const newSats = importedSatellites
+        .filter(sat => !existingIds.has(sat.noradId))
+        .map(sat => normalizeSatellite({
+          noradId: sat.noradId,
+          name: sat.name,
+          country: sat.country,
+          objectType: sat.objectType,
+          launchDate: sat.launchDate,
+          launchSite: sat.launchSite,
+          owner: sat.owner,
+          isActive: sat.isActive,
+          model3dUrl: sat.model3dUrl,
+          imageUrl: sat.imageUrl,
+          tleData: [{ name: sat.name, line1: sat.line1, line2: sat.line2, epoch: new Date() }],
+        }));
+      if (newSats.length > 0) {
+        // merge 到当前视图（不替换 13 颗缺省），同时扩展 visibleSatellites 让新卫星立即可见
+        setSatellites([...allSatellites, ...newSats]);
+        setVisibleSatellites([...visibleSatellites, ...newSats.map(s => s.noradId)]);
+        console.log(`[HomePage] 星座导入：新增 ${newSats.length} 颗卫星，当前总数 ${allSatellites.length + newSats.length}`);
+      } else {
+        console.log('[HomePage] 星座导入：所有卫星已在当前视图中，跳过 merge');
+      }
+    } catch (err) {
+      console.error('[HomePage] 星座导入回调异常：', err);
     }
     clearOrbitCache();
   }, [allSatellites, visibleSatellites, setSatellites, setVisibleSatellites, clearOrbitCache]);

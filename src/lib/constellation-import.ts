@@ -49,6 +49,23 @@ export interface ImportOptions {
   skipExistingNoradIds?: boolean;
 }
 
+export interface SavedSatellite {
+  noradId: number;
+  name: string;
+  line1: string;
+  line2: string;
+  // 完整元数据字段 — 让前端 normalizeSatellite 直接消费，无需 fallback 推断
+  // (Celestrak 实时导入分支通过 upsert 返回值获取；早返回分支由 route.ts 直接从 DB 读取)
+  country?: string | null;
+  objectType?: string;
+  launchDate?: string | null; // ISO 字符串
+  launchSite?: string | null;
+  owner?: string | null;
+  isActive?: boolean;
+  model3dUrl?: string | null;
+  imageUrl?: string | null;
+}
+
 export interface ImportResult {
   constellation: string;
   success: boolean;
@@ -61,7 +78,7 @@ export interface ImportResult {
   dbFailures: { noradId: string; name: string; reason: string }[];
   truncated: boolean;
   skipped?: boolean; // skipIfExists 命中时为 true
-  savedSatellites: { noradId: number; name: string; line1: string; line2: string }[];
+  savedSatellites: SavedSatellite[];
 }
 
 /**
@@ -247,7 +264,22 @@ export async function importConstellation(
         },
       });
 
-      savedSatellites.push(sat);
+      // 推入完整元数据，让前端 normalizeSatellite 直接消费
+      // (country/imageUrl 在 update 分支不会被覆盖，但 upsert 返回的是完整行，所以这里读取的是 DB 当前值)
+      savedSatellites.push({
+        noradId: sat.noradId,
+        name: sat.name,
+        line1: sat.line1,
+        line2: sat.line2,
+        country: spaceObject.country,
+        objectType: spaceObject.objectType,
+        launchDate: spaceObject.launchDate ? spaceObject.launchDate.toISOString() : null,
+        launchSite: spaceObject.launchSite,
+        owner: spaceObject.owner,
+        isActive: spaceObject.isActive,
+        model3dUrl: spaceObject.model3dUrl,
+        imageUrl: spaceObject.imageUrl,
+      });
     } catch (e) {
       dbFailures.push({
         noradId: String(sat.noradId),

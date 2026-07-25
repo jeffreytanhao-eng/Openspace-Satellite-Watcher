@@ -39,6 +39,8 @@ export async function POST(request: NextRequest) {
       const alreadySeeded = await isConstellationSeeded(prisma, meta);
       if (alreadySeeded) {
         // 从 DB 读取该星座的全部卫星（含最新 TLE），返回给前端 merge 到当前视图
+        // 返回完整元数据字段（country/imageUrl/objectType/launchDate 等），
+        // 避免前端因缺失 country 而 fallback 到 inferCountryFromName 推断出 'UNK'
         const constellationSats = await prisma.spaceObject.findMany({
           where: { name: { contains: meta.seededCheckNameKeyword, mode: 'insensitive' } },
           include: { tleData: { take: 1, orderBy: { epoch: 'desc' } } },
@@ -61,6 +63,14 @@ export async function POST(request: NextRequest) {
             satellites: constellationSats.map(s => ({
               noradId: s.noradId,
               name: s.name,
+              country: s.country,
+              objectType: s.objectType,
+              launchDate: s.launchDate ? s.launchDate.toISOString() : null,
+              launchSite: s.launchSite,
+              owner: s.owner,
+              isActive: s.isActive,
+              model3dUrl: s.model3dUrl,
+              imageUrl: s.imageUrl,
               line1: s.tleData[0]?.line1 || '',
               line2: s.tleData[0]?.line2 || '',
             })),

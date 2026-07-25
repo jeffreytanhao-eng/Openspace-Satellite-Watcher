@@ -242,7 +242,7 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
                   <span className="text-space-400 text-xs">发射日期</span>
                 </div>
                 <p className="text-space-100 text-sm font-medium">
-                  {satellite.launchDate ? new Date(satellite.launchDate).toLocaleDateString() : '未知'}
+                  {satellite.launchDate ? new Date(satellite.launchDate).toLocaleDateString() : '未公开'}
                 </p>
               </div>
             </div>
