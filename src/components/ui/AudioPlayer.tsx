@@ -20,23 +20,44 @@ export default function AudioPlayer() {
     audio.preload = 'auto';
     audioRef.current = audio;
 
+    let interactionStarted = false;
+    const startPlayback = () => {
+      audio.play().catch(() => {});
+    };
+
     const handleCanPlay = () => {
       setIsReady(true);
-      // 默认自动播放背景音乐（浏览器 autoplay policy 可能阻止，失败时静默处理）
-      audio.play().catch(() => {});
+      // 尝试自动播放（大多数浏览器会阻止无用户交互的自动播放）
+      startPlayback();
     };
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
 
+    // 浏览器 autoplay policy：等待用户首次交互后自动播放
+    const handleFirstInteraction = () => {
+      if (interactionStarted) return;
+      interactionStarted = true;
+      startPlayback();
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('keydown', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+
     audio.addEventListener('canplaythrough', handleCanPlay);
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
+    document.addEventListener('click', handleFirstInteraction);
+    document.addEventListener('keydown', handleFirstInteraction);
+    document.addEventListener('touchstart', handleFirstInteraction);
 
     return () => {
       audio.pause();
       audio.removeEventListener('canplaythrough', handleCanPlay);
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('keydown', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
       audioRef.current = null;
     };
   }, []);
