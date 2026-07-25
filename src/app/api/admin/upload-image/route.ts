@@ -57,6 +57,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, data: updated });
   } catch (error) {
     console.error('Upload image error:', error);
-    return NextResponse.json({ success: false, error: '上传失败，请重试' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorName = error instanceof Error ? error.constructor.name : 'Unknown';
+    return NextResponse.json({
+      success: false,
+      error: `上传失败 [${errorName}]: ${errorMessage}`,
+    }, { status: 500 });
   }
 }

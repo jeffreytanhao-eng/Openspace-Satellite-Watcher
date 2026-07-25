@@ -8,6 +8,11 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Prisma 客户端需要动态加载引擎二进制文件，不能被 Webpack 打包
+  // 否则在 Vercel Serverless 环境下会报错（尤其是写入操作）
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
   webpack(config, { isServer, webpack }) {
     // Mark cesium as external — loaded via CDN <script> to avoid
     // bundling its build output which contains octal escape sequences

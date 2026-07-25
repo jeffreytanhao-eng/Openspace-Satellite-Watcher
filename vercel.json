@@ -1,3 +1,13 @@
 {
-  "regions": ["hkg1"]
+  "regions": ["hkg1"],
+  "functions": {
+    "src/app/api/admin/upload-image/route": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "src/app/api/sync/route": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
 }
