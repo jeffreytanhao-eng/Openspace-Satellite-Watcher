@@ -5,14 +5,31 @@ import type { SpaceObject } from '@/store/satelliteStore';
 import { useSatelliteStore } from '@/store/satelliteStore';
 import { useTimeStore } from '@/store/timeStore';
 import { useCesium } from '@/hooks/useCesium';
+import { AOI_A, AOI_B } from '@/lib/trea/constants';
+import { useTreaTle } from '@/store/treaMissionStore';
+import { generateOrbitPoints } from '@/lib/cesium/positions';
+import type { TLEData } from '@/lib/tle/parser';
+import MissionSimulator from '@/components/trea/MissionSimulator';
+
+/** 变轨事件:ManeuverPanel 执行变轨后触发,包含新旧 TLE 供 Cesium 渲染轨道对比 */
+interface ManeuverEvent {
+  newTle: TLEData;
+  oldTle: TLEData;
+  /** 唯一标识,每次变轨递增,触发 useEffect 重执行 */
+  id: number;
+}
 
 interface CesiumGlobeProps {
   satellites: SpaceObject[];
   selectedSatellite: SpaceObject | null;
   visibleSatellites: number[];
+  /** TREA-01 任务模式:开启后渲染 AOI 和 TREA-01 卫星 */
+  missionMode?: boolean;
+  /** 变轨事件:执行变轨后渲染燃烧弧 + 新旧轨道对比 */
+  maneuverEvent?: ManeuverEvent | null;
 }
 
-export default function CesiumGlobe({ satellites, selectedSatellite, visibleSatellites }: CesiumGlobeProps) {
+export default function CesiumGlobe({ satellites, selectedSatellite, visibleSatellites, missionMode = false, maneuverEvent = null }: CesiumGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const initStarted = useRef(false);
   const initCompleted = useRef(false);
@@ -30,10 +47,24 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     startTracking,
     stopTracking,
     regenerateOrbit,
+    addAoiEntity,
+    addTrea01Entity,
+    addTrea01OrbitLine,
+    focusTrea01,
+    clearMissionEntities,
+    updateTrea01Position,
+    addImagingFootprint,
+    updateImagingFootprint,
+    clearImagingFootprint,
+    addManeuverArc,
+    addOrbitComparison,
+    clearManeuverEntities,
   } = useCesium();
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const currentTime = useTimeStore(state => state.currentTime);
+  // 订阅 store 中的当前 TLE(变轨后自动更新,替代硬编码 TREA01_INITIAL_TLE)
+  const treaTle = useTreaTle();
   const focusTrigger = useSatelliteStore(state => state.focusTrigger);
   const trackingNoradId = useSatelliteStore(state => state.trackingNoradId);
   const setTracking = useSatelliteStore(state => state.setTracking);
@@ -98,6 +129,79 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     updateOrbits(filteredSatellites, currentTime);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [satellites, visibleSatellites, isReady, viewer, updateOrbits]);
+
+  // ============================================================
+  // TREA-01 任务模式:渲染 AOI、TREA-01 卫星实体 + 轨道线
+  // ============================================================
+  // missionMode=true: 添加 AOI_A、AOI_B、TREA-01 卫星实体 + 轨道线,并飞向 TREA-01
+  // missionMode=false: 清理所有任务实体
+  // 依赖 treaTle:变轨后 TLE 变化 → 重新添加卫星实体 + 更新轨道线
+  // 依赖 initCompleted 确保 Cesium viewer 完全初始化后再操作
+  useEffect(() => {
+    if (!isReady || !viewer || !initCompleted.current) return;
+
+    if (missionMode) {
+      // 添加两个 AOI 多边形
+      addAoiEntity(AOI_A);
+      addAoiEntity(AOI_B);
+      // 添加 TREA-01 卫星实体(使用 store 当前 TLE,变轨后自动更新)
+      addTrea01Entity(treaTle);
+      // 添加 TREA-01 轨道线(紫色发光线)
+      addTrea01OrbitLine(treaTle, currentTime);
+      // 飞向 TREA-01 卫星
+      // 延迟一帧执行 flyTo,确保实体已添加到场景
+      const timeoutId = setTimeout(() => focusTrea01(), 100);
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    } else {
+      // 退出任务模式:清理所有任务实体(含轨道线、变轨可视化)
+      clearMissionEntities();
+      clearManeuverEntities();
+    }
+  }, [missionMode, isReady, viewer, treaTle, addAoiEntity, addTrea01Entity, addTrea01OrbitLine, focusTrea01, clearMissionEntities, clearManeuverEntities, currentTime]);
+
+  // TREA-01 卫星位置更新:跟随仿真时间传播
+  // 仅在 missionMode=true 时执行,与默认卫星位置更新独立
+  // 使用 store 当前 TLE(变轨后位置传播自动切换到新轨道)
+  useEffect(() => {
+    if (!isReady || !viewer || !initCompleted.current || !missionMode) return;
+    updateTrea01Position(treaTle, currentTime);
+  }, [missionMode, currentTime, isReady, viewer, treaTle, updateTrea01Position]);
+
+  // ============================================================
+  // TREA-01 变轨可视化:燃烧弧 + 新旧轨道对比
+  // ============================================================
+  // maneuverEvent 变化时(ManeuverPanel 执行变轨)触发:
+  // 1. 生成旧轨道点(灰色虚线) + 新轨道点(青色实线) → addOrbitComparison
+  // 2. 燃烧弧(亮橙色,取旧轨道最后 N 段) → addManeuverArc
+  // 3. 更新 TREA-01 轨道线为新 TLE
+  useEffect(() => {
+    if (!isReady || !viewer || !initCompleted.current || !missionMode) return;
+    if (!maneuverEvent) return;
+
+    const { newTle, oldTle } = maneuverEvent;
+    const now = new Date();
+
+    // 生成新旧轨道点(各一整圈,180 点)
+    const oldPoints = generateOrbitPoints([oldTle], now, 180);
+    const newPoints = generateOrbitPoints([newTle], now, 180);
+
+    // 渲染轨道对比(旧=灰色虚线,新=青色实线)
+    if (oldPoints.length >= 2 && newPoints.length >= 2) {
+      addOrbitComparison(oldPoints, newPoints);
+    }
+
+    // 燃烧弧:取旧轨道最后 10% 段(变轨点附近的高亮)
+    const burnStart = Math.floor(oldPoints.length * 0.9);
+    const burnArc = oldPoints.slice(burnStart);
+    if (burnArc.length >= 2) {
+      addManeuverArc(burnArc);
+    }
+
+    // 更新 TREA-01 轨道线为新 TLE
+    addTrea01OrbitLine(newTle, now);
+  }, [maneuverEvent, isReady, viewer, missionMode, addOrbitComparison, addManeuverArc, addTrea01OrbitLine]);
 
   // Handle selected satellite: 选中时显示 3D 模型 + 飞向卫星;取消选中切回光点
   useEffect(() => {
@@ -179,6 +283,17 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
         className="w-full h-full absolute inset-0"
         onContextMenu={handleRightClick}
       />
+
+      {/* TREA-01 任务仿真状态机:纯逻辑组件无 UI,missionMode 时挂载
+          通过 useCurrentTime() 驱动 EXECUTING→IMAGING→COMPLETED 状态转换
+          成像足迹方法由 useCesium 注入(每次调用产生独立 state,必须挂在 CesiumGlobe 内) */}
+      {missionMode && isReady && !displayError && (
+        <MissionSimulator
+          addImagingFootprint={addImagingFootprint}
+          updateImagingFootprint={updateImagingFootprint}
+          clearImagingFootprint={clearImagingFootprint}
+        />
+      )}
 
       {/* Reset view button */}
       {isReady && !displayError && (

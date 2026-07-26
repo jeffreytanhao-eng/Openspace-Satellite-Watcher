@@ -11,8 +11,15 @@ import type { SpaceObject } from '@/store/satelliteStore';
 import { buildSatellitesFromTLE, parseTLETextClient, IMPORT_LIMIT_PER_BATCH, MAX_TOTAL_SATELLITES } from '@/lib/default-satellites';
 import { inferCountryFromName } from '@/lib/translations';
 import { apiClient } from '@/lib/api/client';
-import { Upload, Tags, RefreshCw, RotateCcw, Lock, Database } from 'lucide-react';
+import { Upload, Tags, RefreshCw, RotateCcw, Lock, Database, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import MissionHeader from '@/components/trea/MissionHeader';
+import TaskListPanel from '@/components/trea/TaskListPanel';
+import TelemetryDashboard from '@/components/trea/TelemetryDashboard';
+import ManeuverPanel from '@/components/trea/ManeuverPanel';
+import MissionReportModal from '@/components/trea/MissionReportModal';
+import { useTreaLastReport, useTreaMissionPhase } from '@/store/treaMissionStore';
+import type { TLEData } from '@/lib/tle/parser';
 
 const CesiumGlobe = dynamic(() => import('@/components/visualization/CesiumGlobe'), {
   ssr: false,
@@ -131,6 +138,19 @@ export default function HomePage() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(480);
   const isResizing = useRef(false);
+  // TREA-01 任务中心模式:开启后隐藏原侧边栏与 header,渲染 MissionHeader 和任务专用 Cesium 视图
+  const [missionMode, setMissionMode] = useState(false);
+  // TREA-01 变轨事件:ManeuverPanel 执行变轨后设置,传递给 CesiumGlobe 渲染燃烧弧+轨道对比
+  const [maneuverEvent, setManeuverEvent] = useState<{ newTle: TLEData; oldTle: TLEData; id: number } | null>(null);
+  // TREA-01 任务报告模态框关闭状态(任务完成后弹出,用户关闭后不再自动弹出直到下次新任务完成)
+  const [reportDismissed, setReportDismissed] = useState(false);
+  // TREA-01 store:任务报告与阶段(用于驱动 MissionReportModal 显示)
+  const treaLastReport = useTreaLastReport();
+  const treaMissionPhase = useTreaMissionPhase();
+  // 时间播放控制(退出任务中心时重置,避免影响主大屏默认 10x 播放)
+  const timeStopPlayback = useTimeStore(s => s.stopPlayback);
+  const timeResetToNow = useTimeStore(s => s.resetToNow);
+  const timeSetRate = useTimeStore(s => s.setRate);
   const [searchQuery, setSearchQuery] = useState('');
   const [tags, setTags] = useState<Tag[]>([]);
 
@@ -496,8 +516,44 @@ export default function HomePage() {
     return true;
   };
 
+  // ============================================================
+  // TREA-01 任务中心:进入/退出与报告模态框控制
+  // ============================================================
+  // 进入任务中心:重置报告关闭状态(上次任务的关闭状态不影响新会话)
+  const handleEnterMission = () => {
+    setReportDismissed(false);
+    setMissionMode(true);
+  };
+
+  // 退出任务中心:停止时间播放 + 重置到 now + 恢复默认 10x 速率
+  // 目的:避免任务仿真中的时间跳转/加速影响主大屏默认行为(项目约束:默认 10x 播放)
+  const handleExitMission = () => {
+    timeStopPlayback();
+    timeResetToNow();
+    timeSetRate(10);
+    setMissionMode(false);
+    setManeuverEvent(null); // 清理变轨事件,避免重新进入时残留旧轨道对比
+  };
+
+  // 任务阶段离开 COMPLETED(新任务启动或重置)时,重置报告关闭状态
+  // 使下次任务完成时 MissionReportModal 能再次自动弹出
+  useEffect(() => {
+    if (treaMissionPhase !== 'COMPLETED') {
+      setReportDismissed(false);
+    }
+  }, [treaMissionPhase]);
+
+  // 是否显示 MissionReportModal:任务完成 + 有报告 + 用户未关闭
+  const showReportModal = missionMode
+    && treaMissionPhase === 'COMPLETED'
+    && treaLastReport !== null
+    && !reportDismissed;
+
   return (
     <div className="h-screen bg-space-950 flex flex-col overflow-hidden">
+      {missionMode ? (
+        <MissionHeader onExit={handleExitMission} />
+      ) : (
       <header className="h-16 bg-space-900/80 backdrop-blur-sm border-b border-space-800 flex items-center justify-between px-4 z-10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cosmic-blue to-cosmic-purple flex items-center justify-center">
@@ -546,6 +602,12 @@ export default function HomePage() {
             <Lock className="h-4 w-4 mr-2" />
             {advancedUnlocked ? '已解锁' : '高级功能'}
           </Button>
+          <Button variant="outline" size="sm" className="h-9 bg-cosmic-purple/20 hover:bg-cosmic-purple/30 border-cosmic-purple/50 text-cosmic-purple"
+            onClick={handleEnterMission}
+            title="进入 TREA-01 遥感任务仿真闭环">
+            <Rocket className="h-4 w-4 mr-2" />
+            TREA-01 任务中心
+          </Button>
           <ViewSwitcher />
         </div>
 
@@ -556,21 +618,22 @@ export default function HomePage() {
           </button>
         </div>
       </header>
+      )}
 
-      {refreshMessage && (
+      {!missionMode && refreshMessage && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-space-800/95 backdrop-blur-sm border border-space-700 text-sm text-space-100 shadow-lg">
           {refreshMessage}
         </div>
       )}
 
-      {allSatellites.length > 0 && (
+      {!missionMode && allSatellites.length > 0 && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 px-3 py-1 text-xs text-space-500 pointer-events-none">
           {allSatellites.length} 颗卫星（星座导入永久保存 · 高级功能需密码）
         </div>
       )}
 
       <div className="flex-1 flex overflow-hidden">
-        {showSidebar && (
+        {!missionMode && showSidebar && (
           <>
           <aside style={{ width: sidebarWidth }} className="bg-space-900/50 border-r border-space-800 flex flex-col overflow-hidden shrink-0">
             <div className="p-3 border-b border-space-800">
@@ -622,16 +685,53 @@ export default function HomePage() {
         )}
 
         <main className="flex-1 relative overflow-hidden min-h-0">
-          {viewMode === '3d' ? (
-            <CesiumGlobe satellites={allSatellites} selectedSatellite={selectedSatellite} visibleSatellites={visibleSatellites} />
+          {missionMode ? (
+            <CesiumGlobe
+              satellites={allSatellites}
+              selectedSatellite={selectedSatellite}
+              visibleSatellites={visibleSatellites}
+              missionMode={true}
+              maneuverEvent={maneuverEvent}
+            />
+          ) : viewMode === '3d' ? (
+            <CesiumGlobe
+              satellites={allSatellites}
+              selectedSatellite={selectedSatellite}
+              visibleSatellites={visibleSatellites}
+              missionMode={false}
+            />
           ) : (
             <MapLibreMap satellites={allSatellites} selectedSatellite={selectedSatellite} visibleSatellites={visibleSatellites} onSatelliteClick={handleSatelliteClick} />
           )}
-          <div className="absolute top-4 right-4 bg-space-900/80 backdrop-blur-sm border border-space-700 rounded-lg p-3 text-xs text-space-400 z-20">
-            <div className="flex items-center gap-2 mb-2"><div className="w-3 h-3 rounded-full bg-cosmic-blue"></div><span>卫星</span></div>
-            <div className="flex items-center gap-2 mb-2"><div className="w-6 h-0.5 bg-cosmic-blue/50"></div><span>轨道</span></div>
-            <div className="flex items-center gap-2"><div className="w-6 h-0.5 bg-cosmic-blue/20"></div><span>预测轨道</span></div>
-          </div>
+          {!missionMode && (
+            <div className="absolute top-4 right-4 bg-space-900/80 backdrop-blur-sm border border-space-700 rounded-lg p-3 text-xs text-space-400 z-20">
+              <div className="flex items-center gap-2 mb-2"><div className="w-3 h-3 rounded-full bg-cosmic-blue"></div><span>卫星</span></div>
+              <div className="flex items-center gap-2 mb-2"><div className="w-6 h-0.5 bg-cosmic-blue/50"></div><span>轨道</span></div>
+              <div className="flex items-center gap-2"><div className="w-6 h-0.5 bg-cosmic-blue/20"></div><span>预测轨道</span></div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* TREA-01 任务中心浮层面板(missionMode 时显示) */}
+          {/* ---------------------------------------------------------- */}
+          {/* 左侧:任务列表/规划面板(侧边栏式) */}
+          {/* 右侧:遥测仪表盘 + 变轨控制面板(上下分栏,可滚动) */}
+          {/* 均为不透明深色背景(用户偏好),不与默认 13 颗卫星逻辑耦合 */}
+          {/* ============================================================ */}
+          {missionMode && (
+            <>
+              {/* 左侧任务列表面板 */}
+              <div className="absolute top-0 left-0 bottom-0 z-20 pointer-events-auto">
+                <TaskListPanel />
+              </div>
+
+              {/* 右侧浮层:遥测仪表盘 + 变轨控制(可滚动) */}
+              <div className="absolute top-4 right-4 bottom-4 z-20 w-80 flex flex-col gap-3 overflow-y-auto pointer-events-auto">
+                <TelemetryDashboard />
+                <ManeuverPanel onManeuverExecuted={(newTle, oldTle) => setManeuverEvent({ newTle, oldTle, id: Date.now() })} />
+              </div>
+            </>
+          )}
         </main>
       </div>
 
@@ -645,6 +745,13 @@ export default function HomePage() {
       />
 
       <TagManager isOpen={showTagManager} onClose={() => setShowTagManager(false)} />
+
+      {/* TREA-01 任务报告模态框:任务完成后弹出,展示 mock 遥感报告 */}
+      <MissionReportModal
+        report={treaLastReport}
+        isOpen={showReportModal}
+        onClose={() => setReportDismissed(true)}
+      />
 
       <PasswordModal
         isOpen={passwordModal.isOpen}

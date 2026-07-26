@@ -7,6 +7,8 @@ import { useTimeStore } from '@/store/timeStore';
 import { createSatelliteEntity, getSatelliteColor } from '@/components/visualization/SatelliteEntity';
 import { createOrbitTrail } from '@/components/visualization/OrbitTrail';
 import { calculateSatellitePosition, generateOrbitPoints } from '@/lib/cesium/positions';
+import type { Aoi } from '@/lib/trea/constants';
+import type { TLEData } from '@/lib/tle/parser';
 
 type CesiumNS = typeof CesiumType;
 
@@ -32,6 +34,18 @@ interface CesiumInstance {
   satelliteEntities: Map<number, { update: (config: Record<string, unknown>) => void; destroy: () => void }>;
   orbitEntities: Map<number, { update: (config: Record<string, unknown>) => void; destroy: () => void }>;
   trackingRemoveListener?: () => void;
+  // TREA-01 任务专用实体集合(AOI 多边形 + TREA-01 卫星 + 轨道线)
+  // 与 satelliteEntities/orbitEntities 完全隔离,clearMissionEntities 只清理这些
+  missionAoiEntities: Map<string, CesiumType.Entity>;
+  missionTrea01Entity: { update: (config: Record<string, unknown>) => void; destroy: () => void } | null;
+  // TREA-01 轨道线实体:紫色 Polyline,跟随 TLE 变化(变轨后更新)
+  missionTrea01OrbitEntity: CesiumType.Entity | null;
+  // 成像足迹实体(M4 / Task 11):随卫星移动的矩形传感器足印多边形
+  // 与 missionAoiEntities/missionTrea01Entity 隔离,clearImagingFootprint 只清理此实体
+  missionFootprintEntity: CesiumType.Entity | null;
+  // 变轨可视化专用实体集合(燃烧弧 + 新旧轨道对比)
+  // 与 missionAoiEntities/missionTrea01Entity 隔离,clearManeuverEntities 只清理这些
+  missionManeuverEntities: CesiumType.Entity[];
 }
 
 const MAX_VISIBLE_SATELLITES = 2000;
@@ -159,6 +173,11 @@ export function useCesium() {
         Cesium,
         satelliteEntities: new Map(),
         orbitEntities: new Map(),
+        missionAoiEntities: new Map(),
+        missionTrea01Entity: null,
+        missionTrea01OrbitEntity: null,
+        missionFootprintEntity: null,
+        missionManeuverEntities: [],
       };
 
       cesiumRef.current = instance;
@@ -180,6 +199,30 @@ export function useCesium() {
       inst.orbitEntities.forEach(e => e.destroy());
       inst.satelliteEntities.clear();
       inst.orbitEntities.clear();
+      // 清理 TREA-01 任务实体
+      inst.missionAoiEntities.forEach(e => {
+        try { inst.viewer.entities.remove(e); } catch { /* ignore */ }
+      });
+      inst.missionAoiEntities.clear();
+      if (inst.missionTrea01Entity) {
+        inst.missionTrea01Entity.destroy();
+        inst.missionTrea01Entity = null;
+      }
+      // 清理 TREA-01 轨道线实体
+      if (inst.missionTrea01OrbitEntity) {
+        try { inst.viewer.entities.remove(inst.missionTrea01OrbitEntity); } catch { /* ignore */ }
+        inst.missionTrea01OrbitEntity = null;
+      }
+      // 清理成像足迹实体
+      if (inst.missionFootprintEntity) {
+        try { inst.viewer.entities.remove(inst.missionFootprintEntity); } catch { /* ignore */ }
+        inst.missionFootprintEntity = null;
+      }
+      // 清理变轨可视化实体
+      inst.missionManeuverEntities.forEach(e => {
+        try { inst.viewer.entities.remove(e); } catch { /* ignore */ }
+      });
+      inst.missionManeuverEntities = [];
       if (!inst.viewer.isDestroyed()) {
         inst.viewer.destroy();
       }
@@ -467,6 +510,448 @@ export function useCesium() {
     };
   }, []);
 
+  // ============================================================
+  // TREA-01 任务专用方法
+  // ============================================================
+
+  /**
+   * 添加 AOI(关注区域)实体到 Cesium 场景
+   * 渲染为半透明多边形(不透明度 0.4)+ 名称标签
+   * 与默认卫星实体完全隔离,存入 missionAoiEntities
+   */
+  const addAoiEntity = useCallback((aoi: Aoi) => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    const { Cesium, viewer } = inst;
+
+    // 已存在则先移除,避免重复
+    const existing = inst.missionAoiEntities.get(aoi.id);
+    if (existing) {
+      try { viewer.entities.remove(existing); } catch { /* ignore */ }
+      inst.missionAoiEntities.delete(aoi.id);
+    }
+
+    // 将 [lon, lat] 顶点数组转为 Cesium.Cartesian3 数组
+    const positions = aoi.polygon.map(([lon, lat]) =>
+      Cesium.Cartesian3.fromDegrees(lon, lat)
+    );
+
+    // 半透明多边形(不透明度 0.4)+ 边界线
+    const aoiColor = Cesium.Color.fromCssColorString('#ff6b35').withAlpha(0.4);
+    const outlineColor = Cesium.Color.fromCssColorString('#ff6b35');
+
+    const entity = viewer.entities.add({
+      id: `trea-aoi-${aoi.id}`,
+      name: aoi.name,
+      polygon: {
+        hierarchy: new Cesium.PolygonHierarchy(positions),
+        material: aoiColor,
+        outline: true,
+        outlineColor,
+      },
+      // 中心点标签
+      position: Cesium.Cartesian3.fromDegrees(aoi.center.lon, aoi.center.lat),
+      label: {
+        text: aoi.name,
+        font: 'bold 13px "Microsoft YaHei", sans-serif',
+        fillColor: Cesium.Color.WHITE,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 2,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cesium.Cartesian2(0, -12),
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        showBackground: true,
+        backgroundColor: new Cesium.Color(0, 0, 0, 0.75),
+        backgroundPadding: new Cesium.Cartesian2(6, 3),
+      },
+    });
+
+    inst.missionAoiEntities.set(aoi.id, entity);
+  }, []);
+
+  /**
+   * 添加 TREA-01 卫星实体到 Cesium 场景
+   * 复用 createSatelliteEntity,实体 id 为 satellite-99999(虚构 NORAD ID)
+   * 存入 missionTrea01Entity,与默认卫星实体集合隔离
+   */
+  const addTrea01Entity = useCallback((tle: TLEData) => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    const { Cesium, viewer } = inst;
+
+    // 已存在则先销毁
+    if (inst.missionTrea01Entity) {
+      inst.missionTrea01Entity.destroy();
+      inst.missionTrea01Entity = null;
+    }
+
+    // 计算初始位置(米制 ECI)
+    const pos = calculateSatellitePosition([tle], new Date());
+    if (!pos) {
+      console.warn('[useCesium] TREA-01 初始位置计算失败');
+      return;
+    }
+
+    // TREA-01 专用颜色:紫色,与默认卫星(青色/绿色)区分
+    const treaColor = '#b366ff';
+    const noradId = 99999;
+
+    const result = createSatelliteEntity(Cesium, viewer.entities, {
+      noradId,
+      name: tle.name,
+      position: pos,
+      color: treaColor,
+      isSelected: false,
+      showLabel: true,
+    });
+
+    inst.missionTrea01Entity = { update: result.update, destroy: result.destroy };
+  }, []);
+
+  /**
+   * 添加/更新 TREA-01 轨道线(紫色 Polyline,一整圈闭合轨道)
+   * 使用 generateOrbitPoints 采样一整圈轨道,绘制发光紫色线
+   * 变轨后重新调用即可更新轨道线(先清理旧实体)
+   *
+   * @param tle TREA-01 当前 TLE(变轨后传入新 TLE)
+   * @param time 采样起始时间(通常为仿真当前时间)
+   */
+  const addTrea01OrbitLine = useCallback((tle: TLEData, time: Date) => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    const { Cesium, viewer } = inst;
+
+    // 清理旧轨道线
+    if (inst.missionTrea01OrbitEntity) {
+      try { viewer.entities.remove(inst.missionTrea01OrbitEntity); } catch { /* ignore */ }
+      inst.missionTrea01OrbitEntity = null;
+    }
+
+    // 采样一整圈轨道点(ECI 米制)
+    const points = generateOrbitPoints([tle], time, 180);
+    if (!points || points.length < 2) return;
+
+    // 转换为 Cesium.Cartesian3
+    const positions = points.map(p => new Cesium.Cartesian3(p.x, p.y, p.z));
+
+    // 紫色发光轨道线(与 TREA-01 卫星颜色一致 #b366ff)
+    const orbitColor = Cesium.Color.fromCssColorString('#b366ff').withAlpha(0.8);
+    const entity = viewer.entities.add({
+      id: `trea01-orbit-${Date.now()}`,
+      name: 'TREA-01 Orbit',
+      polyline: {
+        positions: new Cesium.ConstantProperty(positions),
+        width: new Cesium.ConstantProperty(2),
+        material: new Cesium.PolylineGlowMaterialProperty({
+          glowPower: 0.25,
+          color: orbitColor,
+        }),
+        arcType: new Cesium.ConstantProperty(Cesium.ArcType.NONE),
+        show: new Cesium.ConstantProperty(true),
+      },
+    });
+
+    inst.missionTrea01OrbitEntity = entity;
+  }, []);
+
+  /**
+   * 飞向 TREA-01 卫星:优先飞向实体,实体不存在则飞向当前位置
+   */
+  const focusTrea01 = useCallback(() => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    const { Cesium, viewer } = inst;
+    const noradId = 99999;
+    const entity = viewer.entities.getById(`satellite-${noradId}`);
+    if (entity) {
+      viewer.flyTo(entity, {
+        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 2500000),
+        duration: 1.5,
+      });
+    }
+  }, []);
+
+  /**
+   * 清理所有 TREA-01 任务实体(AOI 多边形 + TREA-01 卫星 + 成像足迹)
+   * 不影响默认卫星实体和轨道
+   */
+  const clearMissionEntities = useCallback(() => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    // 清理 AOI
+    inst.missionAoiEntities.forEach(e => {
+      try { inst.viewer.entities.remove(e); } catch { /* ignore */ }
+    });
+    inst.missionAoiEntities.clear();
+    // 清理 TREA-01 卫星
+    if (inst.missionTrea01Entity) {
+      inst.missionTrea01Entity.destroy();
+      inst.missionTrea01Entity = null;
+    }
+    // 清理 TREA-01 轨道线
+    if (inst.missionTrea01OrbitEntity) {
+      try { inst.viewer.entities.remove(inst.missionTrea01OrbitEntity); } catch { /* ignore */ }
+      inst.missionTrea01OrbitEntity = null;
+    }
+    // 清理成像足迹
+    if (inst.missionFootprintEntity) {
+      try { inst.viewer.entities.remove(inst.missionFootprintEntity); } catch { /* ignore */ }
+      inst.missionFootprintEntity = null;
+    }
+  }, []);
+
+  /**
+   * 更新 TREA-01 卫星位置(每帧调用,跟随仿真时间传播)
+   * 仅在 missionTrea01Entity 存在时生效
+   */
+  const updateTrea01Position = useCallback((tle: TLEData, time: Date) => {
+    const inst = cesiumRef.current;
+    if (!inst || !inst.missionTrea01Entity) return;
+    const pos = calculateSatellitePosition([tle], time);
+    if (pos) {
+      inst.missionTrea01Entity.update({ position: pos });
+    }
+  }, []);
+
+  // ============================================================
+  // TREA-01 成像足迹可视化(M4 / Task 11)
+  // ============================================================
+  // 传感器足迹:以星下点为中心、widthKm × widthKm 的矩形多边形
+  // 亮色 #00ff88 半透明(不透明度 0.5),随卫星移动
+  // 用于 IMAGING 阶段实时显示传感器覆盖范围
+
+  /** 1 度纬度对应的地面距离(km,近似) */
+  const KM_PER_DEG_LAT_FP = 111.32;
+
+  /**
+   * 根据星下点和传感器宽度计算足迹矩形 4 顶点(顺时针闭合)
+   * 矩形对齐经纬度网格:沿迹/跨迹均取 widthKm
+   * @param center 星下点 {lon, lat}(经度需为 [-180, 180])
+   * @param widthKm 足迹宽度(km)
+   */
+  function computeFootprintCorners(
+    center: { lon: number; lat: number },
+    widthKm: number
+  ): Array<{ lon: number; lat: number }> {
+    const halfKm = widthKm / 2;
+    // 纬度方向:1° ≈ 111.32km(与纬度无关)
+    const halfLat = halfKm / KM_PER_DEG_LAT_FP;
+    // 经度方向:1° ≈ 111.32 * cos(lat) km(高纬度变窄,极点退化)
+    const cosLat = Math.cos((center.lat * Math.PI) / 180);
+    const halfLon = cosLat > 1e-6 ? halfKm / (KM_PER_DEG_LAT_FP * cosLat) : 0;
+
+    // 4 顶点顺时针闭合(左下 → 右下 → 右上 → 左上)
+    return [
+      { lon: center.lon - halfLon, lat: center.lat - halfLat },
+      { lon: center.lon + halfLon, lat: center.lat - halfLat },
+      { lon: center.lon + halfLon, lat: center.lat + halfLat },
+      { lon: center.lon - halfLon, lat: center.lat + halfLat },
+    ];
+  }
+
+  /**
+   * 添加成像足迹实体到 Cesium 场景
+   * 渲染为亮色 #00ff88 半透明矩形(不透明度 0.5)+ 边界线
+   * 若已存在则先移除,避免重复
+   *
+   * @param centerLonLat 星下点中心 {lon, lat}(经度 [-180, 180])
+   * @param widthKm 足迹宽度(km)
+   */
+  const addImagingFootprint = useCallback(
+    (centerLonLat: { lon: number; lat: number }, widthKm: number) => {
+      const inst = cesiumRef.current;
+      if (!inst) return;
+      const { Cesium, viewer } = inst;
+
+      // 已存在则先移除
+      if (inst.missionFootprintEntity) {
+        try { viewer.entities.remove(inst.missionFootprintEntity); } catch { /* ignore */ }
+        inst.missionFootprintEntity = null;
+      }
+
+      const corners = computeFootprintCorners(centerLonLat, widthKm);
+      const positions = corners.map(c => Cesium.Cartesian3.fromDegrees(c.lon, c.lat));
+
+      // 亮色 #00ff88 半透明填充(不透明度 0.5)+ 亮色边界线
+      const fillColor = Cesium.Color.fromCssColorString('#00ff88').withAlpha(0.5);
+      const outlineColor = Cesium.Color.fromCssColorString('#00ff88');
+
+      const entity = viewer.entities.add({
+        id: `trea-imaging-footprint-${Date.now()}`,
+        name: 'TREA-01 Imaging Footprint',
+        polygon: {
+          hierarchy: new Cesium.PolygonHierarchy(positions),
+          material: fillColor,
+          outline: true,
+          outlineColor,
+        },
+      });
+
+      inst.missionFootprintEntity = entity;
+    },
+    []
+  );
+
+  /**
+   * 更新成像足迹位置(随卫星移动,每帧调用)
+   * 通过替换 polygon hierarchy 实现位置更新
+   * 若足迹实体不存在则静默跳过(避免每帧日志噪声)
+   *
+   * @param centerLonLat 星下点中心 {lon, lat}(经度 [-180, 180])
+   * @param widthKm 足迹宽度(km)
+   */
+  const updateImagingFootprint = useCallback(
+    (centerLonLat: { lon: number; lat: number }, widthKm: number) => {
+      const inst = cesiumRef.current;
+      if (!inst || !inst.missionFootprintEntity) return;
+      const { Cesium } = inst;
+
+      const corners = computeFootprintCorners(centerLonLat, widthKm);
+      const positions = corners.map(c => Cesium.Cartesian3.fromDegrees(c.lon, c.lat));
+
+      // 替换 polygon hierarchy(每帧更新位置)
+      inst.missionFootprintEntity.polygon!.hierarchy = new Cesium.ConstantProperty(
+        new Cesium.PolygonHierarchy(positions)
+      );
+    },
+    []
+  );
+
+  /**
+   * 移除成像足迹实体
+   * 不影响 AOI、TREA-01 卫星、默认卫星实体和默认轨道
+   */
+  const clearImagingFootprint = useCallback(() => {
+    const inst = cesiumRef.current;
+    if (!inst || !inst.missionFootprintEntity) return;
+    try { inst.viewer.entities.remove(inst.missionFootprintEntity); } catch { /* ignore */ }
+    inst.missionFootprintEntity = null;
+  }, []);
+
+  // ============================================================
+  // TREA-01 变轨可视化专用方法
+  // ============================================================
+
+  /**
+   * 添加燃烧弧高亮(变轨机动点可视化)
+   * 使用亮橙色(#ff6b00)粗线 PolylineGraphics 标识机动燃烧段
+   *
+   * @param positions 燃烧弧位置点数组(ECI 米制 {x,y,z},与 generateOrbitPoints 输出一致)
+   */
+  const addManeuverArc = useCallback((positions: Array<{ x: number; y: number; z: number }>) => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    const { Cesium, viewer } = inst;
+
+    // 点数不足,无法构成线
+    if (!positions || positions.length < 2) return;
+
+    // 转换为 Cesium.Cartesian3(ECI 米制,直接传入,与 OrbitTrail 模式一致)
+    const cartesianPositions = positions.map(
+      p => new Cesium.Cartesian3(p.x, p.y, p.z)
+    );
+
+    // 燃烧弧样式:亮橙色 + 粗线 + 发光效果,强调机动段
+    const arcColor = Cesium.Color.fromCssColorString('#ff6b00').withAlpha(0.95);
+    const entity = viewer.entities.add({
+      id: `trea-maneuver-arc-${Date.now()}`,
+      name: 'TREA-01 Maneuver Arc',
+      polyline: {
+        positions: new Cesium.ConstantProperty(cartesianPositions),
+        width: new Cesium.ConstantProperty(5),
+        material: new Cesium.PolylineGlowMaterialProperty({
+          glowPower: 0.3,
+          color: arcColor,
+        }),
+        arcType: new Cesium.ConstantProperty(Cesium.ArcType.NONE),
+        show: new Cesium.ConstantProperty(true),
+      },
+    });
+
+    inst.missionManeuverEntities.push(entity);
+  }, []);
+
+  /**
+   * 添加新旧轨道对比可视化
+   * - 旧轨道:灰色虚线(参考轨道)
+   * - 新轨道:亮青色实线(机动后轨道)
+   *
+   * @param oldPoints 旧轨道点数组(ECI 米制)
+   * @param newPoints 新轨道点数组(ECI 米制)
+   */
+  const addOrbitComparison = useCallback(
+    (oldPoints: Array<{ x: number; y: number; z: number }>, newPoints: Array<{ x: number; y: number; z: number }>) => {
+      const inst = cesiumRef.current;
+      if (!inst) return;
+      const { Cesium, viewer } = inst;
+
+      const ts = Date.now();
+
+      // ---- 旧轨道:灰色虚线 ----
+      if (oldPoints && oldPoints.length >= 2) {
+        const oldPositions = oldPoints.map(
+          p => new Cesium.Cartesian3(p.x, p.y, p.z)
+        );
+        const oldColor = Cesium.Color.fromCssColorString('#888888').withAlpha(0.7);
+        viewer.entities.add({
+          id: `trea-maneuver-old-orbit-${ts}`,
+          name: 'TREA-01 Old Orbit',
+          polyline: {
+            positions: new Cesium.ConstantProperty(oldPositions),
+            width: new Cesium.ConstantProperty(1.5),
+            material: new Cesium.PolylineDashMaterialProperty({
+              color: oldColor,
+              dashLength: 16.0,
+            }),
+            arcType: new Cesium.ConstantProperty(Cesium.ArcType.NONE),
+            show: new Cesium.ConstantProperty(true),
+          },
+        });
+        // 记录到 missionManeuverEntities 以便后续清理
+        const oldEntity = viewer.entities.getById(`trea-maneuver-old-orbit-${ts}`);
+        if (oldEntity) inst.missionManeuverEntities.push(oldEntity);
+      }
+
+      // ---- 新轨道:亮青色实线 ----
+      if (newPoints && newPoints.length >= 2) {
+        const newPositions = newPoints.map(
+          p => new Cesium.Cartesian3(p.x, p.y, p.z)
+        );
+        const newColor = Cesium.Color.fromCssColorString('#00ffcc').withAlpha(0.9);
+        viewer.entities.add({
+          id: `trea-maneuver-new-orbit-${ts}`,
+          name: 'TREA-01 New Orbit',
+          polyline: {
+            positions: new Cesium.ConstantProperty(newPositions),
+            width: new Cesium.ConstantProperty(2.5),
+            material: new Cesium.PolylineGlowMaterialProperty({
+              glowPower: 0.2,
+              color: newColor,
+            }),
+            arcType: new Cesium.ConstantProperty(Cesium.ArcType.NONE),
+            show: new Cesium.ConstantProperty(true),
+          },
+        });
+        const newEntity = viewer.entities.getById(`trea-maneuver-new-orbit-${ts}`);
+        if (newEntity) inst.missionManeuverEntities.push(newEntity);
+      }
+    },
+    []
+  );
+
+  /**
+   * 清理所有变轨可视化实体(燃烧弧 + 新旧轨道对比)
+   * 不影响 AOI、TREA-01 卫星、默认卫星实体和默认轨道
+   */
+  const clearManeuverEntities = useCallback(() => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    inst.missionManeuverEntities.forEach(e => {
+      try { inst.viewer.entities.remove(e); } catch { /* ignore */ }
+    });
+    inst.missionManeuverEntities = [];
+  }, []);
+
   return {
     isReady: !!cesium,
     loadError,
@@ -482,5 +967,19 @@ export function useCesium() {
     startTracking,
     stopTracking,
     regenerateOrbit,
+    addAoiEntity,
+    addTrea01Entity,
+    addTrea01OrbitLine,
+    focusTrea01,
+    clearMissionEntities,
+    updateTrea01Position,
+    // 成像足迹可视化方法(M4 / Task 11)
+    addImagingFootprint,
+    updateImagingFootprint,
+    clearImagingFootprint,
+    // 变轨可视化方法
+    addManeuverArc,
+    addOrbitComparison,
+    clearManeuverEntities,
   };
 }
