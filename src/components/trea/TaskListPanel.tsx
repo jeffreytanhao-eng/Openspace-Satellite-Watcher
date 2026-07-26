@@ -13,8 +13,8 @@
 //   - 「开始任务仿真」(M4 已接线):startTaskSimulation + 时间播放跳转+加速
 //   - 「重置 TREA-01」(Story 5.2):reset store + 停止播放 + 时间回 now
 
-import { useEffect, useMemo, useState } from 'react';
-import { Target, Clock, TrendingUp, Rocket, Wrench, RefreshCw, CheckCircle2, MapPin, RotateCcw } from 'lucide-react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { Target, Clock, TrendingUp, Rocket, Wrench, RefreshCw, CheckCircle2, MapPin, RotateCcw, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AOI_A, AOI_B, AOI_LIST } from '@/lib/trea/constants';
 import {
@@ -26,9 +26,13 @@ import {
   useTreaMissionStore,
   useTreaTle,
   useTreaMissionPhase,
+  useTreaOrbitParams,
+  useTreaBattery,
   type TreaMissionTask,
 } from '@/store/treaMissionStore';
 import { useTimeStore } from '@/store/timeStore';
+import { buildAiRequestInput, type AiTaskPlanningOutput } from '@/lib/trea/ai-prompt';
+import AiPlanningModal from '@/components/trea/AiPlanningModal';
 
 // ============================================================
 // 工具函数
@@ -117,6 +121,7 @@ function WindowCard({ window: w, now, isHighlighted }: WindowCardProps) {
 interface AoiSectionProps {
   aoiId: string;
   aoiName: string;
+  aoiNameEn: string;
   aoiCenter: { lat: number; lon: number };
   windows: AccessWindow[];
   now: Date;
@@ -127,6 +132,7 @@ interface AoiSectionProps {
 function AoiSection({
   aoiId,
   aoiName,
+  aoiNameEn,
   aoiCenter,
   windows,
   now,
@@ -164,6 +170,7 @@ function AoiSection({
                 {aoiId.toUpperCase()}
               </span>
             </div>
+            <span className="block text-[10px] text-space-500 mt-0.5">{aoiNameEn}</span>
             <div className="flex items-center gap-1 text-[11px] text-space-500 mt-0.5">
               <MapPin className="h-3 w-3" />
               <span className="font-mono">
@@ -210,6 +217,8 @@ function AoiSection({
 
 export default function TaskListPanel() {
   const tle = useTreaTle();
+  const orbitParams = useTreaOrbitParams();
+  const battery = useTreaBattery();
   const setCurrentTask = useTreaMissionStore(s => s.setCurrentTask);
   const setMissionPhase = useTreaMissionStore(s => s.setMissionPhase);
   const executeManeuver = useTreaMissionStore(s => s.executeManeuver);
@@ -238,6 +247,10 @@ export default function TaskListPanel() {
   const [isComputing, setIsComputing] = useState(true);
   // 「开始任务仿真」反馈消息
   const [simMessage, setSimMessage] = useState<string | null>(null);
+  // 面板折叠状态:折叠时向左缩进,仅留窄条展开按钮
+  const [collapsed, setCollapsed] = useState(false);
+  // AI 辅助规划模态框:点击按钮打开,展示 LLM 分析结果
+  const [showAiModal, setShowAiModal] = useState(false);
 
   // 进入面板或 TLE 变更后(机动后)重新计算 48h 过境窗口
   useEffect(() => {
@@ -375,6 +388,65 @@ export default function TaskListPanel() {
   const isSimulationRunning = missionPhase === 'EXECUTING' || missionPhase === 'IMAGING';
   const isSimulationFinished = missionPhase === 'COMPLETED';
 
+  // AI 辅助规划:调用后端 /api/ai/task-planning,转发到 LLM 进行综合分析
+  // 使用 useCallback 保证引用稳定(模态框 useEffect 依赖此函数)
+  const handleInvokeAi = useCallback(async (): Promise<AiTaskPlanningOutput> => {
+    const input = buildAiRequestInput({
+      tle,
+      orbitParams,
+      aois: [
+        { aoi: AOI_A, windows: windowsA },
+        { aoi: AOI_B, windows: windowsB },
+      ],
+      fuel,
+      battery,
+      missionPhase,
+      computeStartTime,
+    });
+    const resp = await fetch('/api/ai/task-planning', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.success) {
+      throw new Error(data.error || `AI 调用失败(HTTP ${resp.status})`);
+    }
+    return data.data as AiTaskPlanningOutput;
+  }, [tle, orbitParams, windowsA, windowsB, fuel, battery, missionPhase, computeStartTime]);
+
+  // 应用 AI 建议:选中推荐的 AOI(复用 handleSelectAoi 逻辑)
+  // windowIndex 仅用于反馈,实际窗口选择仍由 findNextWindow 决定
+  const handleApplyAiRecommendation = (aoiId: string, _windowIndex: number) => {
+    // 先清除当前选中,再选中新 AOI(handleSelectAoi 内部判断同 AOI 会取消)
+    if (selectedAoiId === aoiId) {
+      // 已选中,无需重复
+      return;
+    }
+    handleSelectAoi(aoiId);
+    setSimMessage(`已应用 AI 建议:选中 ${aoiId.toUpperCase()}`);
+    setTimeout(() => setSimMessage(null), 4000);
+  };
+
+  // 折叠状态:仅渲染窄条展开按钮
+  if (collapsed) {
+    return (
+      <div className="h-full w-10 bg-space-950 border-r border-space-800 flex flex-col items-center pt-3">
+        <button
+          type="button"
+          onClick={() => setCollapsed(false)}
+          className="p-2 rounded-lg text-space-400 hover:text-cosmic-blue hover:bg-space-800 transition-colors"
+          title="展开任务规划"
+        >
+          <PanelLeftOpen className="h-5 w-5" />
+        </button>
+        <span className="text-[10px] text-space-500 writing-mode-vertical mt-2" style={{ writingMode: 'vertical-rl' }}>
+          任务规划
+        </span>
+      </div>
+    );
+  }
+
   return (
     <aside className="w-96 bg-space-950 border-r border-space-800 flex flex-col overflow-hidden">
       {/* 顶部标题栏 */}
@@ -382,14 +454,24 @@ export default function TaskListPanel() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Target className="h-5 w-5 text-cosmic-blue" />
-            <h2 className="text-sm font-bold text-space-100">过境窗口规划</h2>
+            <h2 className="text-sm font-bold text-space-100">任务规划</h2>
           </div>
-          {isComputing && (
-            <div className="flex items-center gap-1.5 text-[11px] text-space-500">
-              <RefreshCw className="h-3 w-3 animate-spin" />
-              <span>计算中...</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {isComputing && (
+              <div className="flex items-center gap-1.5 text-[11px] text-space-500">
+                <RefreshCw className="h-3 w-3 animate-spin" />
+                <span>计算中...</span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setCollapsed(true)}
+              className="p-1.5 rounded-lg text-space-400 hover:text-cosmic-blue hover:bg-space-800 transition-colors"
+              title="折叠面板"
+            >
+              <PanelLeftClose className="h-4 w-4" />
+            </button>
+          </div>
         </div>
         <p className="text-[11px] text-space-500 mt-1">
           基于 TLE 预测未来 48 小时的过境窗口,采样间隔 30 秒
@@ -401,6 +483,7 @@ export default function TaskListPanel() {
         <AoiSection
           aoiId={AOI_A.id}
           aoiName={AOI_A.name}
+          aoiNameEn={AOI_A.nameEn}
           aoiCenter={AOI_A.center}
           windows={windowsA}
           now={now}
@@ -410,6 +493,7 @@ export default function TaskListPanel() {
         <AoiSection
           aoiId={AOI_B.id}
           aoiName={AOI_B.name}
+          aoiNameEn={AOI_B.nameEn}
           aoiCenter={AOI_B.center}
           windows={windowsB}
           now={now}
@@ -427,6 +511,19 @@ export default function TaskListPanel() {
 
       {/* 底部操作区 */}
       <div className="border-t border-space-800 bg-space-900 p-3 space-y-2">
+        {/* AI 辅助规划按钮:调用 LLM 综合分析轨道/光照/资源,给出推荐 AOI 与机动建议 */}
+        <Button
+          variant="default"
+          size="sm"
+          className="w-full h-9 bg-gradient-to-r from-purple-600 to-cosmic-blue hover:from-purple-500 hover:to-cosmic-blue/80 text-white border border-purple-400/30"
+          onClick={() => setShowAiModal(true)}
+          disabled={isComputing || isSimulationRunning}
+          title="调用 AI 大模型综合分析过境窗口,推荐最优 AOI 与成像窗口"
+        >
+          <Sparkles className="h-4 w-4 mr-2" />
+          AI 辅助规划
+        </Button>
+
         {/* 建议相位调整机动按钮 */}
         {showManeuverSuggest && (
           <Button
@@ -492,6 +589,14 @@ export default function TaskListPanel() {
           </div>
         )}
       </div>
+
+      {/* AI 辅助规划模态框:fixed 定位,脱离 aside 流式布局 */}
+      <AiPlanningModal
+        isOpen={showAiModal}
+        onClose={() => setShowAiModal(false)}
+        onInvoke={handleInvokeAi}
+        onApplyRecommendation={handleApplyAiRecommendation}
+      />
     </aside>
   );
 }

@@ -671,6 +671,71 @@ export function useCesium() {
     }
   }, []);
 
+  // ============================================================
+  // TREA-01 持续跟踪(preUpdate 监听器,避免 viewer.trackedEntity 轨道不稳定)
+  // ============================================================
+  // trea01TrackingRef 存储 preUpdate 监听器引用,startTrackingTrea01 注册,
+  // stopTrackingTrea01 注销。跟踪时相机跟随 TREA-01 位置移动(固定偏移距离)
+  const trea01TrackingRef = useRef<(() => void) | null>(null);
+
+  /** 启动 TREA-01 持续跟踪:注册 preUpdate 监听器,相机跟随卫星位置 */
+  const startTrackingTrea01 = useCallback(() => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    const { Cesium, viewer } = inst;
+
+    // 先清理旧监听器
+    if (trea01TrackingRef.current) {
+      trea01TrackingRef.current();
+      trea01TrackingRef.current = null;
+    }
+
+    const noradId = 99999;
+    const entity = viewer.entities.getById(`satellite-${noradId}`);
+    if (!entity) return;
+
+    // 先飞向 TREA-01,然后启动持续跟踪
+    viewer.flyTo(entity, {
+      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 2500000),
+      duration: 1.0,
+    });
+
+    // preUpdate 监听器:每帧更新相机位置,跟随 TREA-01
+    const listener = () => {
+      const inst2 = cesiumRef.current;
+      if (!inst2) return;
+      const pos = entity.position?.getValue?.(inst2.viewer.clock.currentTime);
+      if (!pos) return;
+      // 相机保持在卫星上方 2500km,俯视角度 -45°
+      const heading = 0;
+      const pitch = inst2.Cesium.Math.toRadians(-45);
+      const range = 2500000;
+      inst2.viewer.camera.lookAt(pos, new inst2.Cesium.HeadingPitchRange(heading, pitch, range));
+    };
+
+    // 延迟 1.2s 启动持续跟踪(等待 flyTo 完成)
+    const timeoutId = setTimeout(() => {
+      viewer.scene.preUpdate.addEventListener(listener);
+    }, 1200);
+
+    trea01TrackingRef.current = () => {
+      clearTimeout(timeoutId);
+      viewer.scene.preUpdate.removeEventListener(listener);
+    };
+  }, []);
+
+  /** 停止 TREA-01 持续跟踪:注销 preUpdate 监听器,释放相机控制 */
+  const stopTrackingTrea01 = useCallback(() => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    if (trea01TrackingRef.current) {
+      trea01TrackingRef.current();
+      trea01TrackingRef.current = null;
+    }
+    // 释放 lookAt 锁定,让用户可以自由操控相机
+    inst.viewer.camera.lookAtTransform(inst.Cesium.Matrix4.IDENTITY);
+  }, []);
+
   /**
    * 清理所有 TREA-01 任务实体(AOI 多边形 + TREA-01 卫星 + 成像足迹)
    * 不影响默认卫星实体和轨道
@@ -971,6 +1036,8 @@ export function useCesium() {
     addTrea01Entity,
     addTrea01OrbitLine,
     focusTrea01,
+    startTrackingTrea01,
+    stopTrackingTrea01,
     clearMissionEntities,
     updateTrea01Position,
     // 成像足迹可视化方法(M4 / Task 11)

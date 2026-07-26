@@ -60,8 +60,10 @@ export interface AoiPolygonVertex {
 export interface Aoi {
   /** AOI 唯一标识 */
   id: string;
-  /** AOI 显示名称 */
+  /** AOI 显示名称(中文为主) */
   name: string;
+  /** AOI 英文名称(副标题,显示在中文下方) */
+  nameEn: string;
   /** 中心点 {lat, lon} */
   center: { lat: number; lon: number };
   /** 多边形顶点 [lon, lat] 数组 */
@@ -75,7 +77,8 @@ export interface Aoi {
  */
 export const AOI_A: Aoi = {
   id: 'aoi-a',
-  name: 'Xisha-Philippine Sea AOI',
+  name: '南海西沙—菲律宾海域',
+  nameEn: 'Xisha-Philippine Sea',
   center: { lat: 16.5, lon: 113.5 },
   polygon: [
     [111, 15],
@@ -92,7 +95,8 @@ export const AOI_A: Aoi = {
  */
 export const AOI_B: Aoi = {
   id: 'aoi-b',
-  name: 'Strait of Hormuz AOI',
+  name: '霍尔木兹海峡',
+  nameEn: 'Strait of Hormuz',
   center: { lat: 26.5, lon: 56.5 },
   polygon: [
     [55.5, 25.5],

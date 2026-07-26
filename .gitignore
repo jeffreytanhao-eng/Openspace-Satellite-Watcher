@@ -21,6 +21,9 @@ public/cesium/
 # Original GLB backups (created by compress-models.mjs, ~45MB)
 public/models/original/
 
+# GLB fix script backups (fix-glb-texcoord.mjs / strip-glb-textures.mjs)
+*.glb.bak
+
 # Graphify
 graphify-out/
 .graphify_uncached.txt

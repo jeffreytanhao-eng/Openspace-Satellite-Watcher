@@ -107,12 +107,18 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   useEffect(() => {
     if (!isReady || !viewer || !initCompleted.current) return;
 
+    // 任务模式下隐藏默认 13 颗卫星,仅显示 TREA-01(由 missionMode 效果单独管理)
+    if (missionMode) {
+      updateSatellitePositions([], currentTime);
+      return;
+    }
+
     const visibleIds = new Set(visibleSatellites);
     const filteredSatellites = satellites.filter(s => visibleIds.has(s.noradId));
 
     // 即使卫星列表为空也要执行，以清理 Cesium 中残留的卫星实体
     updateSatellitePositions(filteredSatellites, currentTime);
-  }, [satellites, currentTime, visibleSatellites, isReady, viewer, updateSatellitePositions]);
+  }, [satellites, currentTime, visibleSatellites, isReady, viewer, missionMode, updateSatellitePositions]);
 
   // Update orbits ONLY when satellite data or visibility changes (not on time change)
   // Orbit shape is a fixed ellipse determined by TLE elements, not by current time.
@@ -122,13 +128,19 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     if (!isReady || !viewer || !initCompleted.current) return;
     if (isTrackingRef.current) return; // Freeze orbits during tracking
 
+    // 任务模式下隐藏默认轨道,仅显示 TREA-01 轨道线
+    if (missionMode) {
+      updateOrbits([], currentTime);
+      return;
+    }
+
     const visibleIds = new Set(visibleSatellites);
     const filteredSatellites = satellites.filter(s => visibleIds.has(s.noradId));
 
     // 即使卫星列表为空也要执行，以清理 Cesium 中残留的轨道实体
     updateOrbits(filteredSatellites, currentTime);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [satellites, visibleSatellites, isReady, viewer, updateOrbits]);
+  }, [satellites, visibleSatellites, isReady, viewer, missionMode, updateOrbits]);
 
   // ============================================================
   // TREA-01 任务模式:渲染 AOI、TREA-01 卫星实体 + 轨道线
@@ -295,12 +307,14 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
         />
       )}
 
-      {/* Reset view button */}
+      {/* Reset view button - 任务模式下居中避免被侧边栏遮挡 */}
       {isReady && !displayError && (
         <button
           onClick={handleResetView}
-          className="absolute top-4 left-4 z-20 w-10 h-10 flex items-center justify-center rounded-lg bg-space-900/80 backdrop-blur-sm border border-space-700 text-space-300 hover:text-cosmic-blue hover:bg-space-800/90 hover:border-cosmic-blue/50 transition-all"
-          title="重置视图 - 回到全局视角"
+          className={`absolute top-4 z-30 w-10 h-10 flex items-center justify-center rounded-lg bg-space-900/90 backdrop-blur-sm border border-space-700 text-space-300 hover:text-cosmic-blue hover:bg-space-800/90 hover:border-cosmic-blue/50 transition-all ${
+            missionMode ? 'left-1/2 -translate-x-1/2' : 'left-4'
+          }`}
+          title="复位视角 - 东亚上空"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />

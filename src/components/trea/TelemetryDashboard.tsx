@@ -160,9 +160,9 @@ function NeonCard({ title, icon, accent = 'cyan', children, className = '' }: Ca
     <div
       className={`bg-slate-900 border ${ACCENT_BORDER[accent]} rounded-lg p-3 flex flex-col ${className}`}
     >
-      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-slate-700/60">
+      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-slate-700/60 whitespace-nowrap">
         <span className={ACCENT_ICON[accent]}>{icon}</span>
-        <span className="text-xs font-medium text-slate-300 tracking-wide uppercase">
+        <span className="text-xs font-medium text-slate-300 tracking-wide uppercase truncate">
           {title}
         </span>
       </div>
@@ -284,8 +284,8 @@ export default function TelemetryDashboard() {
         </div>
       </div>
 
-      {/* ===== 卡片网格(2 列 / 大屏 3 列) ===== */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+      {/* ===== 卡片网格(固定 2 列,确保标题不换行) ===== */}
+      <div className="grid grid-cols-2 gap-3">
         {/* 1. 实时位置卡 */}
         <NeonCard title="实时位置" icon={<Satellite className="h-4 w-4" />} accent="cyan">
           <div className="space-y-1.5 font-mono">
@@ -313,7 +313,7 @@ export default function TelemetryDashboard() {
         {/* 2. 速度卡 */}
         <NeonCard title="轨道速度" icon={<Gauge className="h-4 w-4" />} accent="purple">
           <div className="flex flex-col items-center justify-center py-1">
-            <span className="text-3xl font-bold text-purple-300 font-mono leading-none">
+            <span className="text-base font-bold text-purple-300 font-mono leading-none">
               {speedKmPerSec.toFixed(3)}
             </span>
             <span className="text-[11px] text-slate-400 mt-1">km / s</span>
@@ -353,7 +353,7 @@ export default function TelemetryDashboard() {
           <div className="flex items-center justify-between py-1">
             <div className="flex items-center gap-2">
               <span className={`w-3 h-3 rounded-full ${payloadInfo.dot}`} />
-              <span className={`text-lg font-semibold ${payloadInfo.color}`}>
+              <span className={`text-base font-semibold ${payloadInfo.color}`}>
                 {payloadInfo.label}
               </span>
             </div>
@@ -389,7 +389,7 @@ export default function TelemetryDashboard() {
             <div className="flex justify-between items-center">
               <span className="text-[10px] text-slate-500">质量</span>
               <span
-                className={`text-[11px] font-mono ${
+                className={`text-sm font-mono ${
                   signalPct > 60
                     ? 'text-emerald-400'
                     : signalPct > 30
@@ -408,7 +408,7 @@ export default function TelemetryDashboard() {
           title="告警"
           icon={<AlertTriangle className="h-4 w-4" />}
           accent={hasAlert ? 'red' : 'cyan'}
-          className="lg:col-span-2"
+          className="col-span-2"
         >
           <div className="grid grid-cols-3 gap-2">
             <AlertLight label="燃料低" triggered={fuelLow} />
@@ -471,7 +471,7 @@ function ResourceBar({
     <div className="space-y-1.5">
       <div className="flex justify-between items-baseline">
         <span className="text-[11px] text-slate-400">剩余</span>
-        <span className={`text-2xl font-bold font-mono ${color.text}`}>
+        <span className={`text-base font-bold font-mono ${color.text}`}>
           {pct.toFixed(1)}%
         </span>
       </div>

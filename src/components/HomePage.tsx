@@ -11,13 +11,14 @@ import type { SpaceObject } from '@/store/satelliteStore';
 import { buildSatellitesFromTLE, parseTLETextClient, IMPORT_LIMIT_PER_BATCH, MAX_TOTAL_SATELLITES } from '@/lib/default-satellites';
 import { inferCountryFromName } from '@/lib/translations';
 import { apiClient } from '@/lib/api/client';
-import { Upload, Tags, RefreshCw, RotateCcw, Lock, Database, Rocket } from 'lucide-react';
+import { Upload, Tags, RefreshCw, RotateCcw, Lock, Database, Rocket, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MissionHeader from '@/components/trea/MissionHeader';
 import TaskListPanel from '@/components/trea/TaskListPanel';
 import TelemetryDashboard from '@/components/trea/TelemetryDashboard';
 import ManeuverPanel from '@/components/trea/ManeuverPanel';
 import MissionReportModal from '@/components/trea/MissionReportModal';
+import TreaSatelliteView from '@/components/trea/TreaSatelliteView';
 import { useTreaLastReport, useTreaMissionPhase } from '@/store/treaMissionStore';
 import type { TLEData } from '@/lib/tle/parser';
 
@@ -142,6 +143,8 @@ export default function HomePage() {
   const [missionMode, setMissionMode] = useState(false);
   // TREA-01 变轨事件:ManeuverPanel 执行变轨后设置,传递给 CesiumGlobe 渲染燃烧弧+轨道对比
   const [maneuverEvent, setManeuverEvent] = useState<{ newTle: TLEData; oldTle: TLEData; id: number } | null>(null);
+  // 右侧面板折叠状态:折叠时向右缩进,仅留窄条展开按钮
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   // TREA-01 任务报告模态框关闭状态(任务完成后弹出,用户关闭后不再自动弹出直到下次新任务完成)
   const [reportDismissed, setReportDismissed] = useState(false);
   // TREA-01 store:任务报告与阶段(用于驱动 MissionReportModal 显示)
@@ -533,6 +536,7 @@ export default function HomePage() {
     timeSetRate(10);
     setMissionMode(false);
     setManeuverEvent(null); // 清理变轨事件,避免重新进入时残留旧轨道对比
+    setRightPanelCollapsed(false); // 重置右侧面板折叠状态
   };
 
   // 任务阶段离开 COMPLETED(新任务启动或重置)时,重置报告关闭状态
@@ -725,11 +729,40 @@ export default function HomePage() {
                 <TaskListPanel />
               </div>
 
-              {/* 右侧浮层:遥测仪表盘 + 变轨控制(可滚动) */}
-              <div className="absolute top-4 right-4 bottom-4 z-20 w-80 flex flex-col gap-3 overflow-y-auto pointer-events-auto">
-                <TelemetryDashboard />
-                <ManeuverPanel onManeuverExecuted={(newTle, oldTle) => setManeuverEvent({ newTle, oldTle, id: Date.now() })} />
-              </div>
+              {/* 右侧浮层:卫星示意图 + 遥测仪表盘 + 变轨控制(可滚动) */}
+              {/* 折叠时向右缩进,仅留窄条展开按钮 */}
+              {rightPanelCollapsed ? (
+                <div className="absolute top-4 right-4 bottom-4 z-20 w-10 bg-slate-950 border border-cyan-500/30 rounded-xl flex flex-col items-center pt-3 pointer-events-auto">
+                  <button
+                    type="button"
+                    onClick={() => setRightPanelCollapsed(false)}
+                    className="p-2 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-slate-800 transition-colors"
+                    title="展开遥测面板"
+                  >
+                    <PanelRightOpen className="h-5 w-5" />
+                  </button>
+                  <span className="text-[10px] text-slate-500 mt-2" style={{ writingMode: 'vertical-rl' }}>
+                    遥测仪表盘
+                  </span>
+                </div>
+              ) : (
+                <div className="absolute top-4 right-4 bottom-4 z-20 w-80 flex flex-col gap-3 overflow-y-auto pointer-events-auto">
+                  {/* 折叠按钮(右上角浮动) */}
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setRightPanelCollapsed(true)}
+                      className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 hover:text-cyan-300 hover:border-cyan-500/50 transition-colors"
+                      title="折叠面板"
+                    >
+                      <PanelRightClose className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <TreaSatelliteView />
+                  <TelemetryDashboard />
+                  <ManeuverPanel onManeuverExecuted={(newTle, oldTle) => setManeuverEvent({ newTle, oldTle, id: Date.now() })} />
+                </div>
+              )}
             </>
           )}
         </main>
