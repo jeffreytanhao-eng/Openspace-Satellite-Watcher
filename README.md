@@ -1,6 +1,6 @@
 # 卫星守望者 · Satellite Watcher
 
-一个开源的 Web 端空间态势感知（SSA, Space Situational Awareness）应用，基于 TLE 轨道数据实时计算并可视化近地轨道卫星的位置与轨迹。支持 2D / 3D 双视角切换、时间回放、星座临时导入、标签管理与卫星图片管理。默认视角为东亚区域（中国上空）。
+一个开源的 Web 端空间态势感知（SSA, Space Situational Awareness）应用，基于 TLE 轨道数据实时计算并可视化近地轨道卫星的位置与轨迹。支持 2D / 3D 双视角切换、时间回放、星座临时导入、标签管理与卫星图片管理；内置 **TREA-01 遥感任务仿真闭环**（任务规划 → 变轨可视化 → 成像仿真 → 报告导出），并集成 **AI 大模型辅助任务规划**。默认视角为东亚区域（中国上空）。
 
 **线上地址**：[https://www.wanzhixuexi.cn](https://www.wanzhixuexi.cn)（部署于阿里云香港轻量服务器）
 
@@ -14,20 +14,32 @@
 - **默认东亚视角**：打开页面时地球/地图自动聚焦中国区域（经度 110°E，纬度 35°N）
 - **实时轨道渲染**：使用 satellite.js 的 SGP4/SDP4 算法实时计算卫星位置，绘制多圈预测轨道线
 - **卫星定位**：点击详情面板的定位图标，相机平滑飞至卫星当前位置
-- **3D 模型**：部分卫星预置 GLB 3D 模型，基于 `<model-viewer>` 渲染，自动旋转展示
+- **3D 模型**：部分卫星预置 GLB 3D 模型，**选中卫星时在 Cesium 内渲染**（统一初始大小，支持鼠标滚轮缩放）；未选中或无模型时显示光点
 - **NASA 图片搜索**：集成 NASA 媒体库，一键搜索卫星配图
 
 ### 卫星管理
 
-- **卫星列表**：支持按 NORAD ID、名称、国家、对象类型（载荷 / 火箭体 / 碎片）、发射年份、轨道高度、活跃状态多维度筛选
+- **卫星搜索**：支持按 NORAD ID / 名称快速搜索（筛选面板已精简，数据预导入为 PAYLOAD 载荷，无需国别/类型筛选）
 - **批量操作**：一键显示/隐藏卫星
 - **详情面板**：展示卫星元数据、TLE 原文、轨道参数（近地点 / 远地点 / 周期 / 倾角 / 偏心率）、图片和3D模型
 - **标签系统**：查看预设标签分类（当前版本标签写入功能暂不开放）
 
+### TREA-01 遥感任务仿真闭环
+
+进入"任务中心"后，主屏切换为 TREA-01 专用任务视图，仅显示 TREA-01 卫星光点与轨道，隐藏默认 13 颗卫星：
+
+- **任务规划**：左侧面板自动计算未来 48 小时内 TREA-01 对两个 AOI（南海西沙—菲律宾海域 / 霍尔木兹海峡）的过境窗口（最大仰角、持续时间、中心时刻），支持单选 AOI 进入规划态
+- **AI 辅助规划**：调用 LLM 大模型（火山引擎方舟 Doubao）综合分析轨道力学、光学遥感约束、卫星资源，输出 AOI 评分对比、推荐窗口、机动建议、风险评估与执行步骤，一键应用建议
+- **变轨可视化**：执行相位调整机动后，渲染燃烧弧 + 新旧轨道对比（旧轨道灰色虚线、新轨道青色实线），TLE 自动更新驱动位置传播切换
+- **成像仿真**：任务状态机驱动 EXECUTING → IMAGING → COMPLETED 转换，实时渲染传感器成像足迹（200km 刈幅），扫描覆盖 AOI
+- **任务报告**：任务完成后弹出报告模态框，含任务摘要、成像时间、AOI 覆盖、机动记录与模拟遥感影像，支持导出打印
+- **TREA-01 卫星视图**：右侧遥测面板上方展示卫星线框示意图，含跟踪按钮（点击后相机自动跟随 TREA-01 轨迹）
+- **面板折叠**：左侧"任务规划"面板与右侧"遥测仪表盘"面板均支持一键缩进折叠，大屏复位键可将视角重置为东亚上空
+
 ### 数据导入（临时）
 
 - **Celestrak 导入**：按分类（stations/visual/starlink/gps等）或 NORAD ID/名称 从 Celestrak 实时拉取 TLE
-- **星座批量导入**：预置主流星座（Starlink、Iridium、GPS、北斗等）一键导入
+- **星座批量导入**：预置主流星座（Starlink、Iridium、GPS、北斗、风云等）一键导入；**自动过滤非 PAYLOAD**（碎片/火箭体），仅导入有效载荷卫星；同星座卫星共享 3D 模型与图片
 - **文件导入**：支持标准 TLE 格式文本文件（纯前端解析，不上传服务器）
 - **单次导入上限**：100颗卫星，页面总数上限 200颗
 - **数据隔离**：用户导入/删除/隐藏操作仅在当前浏览器会话中生效，刷新页面恢复服务器默认数据
@@ -35,13 +47,13 @@
 ### 数据管理（需密码）
 
 - **轨道数据刷新（TLE）**：输入密码后从 Celestrak 同步所有默认卫星的最新 TLE，自动写入数据库，永久生效
-- **图片上传**：输入密码后为卫星上传自定义图片（≤2MB），写入数据库永久保存
+- **图片上传**：输入密码后为卫星上传自定义图片（base64 存储，≤2MB），写入数据库永久保存
 - **密码记忆**：密码验证通过后保存在当前标签页会话中（sessionStorage），关闭标签页清除
 
 ### 时间控制
 
 - **时间回放**：可拖动时间轴查看历史或未来时刻的卫星位置
-- **播放控制**：支持多档倍速播放 / 暂停 / 重置至当前时刻
+- **播放控制**：默认 **10× 倍速播放**（非暂停），支持多档倍速 / 暂停 / 重置至当前时刻
 - **轨道预测**：基于 TLE 轨道根数预测未来多圈轨迹
 - **轨道缓存**：自动缓存计算好的轨道点，重复查看同一时刻无需重新计算
 
@@ -51,15 +63,17 @@
 
 | 路由 | 方法 | 需要密码 | 说明 |
 |------|------|---------|------|
-| `/api/space-objects` | GET | 否 | 获取所有默认卫星（含 TLE、图片） |
+| `/api/space-objects` | GET | 否 | 获取所有默认卫星（含 TLE、图片），5min 内存缓存 |
 | `/api/tle/refresh` | POST | **是** | 从 Celestrak 刷新 TLE 并写入数据库 |
 | `/api/tle/import/celestrak` | POST | 否 | 按分类从 Celestrak 导入（代理，单次≤100颗） |
-| `/api/tle/import/constellation` | GET/POST | 否 | 获取/导入星座列表 |
+| `/api/tle/import/constellation` | GET/POST | 否 | 获取/导入星座列表（自动过滤非 PAYLOAD） |
 | `/api/tle/import/search` | GET | 否 | 按名称/ID搜索 Celestrak |
 | `/api/nasa-media` | GET | 否 | 检索 NASA 媒体库 |
 | `/api/nasa-image/proxy` | GET | 否 | NASA 图片代理（解决跨域） |
-| `/api/admin/upload-image` | POST | **是** | 上传卫星图片到数据库 |
+| `/api/admin/verify` | POST | 否 | 密码验证（敏感操作前置校验） |
+| `/api/admin/upload-image` | POST | **是** | 上传卫星图片到数据库（base64） |
 | `/api/admin/seed` | POST | **是** | 初始化种子数据 |
+| `/api/ai/task-planning` | POST | 否 | AI 辅助任务规划（代理 LLM，需配置 LLM 环境变量） |
 | `/api/tags` | GET | 否 | 获取标签列表 |
 
 > 写操作（新增/删除/修改卫星、标签）暂不开放，将在用户系统版本中引入。
@@ -72,10 +86,11 @@
 
 | 防护层 | 机制 |
 |-------|------|
-| **Nginx 层** | 分层限流（静态资源30r/s、普通API 10r/s、导入API 2r/s、敏感操作5r/min）；每IP并发连接≤10；全局并发≤100；`client_max_body_size 3m`；隐藏版本号；HTTP→HTTPS跳转 |
+| **Nginx 层** | 分层限流（静态资源30r/s、普通API 10r/s、导入API 60r/min、敏感操作5r/min）；每IP并发连接≤10；全局并发≤100；`client_max_body_size 5m`（适配 base64 图片上传）；隐藏版本号；HTTP→HTTPS跳转 |
 | **Next.js Middleware 层** | 内存级 IP 限流；全局并发≤50 返回 503；安全响应头（X-Frame-Options、X-Content-Type-Options、CSP） |
-| **API 参数校验层** | Celestrak GROUP 白名单防注入；搜索参数长度≤100字符；pageSize 上限100；导入结果截断到100颗；文件上传API禁用 |
-| **密码验证** | `crypto.timingSafeEqual` 时序安全比较；敏感操作（TLE刷新、图片上传）需密码；密码保存在 sessionStorage |
+| **API 参数校验层** | Celestrak GROUP 白名单防注入；搜索参数长度≤100字符；pageSize 上限100；导入结果截断到100颗；星座导入过滤非 PAYLOAD；AI 路由输入校验 + 55s 超时 |
+| **密码验证** | `crypto.timingSafeEqual` 时序安全比较；敏感操作（TLE刷新、图片上传）需先经 `/api/admin/verify` 前置校验；密码保存在 sessionStorage |
+| **密钥隔离** | LLM API key/EP 通过环境变量读取，仅存于服务器（`.env.local` / Vercel / ecosystem.config.cjs），绝不返回前端；`.env.local` 已在 `.gitignore` |
 
 ---
 
@@ -91,9 +106,10 @@
 | **3D 地球** | CesiumJS (@cesium/engine) | WebGL 3D 地球渲染 |
 | **2D 地图** | MapLibre GL JS | 开源矢量瓦片地图 |
 | **轨道计算** | satellite.js | SGP4/SDP4 轨道传播算法 |
-| **3D 模型** | @google/model-viewer | WebGL glTF/GLB 模型查看器 |
+| **3D 模型** | Cesium 内置 GLB 渲染 | 选中卫星时加载 GLB 模型（统一初始大小 + 滚轮缩放） |
 | **状态管理** | Zustand | 轻量全局状态，支持选择器订阅 |
 | **数据库** | PostgreSQL + Prisma ORM | 关系型数据库与类型安全 ORM |
+| **AI/LLM** | 火山引擎方舟 Ark（Doubao） | OpenAI 兼容协议，AI 辅助任务规划（禁用 thinking 降至 ~23s） |
 
 ### 项目结构
 
@@ -101,10 +117,11 @@
 src/
 ├── app/                      # Next.js App Router
 │   ├── api/                  # API 路由
-│   │   ├── admin/            # 管理员接口（seed、图片上传，需密码）
+│   │   ├── admin/            # 管理员接口（verify 密码校验、seed、图片上传，需密码）
+│   │   ├── ai/task-planning/ # AI 辅助任务规划（代理 LLM）
 │   │   ├── nasa-image/       # NASA 图片代理
 │   │   ├── nasa-media/       # NASA 媒体检索
-│   │   ├── space-objects/    # 卫星数据查询
+│   │   ├── space-objects/    # 卫星数据查询（5min 内存缓存）
 │   │   ├── tags/             # 标签查询
 │   │   └── tle/
 │   │       ├── import/       # TLE 导入（Celestrak代理/星座/搜索）
@@ -112,29 +129,45 @@ src/
 │   ├── layout.tsx
 │   └── page.tsx              # 主页面
 ├── components/
-│   ├── HomePage.tsx          # 主页面布局与逻辑（含密码弹窗）
+│   ├── HomePage.tsx          # 主页面布局与逻辑（含密码弹窗、任务模式切换、面板折叠）
+│   ├── trea/                 # TREA-01 任务中心组件
+│   │   ├── MissionHeader.tsx       # 任务中心顶部栏
+│   │   ├── TaskListPanel.tsx       # 任务规划面板（过境窗口 + AI 辅助按钮）
+│   │   ├── AiPlanningModal.tsx    # AI 规划结果展示模态框
+│   │   ├── TelemetryDashboard.tsx  # 遥测仪表盘
+│   │   ├── TreaSatelliteView.tsx   # TREA-01 卫星线框示意图 + 跟踪
+│   │   ├── ManeuverPanel.tsx       # 变轨控制面板
+│   │   ├── MissionSimulator.tsx    # 任务仿真状态机（纯逻辑）
+│   │   └── MissionReportModal.tsx  # 任务报告模态框（含导出）
 │   ├── ui/                   # 业务 UI 组件
-│   │   ├── FilterPanel.tsx       # 筛选面板
 │   │   ├── ImportModal.tsx       # 导入弹窗（支持滚动）
 │   │   ├── SatelliteDetailPanel.tsx  # 卫星详情面板
 │   │   ├── SatelliteList.tsx     # 卫星列表
 │   │   ├── TimeControlBar.tsx    # 时间控制
 │   │   └── ...
 │   └── visualization/        # 可视化组件
-│       ├── CesiumGlobe.tsx       # 3D 地球（默认东亚视角）
+│       ├── CesiumGlobe.tsx       # 3D 地球（默认东亚视角 + 任务模式 + 变轨可视化）
 │       ├── MapLibreMap.tsx       # 2D 地图（默认东亚视角）
 │       └── ...
+├── hooks/
+│   └── useCesium.ts         # Cesium 封装（实体管理、跟踪、AOI、变轨弧）
 ├── lib/
 │   ├── api/client.ts         # API 客户端
 │   ├── security.ts           # 密码验证（timingSafeEqual）
-│   ├── tle/                  # TLE 解析与轨道计算
+│   ├── tle/                  # TLE 解析与轨道计算（SSOT）
+│   ├── trea/                 # TREA-01 任务逻辑
+│   │   ├── constants.ts        # AOI 定义、传感器参数、初始 TLE
+│   │   ├── access.ts           # 过境窗口计算（仰角/持续时间）
+│   │   ├── ai-prompt.ts        # AI Prompt 设计（SSOT）+ 请求体构造
+│   │   └── report.ts           # 任务报告生成
 │   ├── prisma.ts             # Prisma 客户端
 │   ├── translations.ts       # 国家/类型翻译
 │   └── mock/satellites.ts    # 默认卫星数据（DB不可用时fallback）
 ├── middleware.ts             # 全局IP限流+安全头
 └── store/                    # Zustand 状态
-    ├── satelliteStore.ts
-    └── timeStore.ts
+    ├── satelliteStore.ts      # 卫星列表/选中/跟踪
+    ├── timeStore.ts           # 时间播放（默认 10x）
+    └── treaMissionStore.ts    # TREA-01 任务状态（TLE/轨道/燃料/任务阶段）
 
 deploy/
 └── nginx-secure.conf         # Nginx 安全加固配置（含限流）
@@ -144,6 +177,7 @@ prisma/
 
 public/
 ├── models/                   # 预置 3D 模型（GLB）
+├── trea/                     # TREA-01 任务模拟遥感影像
 └── cesium/                   # Cesium 静态资源（Workers、Assets）
 ```
 
@@ -181,7 +215,7 @@ public/
 
 ### 数据模型说明
 
-- **服务器默认数据**：数据库中存储 13 颗默认卫星的基础信息和 TLE 数据，所有用户共享
+- **服务器默认数据**：数据库中存储 13 颗默认卫星 + 8 个预导入星座（Starlink/Iridium/GPS/北斗/风云等 PAYLOAD 卫星）的基础信息和 TLE 数据，所有用户共享；页面初始仅显示 13 颗默认卫星，其他预导入数据需用户显式导入后显示
 - **用户操作（临时）**：导入、删除、隐藏卫星等操作在浏览器端 Zustand store 中完成，刷新页面恢复默认
 - **管理员操作（永久）**：TLE 刷新和图片上传需密码验证，成功后写入数据库，所有用户可见
 
@@ -221,6 +255,11 @@ npm run dev
 | `POSTGRES_URL_NON_POOLING` | Prisma schema 使用的数据库连接字符串 | 生产必填 |
 | `ADMIN_PASSWORD` | 操作密码（TLE刷新、图片上传） | ✅ |
 | `NODE_ENV` | 运行环境 | 生产必填 |
+| `LLM_API_KEY` | 火山引擎方舟 API key（AI 辅助任务规划） | AI 功能必填 |
+| `LLM_API_URL` | LLM 接入点 base URL（如 `https://ark.cn-beijing.volces.com/api/v3`） | AI 功能必填 |
+| `LLM_MODEL` | LLM 模型 EP（如 `ep-xxxxxxxxxxxx-xxxxxx`） | AI 功能必填 |
+
+> LLM 凭据仅存于服务器端（`.env.local` / Vercel 环境变量 / `ecosystem.config.cjs`），已在 `.gitignore`，不入库。未配置时 AI 路由返回 503 `MISSING_CONFIG`，其余功能不受影响。
 
 ### 默认卫星
 
@@ -250,8 +289,9 @@ npm run dev
 
 1. 将代码推送到 GitHub
 2. 在 Vercel 控制台导入仓库
-3. 添加环境变量：`DATABASE_URL`、`ADMIN_PASSWORD`
+3. 添加环境变量：`DATABASE_URL`、`POSTGRES_URL_NON_POOLING`、`ADMIN_PASSWORD`、`LLM_API_KEY`、`LLM_API_URL`、`LLM_MODEL`
 4. Deploy
+5. AI 路由已配置 `maxDuration = 60`，Hobby plan 支持（AI 调用实测 ~23s）；添加环境变量后需 Redeploy 生效
 
 ### 方式二：自建香港轻量服务器（当前生产环境）
 
@@ -264,6 +304,7 @@ npm run dev
 - 一键部署脚本 `deploy.ps1`：自动上传、解压、迁移、启动
 - Nginx 配置 SSL + 限流（使用 [deploy/nginx-secure.conf](./deploy/nginx-secure.conf)）
 - PM2 进程管理 + API 内存缓存（5min TTL）
+- LLM 环境变量在 `ecosystem.config.cjs` 的 `env` 中声明（该文件在 `.gitignore`，不入库）
 
 ### 部署更新流程
 
