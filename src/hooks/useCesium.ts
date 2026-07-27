@@ -598,6 +598,8 @@ export function useCesium() {
 
     // TREA-01 复用 CALIPSO 3D 模型(对地观测激光雷达卫星,形态匹配 EO 卫星)
     // 任务模式下默认显示 3D 模型(非光点),跟踪时支持滚轮缩放
+    // 使用 calipso-decoded.glb:已用 gltf-transform 解压 Draco 压缩,
+    // 避免 Cesium 未配置 Draco 解码器导致模型不显示的问题
     const result = createSatelliteEntity(Cesium, viewer.entities, {
       noradId,
       name: tle.name,
@@ -605,7 +607,7 @@ export function useCesium() {
       color: treaColor,
       isSelected: false,
       showLabel: true,
-      model3dUrl: '/models/calipso.glb',
+      model3dUrl: '/models/calipso-decoded.glb',
       useModel: true,
     });
 
@@ -660,6 +662,8 @@ export function useCesium() {
 
   /**
    * 飞向 TREA-01 卫星:优先飞向实体,实体不存在则飞向当前位置
+   * 距离 800km:进入任务中心时就能看到 3D 模型(150km 大小在 800km 外约占屏幕 18%)
+   * 之前 2500km 太远,模型只占屏幕 ~5%,用户看不到
    */
   const focusTrea01 = useCallback(() => {
     const inst = cesiumRef.current;
@@ -669,7 +673,7 @@ export function useCesium() {
     const entity = viewer.entities.getById(`satellite-${noradId}`);
     if (entity) {
       viewer.flyTo(entity, {
-        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 2500000),
+        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 800000),
         duration: 1.5,
       });
     }
@@ -684,13 +688,16 @@ export function useCesium() {
 
   /** 启动 TREA-01 持续跟踪:注册 preUpdate 监听器,相机跟随卫星位置
    *  支持鼠标滚轮拉近拉远(复用 trackingRangeRef 管理跟踪距离)
+   *  带动态模型缩放:拉近时模型变大,拉远时变小(复用 startTracking 的动态缩放逻辑)
    */
   const startTrackingTrea01 = useCallback(() => {
     const inst = cesiumRef.current;
     if (!inst) return;
     const { Cesium, viewer } = inst;
+    // 防御:viewer 已销毁(CesiumGlobe 重新挂载/卸载时旧实例可能已 destroy)
+    if (viewer.isDestroyed?.()) return;
 
-    // 先清理旧监听器
+    // 先清理旧监听器(清理函数内部已有 isDestroyed 检查,安全调用)
     if (trea01TrackingRef.current) {
       trea01TrackingRef.current();
       trea01TrackingRef.current = null;
@@ -700,8 +707,18 @@ export function useCesium() {
     const entity = viewer.entities.getById(`satellite-${noradId}`);
     if (!entity) return;
 
-    // 重置跟踪距离(复用 startTracking 的 trackingRangeRef)
-    trackingRangeRef.current = 2500000;
+    // 读取模型基础 scale(来自 SatelliteEntity.tsx 的 MODEL_SCALE_BY_TYPE,calipso-decoded=627)
+    // 用于动态缩放计算:拉近(range 小)→ scale 增大 → 模型变大
+    let baseScale = 627;
+    if (entity.model?.scale) {
+      const val = entity.model.scale.getValue?.(viewer.clock.currentTime);
+      if (typeof val === 'number' && val > 0) baseScale = val;
+    }
+    // 基准距离:range=REF_RANGE 时 dynamicScale=baseScale(初始不变)
+    const REF_RANGE = 800000;
+
+    // 重置跟踪距离(与 focusTrea01 一致,800km 进入时就能看到模型)
+    trackingRangeRef.current = REF_RANGE;
 
     // 先飞向 TREA-01,然后启动持续跟踪
     viewer.flyTo(entity, {
@@ -713,15 +730,22 @@ export function useCesium() {
     viewer.scene.screenSpaceCameraController.enableZoom = false;
 
     // preUpdate 监听器:每帧更新相机位置,跟随 TREA-01
-    // range 使用 trackingRangeRef.current,支持滚轮动态调整
+    // 同时手动动态缩放模型 scale(解决固定 scale 在远距离模型太小看不到的问题)
     const listener = () => {
       const inst2 = cesiumRef.current;
-      if (!inst2) return;
+      if (!inst2 || inst2.viewer.isDestroyed?.()) return;
       const pos = entity.position?.getValue?.(inst2.viewer.clock.currentTime);
       if (!pos) return;
       const heading = 0;
       const pitch = inst2.Cesium.Math.toRadians(-45);
       inst2.viewer.camera.lookAt(pos, new inst2.Cesium.HeadingPitchRange(heading, pitch, trackingRangeRef.current));
+      // 动态缩放:拉近(range 小)→ scale 增大 → 模型变大;拉远 → 缩小
+      // 让用户滚轮拉近时能看到卫星模型细节
+      if (entity.model) {
+        const range = trackingRangeRef.current;
+        const dynamicScale = baseScale * (REF_RANGE / range);
+        entity.model.scale = new inst2.Cesium.ConstantProperty(dynamicScale);
+      }
     };
 
     // 滚轮缩放:原生 DOM 事件(同 startTracking 实现,deltaY>0=拉远,<0=拉近)
@@ -736,16 +760,27 @@ export function useCesium() {
     canvas.addEventListener('wheel', wheelListener, { capture: true, passive: false });
 
     // 延迟 1.2s 启动持续跟踪(等待 flyTo 完成)
+    // 延迟回调内部再次检查 viewer 是否已销毁(可能在 flyTo 期间组件被卸载)
     const timeoutId = setTimeout(() => {
+      if (viewer.isDestroyed?.()) return;
       viewer.scene.preUpdate.addEventListener(listener);
     }, 1200);
 
+    // 清理函数:所有 viewer.scene 访问前都检查 isDestroyed,
+    // 防止 CesiumGlobe 重新挂载时旧清理函数引用已销毁的 viewer 导致
+    // "Cannot read properties of undefined (reading 'scene')" 错误
+    // 同时恢复模型 scale 到 baseScale(停止手动动态缩放)
     trea01TrackingRef.current = () => {
       clearTimeout(timeoutId);
-      viewer.scene.preUpdate.removeEventListener(listener);
+      if (!viewer.isDestroyed?.()) {
+        viewer.scene.preUpdate.removeEventListener(listener);
+        viewer.scene.screenSpaceCameraController.enableZoom = true;
+        // 恢复模型 scale 到基础值
+        if (entity.model) {
+          entity.model.scale = new Cesium.ConstantProperty(baseScale);
+        }
+      }
       canvas.removeEventListener('wheel', wheelListener, { capture: true } as EventListenerOptions);
-      // 恢复 Cesium 默认缩放
-      viewer.scene.screenSpaceCameraController.enableZoom = true;
     };
   }, []);
 
@@ -753,10 +788,12 @@ export function useCesium() {
   const stopTrackingTrea01 = useCallback(() => {
     const inst = cesiumRef.current;
     if (!inst) return;
+    // 防御:viewer 已销毁时只清理 ref,不访问 viewer 属性
     if (trea01TrackingRef.current) {
       trea01TrackingRef.current();
       trea01TrackingRef.current = null;
     }
+    if (inst.viewer.isDestroyed?.()) return;
     // 释放 lookAt 锁定,让用户可以自由操控相机
     inst.viewer.camera.lookAtTransform(inst.Cesium.Matrix4.IDENTITY);
   }, []);

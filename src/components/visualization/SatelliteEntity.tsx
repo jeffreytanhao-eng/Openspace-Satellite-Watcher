@@ -39,6 +39,12 @@ const DEFAULT_MODEL_SCALE = 3000; // 未知模型的默认缩放
 
 // 按模型文件名查表(已用 measure-glb-size.mjs 实测 bounding box 校准)
 // 目标:所有模型 diag * scale ≈ 149850(ISS 基准)
+//
+// 重要:diag 必须用 gltf-transform 的 scene bbox(考虑 node transform),
+// 不能用 measure-glb-size.mjs 的 accessor min/max(局部坐标,不考虑变换)。
+// calipso 模型有 node scale 变换:accessor 局部 diag=10013,但世界 diag=239,
+// 用 10013 算出 scale=15 会让模型只有 3.6km,在跟踪距离下完全看不见。
+// 修正后用 scene diag=239,scale=149850/239=627,模型显示 150km 和 ISS 一致。
 const MODEL_SCALE_BY_TYPE: Record<string, number> = {
   'iss': 3000,        // diag=49.95
   'hubble': 175,      // diag=858.74
@@ -47,7 +53,10 @@ const MODEL_SCALE_BY_TYPE: Record<string, number> = {
   'aura': 213,        // diag=703.86
   'landsat8': 0.49,   // diag=307206.23
   'suomi-npp': 14808, // diag=10.12
-  'calipso': 15,      // diag=10013.66(TREA-01 复用,对地观测激光雷达卫星)
+  // calipso 原始模型用 Draco 压缩,calipso-decoded 是解压版(scene diag=239 不变)
+  // scale 基于 scene bbox(不是 accessor 局部坐标)
+  'calipso': 627,
+  'calipso-decoded': 627,  // TREA-01 复用,对地观测激光雷达卫星
 };
 
 /** 从 model3dUrl(如 /models/iss.glb)提取模型名并查表得到 scale */
