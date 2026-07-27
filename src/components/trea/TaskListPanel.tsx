@@ -14,7 +14,7 @@
 //   - 「重置 TREA-01」(Story 5.2):reset store + 停止播放 + 时间回 now
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { Target, Clock, TrendingUp, Rocket, Wrench, RefreshCw, CheckCircle2, MapPin, RotateCcw, PanelLeftClose, PanelLeftOpen, Sparkles } from 'lucide-react';
+import { Target, Clock, TrendingUp, Rocket, Wrench, RefreshCw, CheckCircle2, MapPin, RotateCcw, PanelLeftClose, PanelLeftOpen, Sparkles, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AOI_A, AOI_B, AOI_LIST } from '@/lib/trea/constants';
 import {
@@ -28,10 +28,12 @@ import {
   useTreaMissionPhase,
   useTreaOrbitParams,
   useTreaBattery,
+  useCollisionAlert,
+  useEmergencyTask,
   type TreaMissionTask,
 } from '@/store/treaMissionStore';
 import { useTimeStore } from '@/store/timeStore';
-import { buildAiRequestInput, type AiTaskPlanningOutput } from '@/lib/trea/ai-prompt';
+import { buildAiRequestInput, buildCollisionRequestInput, type AiTaskPlanningOutput } from '@/lib/trea/ai-prompt';
 import AiPlanningModal from '@/components/trea/AiPlanningModal';
 
 // ============================================================
@@ -226,6 +228,11 @@ export default function TaskListPanel() {
   const resetMission = useTreaMissionStore(s => s.reset);
   const fuel = useTreaMissionStore(s => s.fuel);
   const missionPhase = useTreaMissionPhase();
+  // 突发碰撞任务:碰撞警报 + 紧急避撞任务
+  const collisionAlert = useCollisionAlert();
+  const emergencyTask = useEmergencyTask();
+  const triggerCollisionAlert = useTreaMissionStore(s => s.triggerCollisionAlert);
+  const setEmergencyTask = useTreaMissionStore(s => s.setEmergencyTask);
 
   // 时间播放控制(用于启动任务仿真时跳转到过境窗口并加速)
   const setCurrentTime = useTimeStore(s => s.setCurrentTime);
@@ -249,6 +256,8 @@ export default function TaskListPanel() {
   const [simMessage, setSimMessage] = useState<string | null>(null);
   // 面板折叠状态:折叠时向左缩进,仅留窄条展开按钮
   const [collapsed, setCollapsed] = useState(false);
+  // 碰撞避撞 AI 模态框:点击紧急任务的 AI 按钮打开,展示 LLM 避撞方案
+  const [showCollisionAiModal, setShowCollisionAiModal] = useState(false);
   // AI 辅助规划模态框:点击按钮打开,展示 LLM 分析结果
   const [showAiModal, setShowAiModal] = useState(false);
 
@@ -415,6 +424,43 @@ export default function TaskListPanel() {
     return data.data as AiTaskPlanningOutput;
   }, [tle, orbitParams, windowsA, windowsB, fuel, battery, missionPhase, computeStartTime]);
 
+  // 碰撞避撞 AI 调用:构造碰撞场景请求体,后端 route 根据 scenario=collision-avoidance 选择碰撞 prompt
+  // 输出经 mapCollisionToTaskPlanning 映射为 AiTaskPlanningOutput 格式,AiPlanningModal 可复用
+  const handleInvokeCollisionAi = useCallback(async (): Promise<AiTaskPlanningOutput> => {
+    if (!collisionAlert) throw new Error('无碰撞警报数据');
+    const input = buildCollisionRequestInput({
+      tle,
+      orbitParams,
+      fuel,
+      battery,
+      collisionAlert,
+    });
+    const resp = await fetch('/api/ai/task-planning', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.success) {
+      throw new Error(data.error || `AI 调用失败(HTTP ${resp.status})`);
+    }
+    return data.data as AiTaskPlanningOutput;
+  }, [tle, orbitParams, fuel, battery, collisionAlert]);
+
+  // 触发突发碰撞警报(模拟碎片接近事件)
+  const handleTriggerCollision = () => {
+    triggerCollisionAlert();
+    setSimMessage('⚠ 检测到碎片接近风险,请查看碰撞警报');
+    setTimeout(() => setSimMessage(null), 5000);
+  };
+
+  // 清除紧急避撞任务(用户手动取消)
+  const handleClearEmergency = () => {
+    setEmergencyTask(null);
+    setSimMessage('紧急避撞任务已清除');
+    setTimeout(() => setSimMessage(null), 3000);
+  };
+
   // 应用 AI 建议:选中推荐的 AOI(复用 handleSelectAoi 逻辑)
   // windowIndex 仅用于反馈,实际窗口选择仍由 findNextWindow 决定
   const handleApplyAiRecommendation = (aoiId: string, _windowIndex: number) => {
@@ -480,6 +526,46 @@ export default function TaskListPanel() {
 
       {/* AOI + 窗口列表(滚动区) */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
+        {/* 紧急避撞任务卡片(碰撞警报触发后显示,红色高亮) */}
+        {emergencyTask && collisionAlert && (
+          <div className="rounded-xl border-2 border-red-500/60 bg-red-500/10 p-3 space-y-2 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-400 animate-pulse" />
+                <span className="text-sm font-bold text-red-300">紧急避撞机动</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 font-mono">EMERGENCY</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleClearEmergency}
+                className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors"
+                title="清除紧急任务"
+              >
+                清除
+              </button>
+            </div>
+            <div className="text-[11px] text-slate-300 space-y-0.5 font-mono">
+              <div>碎片:{collisionAlert.debrisName} <span className="text-slate-500">(NORAD {collisionAlert.debrisNoradId})</span></div>
+              <div>TCA:{collisionAlert.tca.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</div>
+              <div className="flex gap-3">
+                <span>距离:<span className="text-red-300">{collisionAlert.missDistance.toFixed(3)} km</span></span>
+                <span>概率:<span className="text-red-300">{collisionAlert.collisionProbability.toFixed(2)}%</span></span>
+                <span>速度:<span className="text-slate-200">{collisionAlert.relativeVelocity.toFixed(2)} km/s</span></span>
+              </div>
+            </div>
+            <Button
+              variant="default"
+              size="sm"
+              className="w-full h-8 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white border border-red-400/30"
+              onClick={() => setShowCollisionAiModal(true)}
+              title="调用 AI 大模型分析避撞机动方案"
+            >
+              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+              AI 避撞规划
+            </Button>
+          </div>
+        )}
+
         <AoiSection
           aoiId={AOI_A.id}
           aoiName={AOI_A.name}
@@ -511,6 +597,20 @@ export default function TaskListPanel() {
 
       {/* 底部操作区 */}
       <div className="border-t border-space-800 bg-space-900 p-3 space-y-2">
+        {/* 突发威胁模拟按钮:触发碰撞警报(仅在无紧急任务时显示) */}
+        {!emergencyTask && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full h-8 bg-red-500/10 border-red-500/40 text-red-300 hover:bg-red-500/20 hover:border-red-500/60"
+            onClick={handleTriggerCollision}
+            title="模拟太空碎片接近事件,触发碰撞警报"
+          >
+            <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />
+            突发威胁模拟
+          </Button>
+        )}
+
         {/* AI 辅助规划按钮:调用 LLM 综合分析轨道/光照/资源,给出推荐 AOI 与机动建议 */}
         <Button
           variant="default"
@@ -596,6 +696,17 @@ export default function TaskListPanel() {
         onClose={() => setShowAiModal(false)}
         onInvoke={handleInvokeAi}
         onApplyRecommendation={handleApplyAiRecommendation}
+      />
+
+      {/* 碰撞避撞 AI 模态框:复用 AiPlanningModal,传入碰撞场景的 invoke 函数 */}
+      <AiPlanningModal
+        isOpen={showCollisionAiModal}
+        onClose={() => setShowCollisionAiModal(false)}
+        onInvoke={handleInvokeCollisionAi}
+        onApplyRecommendation={() => {
+          setSimMessage('已生成避撞方案,请参考执行机动');
+          setTimeout(() => setSimMessage(null), 4000);
+        }}
       />
     </aside>
   );

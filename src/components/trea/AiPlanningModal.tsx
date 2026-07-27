@@ -13,6 +13,7 @@
 //   - 置信度进度条 + 耗时显示
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, Loader2, Zap, Shield, ListChecks, Brain, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AiTaskPlanningOutput } from '@/lib/trea/ai-prompt';
@@ -28,12 +29,39 @@ interface AiPlanningModalProps {
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
+// 加载阶段(分步展示分析进度,减少用户等待焦虑)
+// LLM 调用是单次请求无法真正知道后端进度,这里用定时器模拟分阶段推进
+const LOADING_STAGES = [
+  { icon: Brain, label: '正在初始化分析环境', desc: '连接 LLM 服务,加载分析模型' },
+  { icon: Target, label: '准备卫星轨道数据', desc: '解析 TLE,计算轨道根数与过境窗口' },
+  { icon: ListChecks, label: '计算窗口与约束条件', desc: '评估光照、覆盖范围与资源约束' },
+  { icon: Zap, label: 'LLM 正在深度推理', desc: '综合轨道/光照/资源生成最优方案' },
+  { icon: Sparkles, label: '生成规划方案', desc: '结构化输出推荐 AOI 与机动建议' },
+  { icon: CheckCircle2, label: '整合分析结果', desc: '校验输出格式,准备展示' },
+] as const;
+
 export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyRecommendation }: AiPlanningModalProps) {
   const [status, setStatus] = useState<Status>('idle');
   const [result, setResult] = useState<AiTaskPlanningOutput | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [elapsedMs, setElapsedMs] = useState<number>(0);
   const [applied, setApplied] = useState(false);
+  // SSR 安全:确保 document 可用后再渲染 portal(脱离 TaskListPanel 的 stacking context)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  // 加载阶段进度:每 3 秒推进一个阶段,给用户"分析正在进行"的感知
+  // LLM 实际是单次请求,这里用定时器模拟分阶段(避免一直显示同一个文案)
+  const [stage, setStage] = useState(0);
+  useEffect(() => {
+    if (status !== 'loading') {
+      setStage(0);
+      return;
+    }
+    const timer = setInterval(() => {
+      setStage(prev => Math.min(prev + 1, LOADING_STAGES.length - 1));
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [status]);
 
   // 模态框打开时自动调用 AI
   useEffect(() => {
@@ -88,8 +116,12 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
     setTimeout(() => onClose(), 800);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  if (!mounted) return null;
+
+  // 使用 createPortal 渲染到 document.body,脱离 TaskListPanel 的 stacking context
+  // 否则模态框的 z-50 被限制在左侧面板 z-20 context 内,被右侧面板遮挡
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
       {/* 遮罩:不透明深色背景 */}
       <div className="absolute inset-0 bg-black/85" onClick={status === 'loading' ? undefined : onClose} />
 
@@ -119,12 +151,53 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
 
         {/* 内容区 */}
         <div className="flex-1 overflow-y-auto p-5">
-          {/* 加载态 */}
+          {/* 加载态:分阶段展示分析进度,减少等待焦虑 */}
           {status === 'loading' && (
-            <div className="flex flex-col items-center justify-center py-16 gap-4">
+            <div className="flex flex-col items-center justify-center py-10 gap-5 px-6">
+              {/* 主图标(旋转) */}
               <Loader2 className="h-10 w-10 text-cosmic-blue animate-spin" />
-              <p className="text-space-300 text-sm">AI 正在深度分析过境窗口与轨道参数...</p>
-              <p className="text-space-500 text-xs">通常需要 15-30 秒,请稍候</p>
+
+              {/* 当前阶段标题 */}
+              <div className="text-center">
+                <p className="text-space-100 text-sm font-semibold">{LOADING_STAGES[stage].label}...</p>
+                <p className="text-space-500 text-xs mt-1">{LOADING_STAGES[stage].desc}</p>
+              </div>
+
+              {/* 总进度条 + 阶段列表 */}
+              <div className="w-full max-w-md">
+                <div className="h-1.5 bg-space-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-cosmic-blue to-cyan-400 rounded-full transition-all duration-1000"
+                    style={{ width: `${((stage + 1) / LOADING_STAGES.length) * 100}%` }}
+                  />
+                </div>
+
+                {/* 阶段步骤列表 */}
+                <div className="space-y-1.5 mt-4">
+                  {LOADING_STAGES.map((s, idx) => {
+                    const Icon = s.icon;
+                    return (
+                      <div key={idx} className="flex items-center gap-2 text-xs">
+                        {idx < stage ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 flex-shrink-0" />
+                        ) : idx === stage ? (
+                          <Loader2 className="h-3.5 w-3.5 text-cosmic-blue animate-spin flex-shrink-0" />
+                        ) : (
+                          <div className="h-3.5 w-3.5 rounded-full border border-space-700 flex-shrink-0" />
+                        )}
+                        <span className={idx <= stage ? 'text-space-200' : 'text-space-600'}>
+                          {s.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 耗时提示 */}
+              <p className="text-space-500 text-xs">
+                通常需要 15-30 秒,已耗时 {(elapsedMs / 1000).toFixed(1)} 秒
+              </p>
             </div>
           )}
 
@@ -304,6 +377,7 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -6,7 +6,7 @@ import { useSatelliteStore } from '@/store/satelliteStore';
 import { useTimeStore } from '@/store/timeStore';
 import { useCesium } from '@/hooks/useCesium';
 import { AOI_A, AOI_B } from '@/lib/trea/constants';
-import { useTreaTle } from '@/store/treaMissionStore';
+import { useTreaTle, useTreaMissionStore } from '@/store/treaMissionStore';
 import { generateOrbitPoints } from '@/lib/cesium/positions';
 import type { TLEData } from '@/lib/tle/parser';
 import MissionSimulator from '@/components/trea/MissionSimulator';
@@ -59,12 +59,16 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     addManeuverArc,
     addOrbitComparison,
     clearManeuverEntities,
+    startTrackingTrea01,
+    stopTrackingTrea01,
   } = useCesium();
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const currentTime = useTimeStore(state => state.currentTime);
   // 订阅 store 中的当前 TLE(变轨后自动更新,替代硬编码 TREA01_INITIAL_TLE)
   const treaTle = useTreaTle();
+  // TREA-01 跟踪状态(由 TreaSatelliteView 按钮切换,本组件监听并调用 startTrackingTrea01)
+  const trea01Tracking = useTreaMissionStore(s => s.trea01Tracking);
   const focusTrigger = useSatelliteStore(state => state.focusTrigger);
   const trackingNoradId = useSatelliteStore(state => state.trackingNoradId);
   const setTracking = useSatelliteStore(state => state.setTracking);
@@ -148,7 +152,8 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   // missionMode=true: 添加 AOI_A、AOI_B、TREA-01 卫星实体 + 轨道线,并飞向 TREA-01
   // missionMode=false: 清理所有任务实体
   // 依赖 treaTle:变轨后 TLE 变化 → 重新添加卫星实体 + 更新轨道线
-  // 依赖 initCompleted 确保 Cesium viewer 完全初始化后再操作
+  // 注意:不依赖 currentTime!轨道形状由 TLE 轨道根数决定,与时间无关。
+  //   之前依赖 currentTime 导致时间播放时每帧重建实体 → 轨道线闪烁/消失。
   useEffect(() => {
     if (!isReady || !viewer || !initCompleted.current) return;
 
@@ -158,8 +163,8 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
       addAoiEntity(AOI_B);
       // 添加 TREA-01 卫星实体(使用 store 当前 TLE,变轨后自动更新)
       addTrea01Entity(treaTle);
-      // 添加 TREA-01 轨道线(紫色发光线)
-      addTrea01OrbitLine(treaTle, currentTime);
+      // 添加 TREA-01 轨道线(紫色发光线,采样起始时间用当前时刻,不依赖播放时间)
+      addTrea01OrbitLine(treaTle, new Date());
       // 飞向 TREA-01 卫星
       // 延迟一帧执行 flyTo,确保实体已添加到场景
       const timeoutId = setTimeout(() => focusTrea01(), 100);
@@ -171,7 +176,19 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
       clearMissionEntities();
       clearManeuverEntities();
     }
-  }, [missionMode, isReady, viewer, treaTle, addAoiEntity, addTrea01Entity, addTrea01OrbitLine, focusTrea01, clearMissionEntities, clearManeuverEntities, currentTime]);
+  }, [missionMode, isReady, viewer, treaTle, addAoiEntity, addTrea01Entity, addTrea01OrbitLine, focusTrea01, clearMissionEntities, clearManeuverEntities]);
+
+  // TREA-01 跟踪:trea01Tracking 状态变化时启动/停止持续跟踪
+  // 跟踪状态由 TreaSatelliteView 的按钮切换(经 treaMissionStore 共享)
+  // 本组件持有 Cesium 实例,负责实际调用 startTrackingTrea01/stopTrackingTrea01
+  useEffect(() => {
+    if (!isReady || !viewer || !missionMode) return;
+    if (trea01Tracking) {
+      startTrackingTrea01();
+    } else {
+      stopTrackingTrea01();
+    }
+  }, [trea01Tracking, missionMode, isReady, viewer, startTrackingTrea01, stopTrackingTrea01]);
 
   // TREA-01 卫星位置更新:跟随仿真时间传播
   // 仅在 missionMode=true 时执行,与默认卫星位置更新独立
@@ -307,13 +324,11 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
         />
       )}
 
-      {/* Reset view button - 任务模式下居中避免被侧边栏遮挡 */}
+      {/* Reset view button - 左下角,避免遮挡顶部信息与侧边栏 */}
       {isReady && !displayError && (
         <button
           onClick={handleResetView}
-          className={`absolute top-4 z-30 w-10 h-10 flex items-center justify-center rounded-lg bg-space-900/90 backdrop-blur-sm border border-space-700 text-space-300 hover:text-cosmic-blue hover:bg-space-800/90 hover:border-cosmic-blue/50 transition-all ${
-            missionMode ? 'left-1/2 -translate-x-1/2' : 'left-4'
-          }`}
+          className="absolute bottom-4 left-4 z-30 w-10 h-10 flex items-center justify-center rounded-lg bg-space-900/90 backdrop-blur-sm border border-space-700 text-space-300 hover:text-cosmic-blue hover:bg-space-800/90 hover:border-cosmic-blue/50 transition-all"
           title="复位视角 - 东亚上空"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

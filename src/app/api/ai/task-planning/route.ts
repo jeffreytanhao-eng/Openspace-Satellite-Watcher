@@ -15,8 +15,13 @@ import { NextResponse } from 'next/server';
 import {
   SYSTEM_PROMPT,
   buildUserPrompt,
+  COLLISION_SYSTEM_PROMPT,
+  buildCollisionPrompt,
+  mapCollisionToTaskPlanning,
   type AiTaskPlanningInput,
   type AiTaskPlanningOutput,
+  type AiCollisionAvoidanceInput,
+  type AiCollisionAvoidanceOutput,
 } from '@/lib/trea/ai-prompt';
 
 // 强制动态渲染(避免被静态化缓存)
@@ -139,33 +144,46 @@ export async function POST(request: Request): Promise<NextResponse<LlmSuccessRes
 
   const { LLM_API_KEY, LLM_API_URL, LLM_MODEL } = process.env;
 
-  // 2. 解析请求体
-  let input: AiTaskPlanningInput;
+  // 2. 解析请求体(支持 task-planning 和 collision-avoidance 两种场景)
+  let systemPrompt: string;
+  let userPrompt: string;
+  let scenario: string;
   try {
     const body = await request.json();
     if (!body || typeof body !== 'object') {
       throw new Error('请求体必须是 JSON 对象');
     }
-    // 基础校验
+    // 基础校验(两种场景都需要 TLE 和轨道根数)
     if (!body.tle || !body.tle.line1 || !body.tle.line2) {
       throw new Error('缺少 TLE 数据');
-    }
-    if (!Array.isArray(body.aois)) {
-      throw new Error('缺少 AOI 列表');
     }
     if (!body.elements || typeof body.elements !== 'object') {
       throw new Error('缺少轨道根数(elements)字段');
     }
-    input = body as AiTaskPlanningInput;
+    scenario = body.scenario || 'task-planning';
+    if (scenario === 'collision-avoidance') {
+      // 碰撞避撞场景:需要 collisionAlert 字段
+      if (!body.collisionAlert) {
+        throw new Error('缺少碰撞预警数据(collisionAlert)');
+      }
+      const collisionInput = body as AiCollisionAvoidanceInput;
+      systemPrompt = COLLISION_SYSTEM_PROMPT;
+      userPrompt = buildCollisionPrompt(collisionInput);
+    } else {
+      // 任务规划场景(默认):需要 AOI 列表
+      if (!Array.isArray(body.aois)) {
+        throw new Error('缺少 AOI 列表');
+      }
+      const input = body as AiTaskPlanningInput;
+      systemPrompt = SYSTEM_PROMPT;
+      userPrompt = buildUserPrompt(input);
+    }
   } catch (e) {
     return NextResponse.json<LlmErrorResponse>(
       { success: false, error: `输入无效: ${e instanceof Error ? e.message : String(e)}`, code: 'INVALID_INPUT' },
       { status: 400 }
     );
   }
-
-  // 3. 构造 prompt
-  const userPrompt = buildUserPrompt(input);
 
   // 4. 调用 LLM(OpenAI 兼容协议)
   const url = `${LLM_API_URL}/chat/completions`;
@@ -182,7 +200,7 @@ export async function POST(request: Request): Promise<NextResponse<LlmSuccessRes
       body: JSON.stringify({
         model: LLM_MODEL,
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
         // 强制 JSON 输出(火山方舟支持)
@@ -236,8 +254,10 @@ export async function POST(request: Request): Promise<NextResponse<LlmSuccessRes
       );
     }
 
-    // 6. 标准化输出
-    const data = normalizeOutput(parsed);
+    // 6. 标准化输出(根据 scenario 选择映射函数)
+    const data = scenario === 'collision-avoidance'
+      ? mapCollisionToTaskPlanning(parsed as AiCollisionAvoidanceOutput)
+      : normalizeOutput(parsed);
     const elapsedMs = Date.now() - startTime;
 
     return NextResponse.json<LlmSuccessResponse>({

@@ -72,6 +72,25 @@ export interface ManeuverRecord {
   note?: string;
 }
 
+/**
+ * 碰撞警报数据(突发任务:碎片接近风险)
+ * 由 triggerCollisionAlert 生成模拟数据,驱动 CollisionAlertModal 弹出红色警报
+ */
+export interface CollisionAlert {
+  /** 碎片名称(如 COSMOS 1408 DEB) */
+  debrisName: string;
+  /** 碎片 NORAD ID */
+  debrisNoradId: number;
+  /** 最近接近时刻 TCA (Time of Closest Approach) */
+  tca: Date;
+  /** 最近接近距离 (km) */
+  missDistance: number;
+  /** 相对速度 (km/s) */
+  relativeVelocity: number;
+  /** 碰撞概率 (%) */
+  collisionProbability: number;
+}
+
 // 注意:MissionReport 类型现在从 @/lib/trea/report 导入(见文件顶部)
 // 旧版 MissionReport(generatedAt/phase/fuel/summary)已被 M4 新版替换,
 // 新版字段更丰富,适配 MissionReportModal 渲染需求
@@ -107,6 +126,12 @@ export interface TreaMissionState {
   telemetryCache: TelemetryCache | null;
   /** 是否已初始化 */
   initialized: boolean;
+  /** TREA-01 持续跟踪开关(由 TreaSatelliteView 按钮切换,CesiumGlobe 监听执行) */
+  trea01Tracking: boolean;
+  /** 碰撞警报(非 null 时屏幕正中弹出红色警报,触发突发避撞任务) */
+  collisionAlert: CollisionAlert | null;
+  /** 紧急避撞任务(碰撞警报确认后生成,显示在任务规划面板) */
+  emergencyTask: TreaMissionTask | null;
 }
 
 export interface TreaMissionActions {
@@ -124,6 +149,14 @@ export interface TreaMissionActions {
   setLastReport: (report: MissionReport | null) => void;
   /** 重置到初始状态 */
   reset: () => void;
+  /** 切换 TREA-01 持续跟踪 */
+  setTrea01Tracking: (tracking: boolean) => void;
+  /** 触发碰撞警报(生成模拟碎片接近数据,弹出红色警报) */
+  triggerCollisionAlert: () => void;
+  /** 关闭碰撞警报(不清理 emergencyTask,任务规划中保留避撞任务) */
+  dismissCollisionAlert: () => void;
+  /** 设置紧急避撞任务 */
+  setEmergencyTask: (task: TreaMissionTask | null) => void;
   // ---------- M4 / Task 12:任务执行状态机 Actions ----------
   /**
    * 启动任务仿真:设置 currentTask,missionPhase='EXECUTING',记录 taskStartTime
@@ -200,6 +233,9 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
   lastReport: null,
   telemetryCache: null,
   initialized: true, // 默认调用 initialize() 后即为已初始化状态
+  trea01Tracking: false,
+  collisionAlert: null,
+  emergencyTask: null,
 
   // ---------- Actions ----------
 
@@ -219,6 +255,9 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
       lastReport: null,
       telemetryCache: null,
       initialized: true,
+      trea01Tracking: false,
+      collisionAlert: null,
+      emergencyTask: null,
     });
   },
 
@@ -302,6 +341,47 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
   reset: () => {
     get().initialize();
   },
+
+  setTrea01Tracking: (tracking) => {
+    set({ trea01Tracking: tracking });
+  },
+
+  // 触发碰撞警报:模拟太空碎片接近事件(真实历史碎片名称)
+  // 生成 TCA(最近接近时刻)在 40-60 分钟后的警报,距离 < 1km(高风险)
+  triggerCollisionAlert: () => {
+    const debrisOptions = [
+      { name: 'COSMOS 1408 DEB', noradId: 54000 + Math.floor(Math.random() * 999) },
+      { name: 'FENGYUN 1C DEB', noradId: 30000 + Math.floor(Math.random() * 999) },
+      { name: 'IRIDIUM 33 DEB', noradId: 34000 + Math.floor(Math.random() * 999) },
+    ];
+    const debris = debrisOptions[Math.floor(Math.random() * debrisOptions.length)];
+    const tca = new Date(Date.now() + (40 + Math.random() * 20) * 60_000); // 40-60 分钟后
+    const alert: CollisionAlert = {
+      debrisName: debris.name,
+      debrisNoradId: debris.noradId,
+      tca,
+      missDistance: 0.3 + Math.random() * 0.5, // 0.3-0.8 km(危险阈值,通常 < 1km 需机动)
+      relativeVelocity: 10.5 + Math.random() * 4, // 10.5-14.5 km/s(典型轨道相对速度)
+      collisionProbability: 0.5 + Math.random() * 1.5, // 0.5%-2%(远超 1e-4 机动阈值)
+    };
+    // 同时生成紧急避撞任务(TCA 前 15 分钟执行机动,留出预警与执行时间)
+    const task: TreaMissionTask = {
+      id: `emergency-collision-${Date.now()}`,
+      aoiId: 'COLLISION_AVOIDANCE',
+      aoiName: '紧急避撞机动',
+      plannedTime: new Date(tca.getTime() - 15 * 60_000),
+      status: 'PENDING',
+    };
+    set({ collisionAlert: alert, emergencyTask: task });
+  },
+
+  dismissCollisionAlert: () => {
+    set({ collisionAlert: null });
+  },
+
+  setEmergencyTask: (task) => {
+    set({ emergencyTask: task });
+  },
 }));
 
 // ============================================================
@@ -320,6 +400,9 @@ export const useTreaTaskStartTime = () => useTreaMissionStore(state => state.tas
 export const useTreaManeuverHistory = () => useTreaMissionStore(state => state.maneuverHistory);
 export const useTreaLastReport = () => useTreaMissionStore(state => state.lastReport);
 export const useTreaTelemetry = () => useTreaMissionStore(state => state.telemetryCache);
+export const useTrea01Tracking = () => useTreaMissionStore(state => state.trea01Tracking);
+export const useCollisionAlert = () => useTreaMissionStore(state => state.collisionAlert);
+export const useEmergencyTask = () => useTreaMissionStore(state => state.emergencyTask);
 
 // 重新导出常量,方便调用方一站式引用
 export { TREA01_INITIAL_TLE };

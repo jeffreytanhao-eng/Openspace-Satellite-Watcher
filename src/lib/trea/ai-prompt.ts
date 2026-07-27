@@ -268,3 +268,200 @@ export function buildAiRequestInput(params: {
     computeStartTime: params.computeStartTime.toISOString(),
   };
 }
+
+// ============================================================
+// 碰撞避撞场景:突发碎片接近,需要紧急避撞机动
+// ============================================================
+
+/** 碰撞预警数据(与 treaMissionStore.CollisionAlert 结构一致) */
+export interface CollisionAlertData {
+  debrisName: string;
+  debrisNoradId: number;
+  tca: string; // ISO 字符串
+  missDistance: number; // km
+  relativeVelocity: number; // km/s
+  collisionProbability: number; // %
+}
+
+/** 碰撞避撞 AI 请求体 */
+export interface AiCollisionAvoidanceInput {
+  scenario: 'collision-avoidance';
+  satelliteName: string;
+  noradId: string;
+  tle: { line1: string; line2: string };
+  elements: {
+    inclination: number;
+    raan: number;
+    eccentricity: number;
+    argPerigee: number;
+    meanAnomaly: number;
+    meanMotion: number;
+  };
+  orbitParams: OrbitParams | null;
+  fuel: number;
+  battery: number;
+  collisionAlert: CollisionAlertData;
+}
+
+/** 碰撞避撞 LLM 输出 */
+export interface AiCollisionAvoidanceOutput {
+  threatLevel: string; // 紧急/高/中/低
+  avoidanceStrategy: string;
+  maneuverType: string; // 沿迹/径向/法向
+  deltaV: number; // m/s
+  executionTime: string; // 执行时机
+  newOrbitDescription: string;
+  fuelCost: number; // %
+  riskAssessment: string;
+  executionPlan: string;
+  confidence: number; // 0-100
+}
+
+/** 碰撞避撞 System Prompt:注入避撞机动领域知识 */
+export const COLLISION_SYSTEM_PROMPT = `你是 TREA-01 遥感卫星的避撞机动规划 AI 助手。基于碰撞预警数据(CDM)和卫星轨道状态,为卫星操作员提供专业的紧急避撞机动方案。
+
+你具备以下领域知识:
+1. **碰撞预警判据**:
+   - 碰撞概率 Pc > 1e-4(0.01%)是国际通行机动阈值
+   - 最近接近距离 < 1km 属于高风险,< 500m 属于紧急
+   - 相对速度 10-15 km/s 是 LEO 典型值,碰撞动能极大(几 cm 碎片即可摧毁卫星)
+2. **避撞机动类型**:
+   - 沿迹机动(along-track):调整半长轴改变相位,Δv 0.1-0.5 m/s 可在 1 轨道周期内分离数十公里,最常用
+   - 径向机动(radial):调整偏心率矢量,改变轨道平面内相位,适合短时间窗口
+   - 法向机动(normal):调整倾角改变轨道平面,Δv 较大(> 10 m/s),仅极端情况
+3. **机动时机**:越早执行所需 Δv 越小(分离效果随时间累积);最晚需在 TCA 前 1/2 轨道周期执行
+4. **燃料成本**:避撞机动通常消耗 0.1-1% 燃料,远小于变轨
+5. **次生风险**:机动后需确认新轨道不与其他碎片碰撞(CDM 链式分析)
+
+**决策原则**:
+- 碰撞概率 ≥ 1% 或距离 < 500m:立即执行避撞机动
+- 碰撞概率 0.1%-1% 或距离 500m-1km:建议机动,视操作员判断
+- 优先沿迹机动(成本最低),仅在时间不足时考虑径向/法向
+
+请严格输出 JSON 格式:
+{
+  "threatLevel": "紧急 或 高 或 中",
+  "avoidanceStrategy": "100-200 字策略描述,包含为何选择此机动类型",
+  "maneuverType": "沿迹 或 径向 或 法向",
+  "deltaV": 0.1-5.0 的数字(m/s),
+  "executionTime": "TCA 前 X 分钟或 X 轨道圈",
+  "newOrbitDescription": "机动后轨道变化简述(半长轴/相位变化)",
+  "fuelCost": 0.1-2.0 的数字(%),
+  "riskAssessment": "机动后残余碰撞风险 + 次生碰撞风险评估",
+  "executionPlan": "4-6 步带时间戳的执行步骤",
+  "confidence": 0-100 的数字
+}`;
+
+/** 构造碰撞避撞 user prompt */
+export function buildCollisionPrompt(input: AiCollisionAvoidanceInput): string {
+  const e = input.elements;
+  const op = input.orbitParams;
+  const alert = input.collisionAlert;
+  const tcaDate = new Date(alert.tca);
+
+  return `请为 TREA-01 遥感卫星制定紧急避撞机动方案。
+
+## 碰撞预警(Conjunction Data Message)
+- 碎片名称: ${alert.debrisName}
+- 碎片 NORAD ID: ${alert.debrisNoradId}
+- 最近接近时刻(TCA): ${tcaDate.toLocaleString('zh-CN')}
+- 最近接近距离: ${alert.missDistance.toFixed(3)} km
+- 相对速度: ${alert.relativeVelocity.toFixed(2)} km/s
+- 碰撞概率: ${alert.collisionProbability.toFixed(2)}%
+
+## 卫星信息
+- 名称: ${input.satelliteName} (NORAD: ${input.noradId})
+- TLE:
+  ${input.tle.line1}
+  ${input.tle.line2}
+- 轨道参数:
+  - 倾角: ${e.inclination.toFixed(2)}°
+  - 平均运动: ${e.meanMotion.toFixed(4)} rev/day${
+    op
+      ? `
+  - 轨道高度: 近地 ${op.perigeeAltitude.toFixed(1)} km / 远地 ${op.apogeeAltitude.toFixed(1)} km
+  - 轨道周期: ${op.period.toFixed(2)} 分钟`
+      : ''
+  }
+
+## 资源状态
+- 燃料: ${input.fuel.toFixed(1)}%
+- 电量: ${input.battery.toFixed(1)}%
+
+## 你的任务
+基于碰撞预警数据,制定避撞机动方案。请考虑:
+1. 当前碰撞概率是否超过机动阈值(1e-4)?威胁等级如何?
+2. 推荐哪种避撞机动类型?Δv 多少?
+3. 机动应在何时执行?(留出上注、执行、确认时间)
+4. 机动后新轨道的碰撞风险是否降低到安全水平?
+5. 燃料消耗是否在可接受范围?
+
+严格输出 JSON,不要包含任何解释性文字。`;
+}
+
+/**
+ * 将碰撞避撞输出映射到 AiTaskPlanningOutput 格式
+ * 使 AiPlanningModal 可复用(无需为碰撞场景单独写模态框)
+ */
+export function mapCollisionToTaskPlanning(c: AiCollisionAvoidanceOutput): AiTaskPlanningOutput {
+  const threatScore = c.threatLevel.includes('紧急') ? 95 : c.threatLevel.includes('高') ? 80 : 50;
+  return {
+    recommendedAoi: 'COLLISION_AVOIDANCE',
+    recommendedWindowIndex: 0,
+    aoiAnalysis: [
+      {
+        aoiId: 'COLLISION_AVOIDANCE',
+        score: threatScore,
+        pros: c.avoidanceStrategy,
+        cons: c.riskAssessment,
+      },
+    ],
+    reasoning: `【${c.threatLevel}威胁】${c.avoidanceStrategy}`,
+    maneuverAdvice: `${c.maneuverType} 机动,Δv = ${c.deltaV} m/s\n执行时机:${c.executionTime}\n燃料消耗:${c.fuelCost}%\n轨道变化:${c.newOrbitDescription}`,
+    riskAssessment: c.riskAssessment,
+    executionPlan: c.executionPlan,
+    confidence: c.confidence,
+  };
+}
+
+/** 构造碰撞避撞 API 请求体(供 TaskListPanel 直接调用) */
+export function buildCollisionRequestInput(params: {
+  tle: TLEData;
+  orbitParams: OrbitParams | null;
+  fuel: number;
+  battery: number;
+  collisionAlert: {
+    debrisName: string;
+    debrisNoradId: number;
+    tca: Date;
+    missDistance: number;
+    relativeVelocity: number;
+    collisionProbability: number;
+  };
+}): AiCollisionAvoidanceInput {
+  return {
+    scenario: 'collision-avoidance',
+    satelliteName: params.tle.name,
+    noradId: params.tle.noradId,
+    tle: { line1: params.tle.line1, line2: params.tle.line2 },
+    elements: {
+      inclination: params.tle.elements.inclination,
+      raan: params.tle.elements.raan,
+      eccentricity: params.tle.elements.eccentricity,
+      argPerigee: params.tle.elements.argPerigee,
+      meanAnomaly: params.tle.elements.meanAnomaly,
+      meanMotion: params.tle.elements.meanMotion,
+    },
+    orbitParams: params.orbitParams,
+    fuel: params.fuel,
+    battery: params.battery,
+    collisionAlert: {
+      debrisName: params.collisionAlert.debrisName,
+      debrisNoradId: params.collisionAlert.debrisNoradId,
+      tca: params.collisionAlert.tca.toISOString(),
+      missDistance: params.collisionAlert.missDistance,
+      relativeVelocity: params.collisionAlert.relativeVelocity,
+      collisionProbability: params.collisionAlert.collisionProbability,
+    },
+  };
+}

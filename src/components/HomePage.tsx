@@ -19,6 +19,7 @@ import TelemetryDashboard from '@/components/trea/TelemetryDashboard';
 import ManeuverPanel from '@/components/trea/ManeuverPanel';
 import MissionReportModal from '@/components/trea/MissionReportModal';
 import TreaSatelliteView from '@/components/trea/TreaSatelliteView';
+import CollisionAlertModal from '@/components/trea/CollisionAlertModal';
 import { useTreaLastReport, useTreaMissionPhase } from '@/store/treaMissionStore';
 import type { TLEData } from '@/lib/tle/parser';
 
@@ -785,6 +786,9 @@ export default function HomePage() {
         isOpen={showReportModal}
         onClose={() => setReportDismissed(true)}
       />
+
+      {/* TREA-01 碰撞警报模态框:突发碎片接近时屏幕正中弹出红色警报(仅任务中心) */}
+      {missionMode && <CollisionAlertModal />}
 
       <PasswordModal
         isOpen={passwordModal.isOpen}
