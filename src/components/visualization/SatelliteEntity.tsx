@@ -47,6 +47,7 @@ const MODEL_SCALE_BY_TYPE: Record<string, number> = {
   'aura': 213,        // diag=703.86
   'landsat8': 0.49,   // diag=307206.23
   'suomi-npp': 14808, // diag=10.12
+  'calipso': 15,      // diag=10013.66(TREA-01 复用,对地观测激光雷达卫星)
 };
 
 /** 从 model3dUrl(如 /models/iss.glb)提取模型名并查表得到 scale */

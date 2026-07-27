@@ -596,6 +596,8 @@ export function useCesium() {
     const treaColor = '#b366ff';
     const noradId = 99999;
 
+    // TREA-01 复用 CALIPSO 3D 模型(对地观测激光雷达卫星,形态匹配 EO 卫星)
+    // 任务模式下默认显示 3D 模型(非光点),跟踪时支持滚轮缩放
     const result = createSatelliteEntity(Cesium, viewer.entities, {
       noradId,
       name: tle.name,
@@ -603,6 +605,8 @@ export function useCesium() {
       color: treaColor,
       isSelected: false,
       showLabel: true,
+      model3dUrl: '/models/calipso.glb',
+      useModel: true,
     });
 
     inst.missionTrea01Entity = { update: result.update, destroy: result.destroy };
