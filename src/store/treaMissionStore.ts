@@ -91,6 +91,38 @@ export interface CollisionAlert {
   collisionProbability: number;
 }
 
+/**
+ * 躲避计划选项(用户在 CollisionAlertModal 中选择)
+ * 每个计划包含:机动类型、Δv、执行时机、燃料消耗、机动后预测效果
+ * 选择后由 executeCollisionAvoidance 执行,生成新 TLE 并触发 maneuverEvent
+ */
+export interface CollisionAvoidancePlan {
+  /** 计划 ID */
+  id: string;
+  /** 计划名称 */
+  name: string;
+  /** 机动类型描述 */
+  maneuverType: string;
+  /** 速度增量 (m/s) */
+  deltaV: number;
+  /** 执行时机(TCA 前 X 分钟) */
+  executeMinutesBeforeTca: number;
+  /** 燃料消耗 (%) */
+  fuelCost: number;
+  /** 机动后预测最近距离 (km) */
+  missDistanceAfter: number;
+  /** 机动后碰撞概率 (%) */
+  probabilityAfter: number;
+  /** 残余风险等级 */
+  riskLevel: 'low' | 'medium' | 'high';
+  /** 平均运动调整量 (rev/day, 用于生成新 TLE) */
+  meanMotionDelta: number;
+  /** 风险颜色 */
+  riskColor: 'green' | 'yellow' | 'orange';
+  /** 计划描述 */
+  description: string;
+}
+
 // 注意:MissionReport 类型现在从 @/lib/trea/report 导入(见文件顶部)
 // 旧版 MissionReport(generatedAt/phase/fuel/summary)已被 M4 新版替换,
 // 新版字段更丰富,适配 MissionReportModal 渲染需求
@@ -132,6 +164,19 @@ export interface TreaMissionState {
   collisionAlert: CollisionAlert | null;
   /** 紧急避撞任务(碰撞警报确认后生成,显示在任务规划面板) */
   emergencyTask: TreaMissionTask | null;
+  /** 可选躲避计划列表(碰撞警报确认后生成 3 个选项供用户选择) */
+  avoidancePlans: CollisionAvoidancePlan[];
+  /** 最近执行的避撞机动(非 null 时 HomePage 监听并设置 maneuverEvent 触发大屏变轨演示) */
+  lastAvoidanceExecution: {
+    planId: string;
+    planName: string;
+    oldTle: TLEData;
+    newTle: TLEData;
+    deltaV: number;
+    fuelCost: number;
+    /** 唯一标识,每次执行递增,触发 useEffect 重执行 */
+    id: number;
+  } | null;
 }
 
 export interface TreaMissionActions {
@@ -157,6 +202,10 @@ export interface TreaMissionActions {
   dismissCollisionAlert: () => void;
   /** 设置紧急避撞任务 */
   setEmergencyTask: (task: TreaMissionTask | null) => void;
+  /** 生成躲避计划列表(3 个选项:沿迹微调/径向机动/组合机动) */
+  generateAvoidancePlans: () => void;
+  /** 执行避撞机动:生成新 TLE、扣除燃料、记录历史、设置 lastAvoidanceExecution */
+  executeCollisionAvoidance: (planId: string) => void;
   // ---------- M4 / Task 12:任务执行状态机 Actions ----------
   /**
    * 启动任务仿真:设置 currentTask,missionPhase='EXECUTING',记录 taskStartTime
@@ -236,6 +285,8 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
   trea01Tracking: false,
   collisionAlert: null,
   emergencyTask: null,
+  avoidancePlans: [],
+  lastAvoidanceExecution: null,
 
   // ---------- Actions ----------
 
@@ -258,6 +309,8 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
       trea01Tracking: false,
       collisionAlert: null,
       emergencyTask: null,
+      avoidancePlans: [],
+      lastAvoidanceExecution: null,
     });
   },
 
@@ -346,19 +399,16 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
     set({ trea01Tracking: tracking });
   },
 
-  // 触发碰撞警报:模拟太空碎片接近事件(真实历史碎片名称)
+  // 触发碰撞警报:模拟太空碎片接近事件
+  // 碎片名称固定为 Unknown-011(贴近现实的不明碎片预警)
   // 生成 TCA(最近接近时刻)在 40-60 分钟后的警报,距离 < 1km(高风险)
   triggerCollisionAlert: () => {
-    const debrisOptions = [
-      { name: 'COSMOS 1408 DEB', noradId: 54000 + Math.floor(Math.random() * 999) },
-      { name: 'FENGYUN 1C DEB', noradId: 30000 + Math.floor(Math.random() * 999) },
-      { name: 'IRIDIUM 33 DEB', noradId: 34000 + Math.floor(Math.random() * 999) },
-    ];
-    const debris = debrisOptions[Math.floor(Math.random() * debrisOptions.length)];
+    const debrisName = 'Unknown-011';
+    const debrisNoradId = 90011 + Math.floor(Math.random() * 99);
     const tca = new Date(Date.now() + (40 + Math.random() * 20) * 60_000); // 40-60 分钟后
     const alert: CollisionAlert = {
-      debrisName: debris.name,
-      debrisNoradId: debris.noradId,
+      debrisName,
+      debrisNoradId,
       tca,
       missDistance: 0.3 + Math.random() * 0.5, // 0.3-0.8 km(危险阈值,通常 < 1km 需机动)
       relativeVelocity: 10.5 + Math.random() * 4, // 10.5-14.5 km/s(典型轨道相对速度)
@@ -382,6 +432,129 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
   setEmergencyTask: (task) => {
     set({ emergencyTask: task });
   },
+
+  // 生成躲避计划列表(3 个选项,贴近真实避撞机动策略)
+  // 方案A:沿迹微调(最小燃料,沿轨道方向加速,轻微改变周期)
+  // 方案B:径向机动(中等燃料,垂直轨道方向,效果显著)
+  // 方案C:组合机动(最大燃料,沿迹+径向组合,最保守)
+  generateAvoidancePlans: () => {
+    const plans: CollisionAvoidancePlan[] = [
+      {
+        id: 'plan-a-parallel',
+        name: '方案 A · 沿迹微调',
+        maneuverType: '沿迹方向加速 (Along-track)',
+        deltaV: 0.03,
+        executeMinutesBeforeTca: 30,
+        fuelCost: 0.2,
+        missDistanceAfter: 5.2,
+        probabilityAfter: 0.001,
+        riskLevel: 'low',
+        meanMotionDelta: 0.00001, // rev/day, 增大平均运动(周期变短)
+        riskColor: 'green',
+        description: '沿轨道方向施加微小速度增量,轻微改变轨道周期。燃料消耗最低,机动后预测距离 > 5km,残余风险低。',
+      },
+      {
+        id: 'plan-b-radial',
+        name: '方案 B · 径向机动',
+        maneuverType: '径向方向机动 (Radial)',
+        deltaV: 0.08,
+        executeMinutesBeforeTca: 20,
+        fuelCost: 0.6,
+        missDistanceAfter: 12.5,
+        probabilityAfter: 0.0001,
+        riskLevel: 'low',
+        meanMotionDelta: -0.00002, // 径向机动主要通过改变偏心率,这里用平均运动近似
+        riskColor: 'green',
+        description: '垂直轨道方向施加径向速度增量,改变轨道偏心率。机动后预测距离 > 12km,残余风险极低。',
+      },
+      {
+        id: 'plan-c-combined',
+        name: '方案 C · 组合机动',
+        maneuverType: '沿迹 + 径向组合 (Combined)',
+        deltaV: 0.15,
+        executeMinutesBeforeTca: 25,
+        fuelCost: 1.2,
+        missDistanceAfter: 25.8,
+        probabilityAfter: 0.00001,
+        riskLevel: 'low',
+        meanMotionDelta: 0.00003,
+        riskColor: 'green',
+        description: '同时施加沿迹和径向速度增量,组合机动效果最显著。机动后预测距离 > 25km,残余风险近零。燃料消耗较高。',
+      },
+    ];
+    set({ avoidancePlans: plans });
+  },
+
+  // 执行避撞机动:基于选定计划生成新 TLE,调用 executeManeuver 扣燃料 + 记录历史
+  // 同时设置 lastAvoidanceExecution,HomePage 监听后设置 maneuverEvent → CesiumGlobe 渲染变轨演示
+  executeCollisionAvoidance: (planId) => {
+    const { avoidancePlans, tle, fuel } = get();
+    const plan = avoidancePlans.find(p => p.id === planId);
+    if (!plan) return;
+
+    // 保存旧 TLE(用于 maneuverEvent 新旧轨道对比)
+    const oldTle = { ...tle };
+
+    // 生成新 TLE:调整 line2 中的平均运动字段(列 53-63, 0-indexed 52-62, 11 字符)
+    // 平均运动格式: "xxxx.xxxxxxx"
+    // meanMotionDelta 为正 → 平均运动增大(周期变短,轨道降低)
+    const line2 = tle.line2;
+    const meanMotionStr = line2.substring(52, 63);
+    const meanMotion = parseFloat(meanMotionStr);
+    const newMeanMotion = meanMotion + plan.meanMotionDelta;
+    // 保留原格式(11 字符,5 位整数 + . + 7 位小数)
+    const newMeanMotionStr = newMeanMotion.toFixed(7).padStart(11, ' ').substring(0, 11);
+    const newLine2 = line2.substring(0, 52) + newMeanMotionStr + line2.substring(63);
+
+    // 同步更新 line1 的历元(模拟机动后重新测定轨道)
+    // 历元字段位置:列 19-32(0-indexed 18-31)
+    const now = new Date();
+    const year = now.getUTCFullYear() % 100;
+    const dayOfYear = Math.floor((now.getTime() - Date.UTC(now.getUTCFullYear(), 0, 0)) / 86400000);
+    const fractionOfDay = ((now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds()) / 86400).toFixed(8).substring(2);
+    const newEpoch = `${year.toString().padStart(2, '0')}${dayOfYear.toString().padStart(3, '0')}.${fractionOfDay}`;
+    const newLine1 = tle.line1.substring(0, 18) + newEpoch.padEnd(14, '0').substring(0, 14) + tle.line1.substring(32);
+
+    const newTle: TLEData = {
+      ...tle,
+      line1: newLine1,
+      line2: newLine2,
+    };
+
+    // 调用 executeManeuver 扣燃料 + 记录历史 + 更新 TLE
+    const newFuel = Math.max(0, fuel - plan.fuelCost);
+    const newOrbitParams = computeOrbitParams(newTle);
+    const record: ManeuverRecord = {
+      time: new Date(),
+      deltaV: plan.deltaV,
+      oldLine1: oldTle.line1,
+      newLine1: newTle.line1,
+      fuelCost: plan.fuelCost,
+      note: `避撞机动 [${plan.name}] Δv=${plan.deltaV.toFixed(2)} m/s, 燃料 ${plan.fuelCost.toFixed(2)}%`,
+    };
+
+    set({
+      tle: newTle,
+      orbitParams: newOrbitParams,
+      fuel: newFuel,
+      maneuverHistory: [...get().maneuverHistory, record],
+      // 设置 lastAvoidanceExecution 触发 HomePage maneuverEvent
+      lastAvoidanceExecution: {
+        planId: plan.id,
+        planName: plan.name,
+        oldTle,
+        newTle,
+        deltaV: plan.deltaV,
+        fuelCost: plan.fuelCost,
+        id: Date.now(),
+      },
+      // 清理警报和计划
+      collisionAlert: null,
+      avoidancePlans: [],
+      // 更新紧急任务状态为已完成
+      emergencyTask: null,
+    });
+  },
 }));
 
 // ============================================================
@@ -403,6 +576,8 @@ export const useTreaTelemetry = () => useTreaMissionStore(state => state.telemet
 export const useTrea01Tracking = () => useTreaMissionStore(state => state.trea01Tracking);
 export const useCollisionAlert = () => useTreaMissionStore(state => state.collisionAlert);
 export const useEmergencyTask = () => useTreaMissionStore(state => state.emergencyTask);
+export const useAvoidancePlans = () => useTreaMissionStore(state => state.avoidancePlans);
+export const useLastAvoidanceExecution = () => useTreaMissionStore(state => state.lastAvoidanceExecution);
 
 // 重新导出常量,方便调用方一站式引用
 export { TREA01_INITIAL_TLE };

@@ -20,7 +20,7 @@ import ManeuverPanel from '@/components/trea/ManeuverPanel';
 import MissionReportModal from '@/components/trea/MissionReportModal';
 import TreaSatelliteView from '@/components/trea/TreaSatelliteView';
 import CollisionAlertModal from '@/components/trea/CollisionAlertModal';
-import { useTreaLastReport, useTreaMissionPhase, useTreaMissionStore } from '@/store/treaMissionStore';
+import { useTreaLastReport, useTreaMissionPhase, useTreaMissionStore, useLastAvoidanceExecution } from '@/store/treaMissionStore';
 import type { TLEData } from '@/lib/tle/parser';
 
 const CesiumGlobe = dynamic(() => import('@/components/visualization/CesiumGlobe'), {
@@ -145,6 +145,16 @@ export default function HomePage() {
   const [missionMode, setMissionMode] = useState(false);
   // TREA-01 变轨事件:ManeuverPanel 执行变轨后设置,传递给 CesiumGlobe 渲染燃烧弧+轨道对比
   const [maneuverEvent, setManeuverEvent] = useState<{ newTle: TLEData; oldTle: TLEData; id: number } | null>(null);
+  // 监听避撞机动执行(用户选择躲避计划后触发):同步到 maneuverEvent 让 CesiumGlobe 渲染变轨演示
+  const lastAvoidanceExecution = useLastAvoidanceExecution();
+  useEffect(() => {
+    if (!lastAvoidanceExecution) return;
+    setManeuverEvent({
+      newTle: lastAvoidanceExecution.newTle,
+      oldTle: lastAvoidanceExecution.oldTle,
+      id: lastAvoidanceExecution.id,
+    });
+  }, [lastAvoidanceExecution]);
   // 右侧面板折叠状态:折叠时向右缩进,仅留窄条展开按钮
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   // TREA-01 任务报告模态框关闭状态(任务完成后弹出,用户关闭后不再自动弹出直到下次新任务完成)

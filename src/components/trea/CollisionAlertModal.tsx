@@ -4,16 +4,46 @@
 // 碰撞警报模态框(突发任务:碎片接近风险)
 // ------------------------------------------------------------
 // 当 treaMissionStore.collisionAlert 非 null 时,屏幕正中弹出红色警报
-// 展示碎片名称、NORAD ID、TCA、最近距离、相对速度、碰撞概率
-// 用户确认后关闭模态框,紧急避撞任务已在 store 中,TaskListPanel 自动显示
+// 视图状态机:
+//   'alert'  → 显示警报详情 + "立即制定躲避计划" 按钮
+//   'plans'  → 显示 3 个躲避计划卡片供用户选择
+//   'executing' → 显示执行中动画(1.5s)
+//   'success' → 显示成功提示 + 关闭按钮
+// 选择计划后调用 executeCollisionAvoidance → store 设置 lastAvoidanceExecution
+// → HomePage 监听并设置 maneuverEvent → CesiumGlobe 渲染变轨演示
 // ============================================================
 
-import { AlertTriangle, X, Satellite, Zap, Gauge, Clock } from 'lucide-react';
-import { useCollisionAlert, useTreaMissionStore } from '@/store/treaMissionStore';
+import { useState, useEffect } from 'react';
+import { AlertTriangle, X, Satellite, Zap, Gauge, Clock, Rocket, CheckCircle2, ChevronRight, Fuel, TrendingDown, Target } from 'lucide-react';
+import { useCollisionAlert, useTreaMissionStore, useAvoidancePlans } from '@/store/treaMissionStore';
+
+type View = 'alert' | 'plans' | 'executing' | 'success';
 
 export default function CollisionAlertModal() {
   const alert = useCollisionAlert();
+  const plans = useAvoidancePlans();
   const dismissCollisionAlert = useTreaMissionStore(s => s.dismissCollisionAlert);
+  const generateAvoidancePlans = useTreaMissionStore(s => s.generateAvoidancePlans);
+  const executeCollisionAvoidance = useTreaMissionStore(s => s.executeCollisionAvoidance);
+
+  const [view, setView] = useState<View>('alert');
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+
+  // 警报出现时重置视图为 'alert'(每次新警报都从详情开始)
+  useEffect(() => {
+    if (alert) {
+      setView('alert');
+      setSelectedPlanId(null);
+    }
+  }, [alert]);
+
+  // 警报关闭后重置状态
+  useEffect(() => {
+    if (!alert) {
+      setView('alert');
+      setSelectedPlanId(null);
+    }
+  }, [alert]);
 
   if (!alert) return null;
 
@@ -30,6 +60,226 @@ export default function CollisionAlertModal() {
   const threatLabel = isCritical ? '紧急' : '高';
   const threatColor = isCritical ? 'red' : 'orange';
 
+  // 点击"立即制定躲避计划":生成计划列表 + 切换到 plans 视图
+  const handleMakePlan = () => {
+    generateAvoidancePlans();
+    setView('plans');
+  };
+
+  // 选择躲避计划:执行机动 + 切换到 executing → success
+  const handleSelectPlan = (planId: string) => {
+    setSelectedPlanId(planId);
+    setView('executing');
+    // 模拟执行 1.5s 后切换到成功视图
+    setTimeout(() => {
+      executeCollisionAvoidance(planId);
+      setView('success');
+    }, 1500);
+  };
+
+  // 关闭成功视图(已执行完毕)
+  const handleCloseSuccess = () => {
+    dismissCollisionAlert();
+  };
+
+  // ============================================================
+  // 视图:执行中
+  // ============================================================
+  if (view === 'executing') {
+    const plan = plans.find(p => p.id === selectedPlanId);
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-auto">
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+        <div className="relative w-[440px] max-w-[90vw] rounded-2xl border-2 border-cyan-500 bg-slate-950 shadow-2xl overflow-hidden">
+          <div className="px-5 py-12 flex flex-col items-center gap-4">
+            <div className="relative">
+              <Rocket className="h-12 w-12 text-cyan-400 animate-pulse" />
+              <div className="absolute inset-0 rounded-full bg-cyan-500/20 animate-ping" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-bold text-cyan-300">正在执行避撞机动...</p>
+              <p className="text-xs text-slate-500 mt-1">{plan?.name}</p>
+              <p className="text-[10px] text-slate-600 mt-2 font-mono">Δv = {plan?.deltaV.toFixed(2)} m/s · 燃料消耗 {plan?.fuelCost.toFixed(1)}%</p>
+            </div>
+            {/* 执行进度条 */}
+            <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-cyan-500 to-blue-500"
+                style={{ animation: 'avoidance-exec 1.5s ease-out forwards' }}
+              />
+            </div>
+          </div>
+          <style>{`
+            @keyframes avoidance-exec {
+              0% { width: 0%; }
+              100% { width: 100%; }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // 视图:执行成功
+  // ============================================================
+  if (view === 'success') {
+    const plan = plans.find(p => p.id === selectedPlanId);
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-auto">
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+        <div className="relative w-[440px] max-w-[90vw] rounded-2xl border-2 border-emerald-500 bg-slate-950 shadow-2xl overflow-hidden">
+          {/* 顶部条 */}
+          <div className="flex items-center gap-2 px-5 py-3 bg-emerald-500/15 border-b border-emerald-500/30">
+            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+            <span className="text-sm font-bold text-emerald-300">避撞机动执行成功</span>
+          </div>
+
+          {/* 主体 */}
+          <div className="px-5 py-4 space-y-3">
+            <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-700">
+              <div className="text-xs text-slate-500 mb-1">执行计划</div>
+              <div className="text-sm font-semibold text-slate-100">{plan?.name}</div>
+              <div className="text-[10px] text-slate-400 mt-0.5">{plan?.maneuverType}</div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-700/60">
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mb-1">
+                  <TrendingDown className="h-3 w-3" />
+                  <span>预测最近距离</span>
+                </div>
+                <div className="text-sm font-mono font-semibold text-emerald-300">
+                  {plan?.missDistanceAfter.toFixed(1)} km
+                </div>
+                <div className="text-[10px] text-slate-600 mt-0.5">↑ from {alert.missDistance.toFixed(2)} km</div>
+              </div>
+              <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-700/60">
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mb-1">
+                  <Target className="h-3 w-3" />
+                  <span>残余碰撞概率</span>
+                </div>
+                <div className="text-sm font-mono font-semibold text-emerald-300">
+                  {plan?.probabilityAfter.toFixed(4)}%
+                </div>
+                <div className="text-[10px] text-slate-600 mt-0.5">↓ from {alert.collisionProbability.toFixed(2)}%</div>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+              <p className="text-xs text-emerald-200">
+                ✓ 轨道已调整,预测最近距离提升至 {plan?.missDistanceAfter.toFixed(1)} km,碰撞风险已规避。大屏正在演示新旧轨道对比与燃烧弧。
+              </p>
+            </div>
+          </div>
+
+          {/* 底部按钮 */}
+          <div className="px-5 py-3 bg-slate-900/80 border-t border-slate-700">
+            <button
+              type="button"
+              onClick={handleCloseSuccess}
+              className="w-full px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 border border-emerald-400 text-white text-sm font-semibold transition-colors shadow-lg"
+            >
+              查看大屏演示
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // 视图:躲避计划选择
+  // ============================================================
+  if (view === 'plans') {
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-auto">
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+        <div className="relative w-[520px] max-w-[90vw] max-h-[85vh] rounded-2xl border-2 border-cyan-500 bg-slate-950 shadow-2xl overflow-hidden flex flex-col">
+          {/* 顶部条 */}
+          <div className="flex items-center justify-between px-5 py-3 bg-cyan-500/10 border-b border-cyan-500/30 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <Rocket className="h-5 w-5 text-cyan-400" />
+              <span className="text-sm font-bold text-cyan-300">选择躲避计划</span>
+            </div>
+            <button
+              type="button"
+              onClick={dismissCollisionAlert}
+              className="p-1 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors"
+              title="关闭"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* 警报摘要(精简) */}
+          <div className="px-5 py-3 border-b border-slate-700/50 flex-shrink-0">
+            <div className="flex items-center gap-3 text-xs">
+              <span className="px-2 py-0.5 rounded bg-red-500/20 border border-red-500/40 text-red-300 font-mono">{alert.debrisName}</span>
+              <span className="text-slate-400">TCA {tcaStr} (T-{minsToTca}min)</span>
+              <span className="text-red-300">距离 {alert.missDistance.toFixed(2)} km</span>
+              <span className="text-red-300">概率 {alert.collisionProbability.toFixed(2)}%</span>
+            </div>
+          </div>
+
+          {/* 计划列表 */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {plans.map((plan) => (
+              <button
+                key={plan.id}
+                type="button"
+                onClick={() => handleSelectPlan(plan.id)}
+                className="w-full text-left p-4 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-cyan-500/60 hover:bg-slate-800/80 transition-all group"
+              >
+                {/* 计划标题行 */}
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <div className="text-sm font-bold text-slate-100 group-hover:text-cyan-300 transition-colors">{plan.name}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5 font-mono">{plan.maneuverType}</div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-600 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
+                </div>
+
+                {/* 描述 */}
+                <p className="text-[11px] text-slate-400 leading-relaxed mb-3">{plan.description}</p>
+
+                {/* 关键参数网格 */}
+                <div className="grid grid-cols-4 gap-2 text-[10px]">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-slate-600">Δv</span>
+                    <span className="text-cyan-300 font-mono font-semibold">{plan.deltaV.toFixed(2)} m/s</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-slate-600 flex items-center gap-0.5"><Fuel className="h-2.5 w-2.5" />燃料</span>
+                    <span className="text-orange-300 font-mono font-semibold">{plan.fuelCost.toFixed(1)}%</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-slate-600 flex items-center gap-0.5"><Gauge className="h-2.5 w-2.5" />机动后距离</span>
+                    <span className="text-emerald-300 font-mono font-semibold">{plan.missDistanceAfter.toFixed(1)} km</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-slate-600 flex items-center gap-0.5"><Target className="h-2.5 w-2.5" />残余概率</span>
+                    <span className="text-emerald-300 font-mono font-semibold">{plan.probabilityAfter.toFixed(4)}%</span>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* 底部提示 */}
+          <div className="px-5 py-3 bg-slate-900/80 border-t border-slate-700 flex-shrink-0">
+            <p className="text-[10px] text-slate-500 text-center">
+              选择计划后将执行避撞机动,大屏将演示新旧轨道对比与燃烧弧
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // 视图:警报详情(默认)
+  // ============================================================
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-auto">
       {/* 半透明遮罩 */}
@@ -180,7 +430,7 @@ export default function CollisionAlertModal() {
           </button>
           <button
             type="button"
-            onClick={dismissCollisionAlert}
+            onClick={handleMakePlan}
             className={`flex-1 px-4 py-2 rounded-lg ${
               threatColor === 'red'
                 ? 'bg-red-600 hover:bg-red-500 border border-red-400'
