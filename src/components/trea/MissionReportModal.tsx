@@ -35,7 +35,25 @@ const PRINT_STYLE = `
 @media print {
   body * { visibility: hidden !important; }
   .trea-report-print, .trea-report-print * { visibility: visible !important; }
-  .trea-report-print { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; max-height: none !important; border: none !important; }
+  .trea-report-print {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-height: none !important;
+    border: none !important;
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .trea-report-print * {
+    background: white !important;
+    color: black !important;
+    border-color: #ddd !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
   .trea-report-print .trea-report-scroll { max-height: none !important; overflow: visible !important; }
   .trea-report-bg, .trea-report-footer-btns { display: none !important; }
 }
@@ -165,7 +183,7 @@ export default function MissionReportModal({ report, isOpen, onClose }: MissionR
   const cov = coverageColor(report.coveragePercent);
   const fuel = fuelColor(report.finalState.fuel);
 
-  /** 导出报告:调用浏览器打印,用户可选择「另存为 PDF」 */
+  /** 导出报告:调用浏览器打印,在打印对话框中选择「另存为 PDF」即可存到本地 */
   const handleExport = () => {
     window.print();
   };
@@ -379,16 +397,9 @@ export default function MissionReportModal({ report, isOpen, onClose }: MissionR
 
           {/* 操作按钮 */}
           <div className="trea-report-footer-btns px-5 py-3 flex items-center justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 bg-space-800 hover:bg-space-700 border-space-700 text-space-300"
-              onClick={handleExport}
-              title="导出报告为 PDF(通过浏览器打印)"
-            >
-              <Download className="h-4 w-4 mr-1.5" />
-              导出报告
-            </Button>
+            <span className="text-[10px] text-space-500 mr-auto">
+              💡 在打印对话框中选择「另存为 PDF」即可保存到本地
+            </span>
             <Button
               variant="outline"
               size="sm"
@@ -396,6 +407,16 @@ export default function MissionReportModal({ report, isOpen, onClose }: MissionR
               onClick={onClose}
             >
               关闭报告
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="h-9"
+              onClick={handleExport}
+              title="打开打印对话框,选择「另存为 PDF」保存到本地电脑"
+            >
+              <Download className="h-4 w-4 mr-1.5" />
+              导出 PDF
             </Button>
           </div>
         </div>

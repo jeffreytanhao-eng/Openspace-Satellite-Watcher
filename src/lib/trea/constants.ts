@@ -126,11 +126,11 @@ export const MIN_SUN_ELEVATION = 10;
 // 4. 初始状态常量
 // ============================================================
 
-/** 初始燃料量(百分比) */
-export const FUEL_INITIAL = 100;
+/** 初始燃料量(百分比) — 贴近现实,在轨卫星燃料不会满载 */
+export const FUEL_INITIAL = 72;
 
-/** 初始电量(百分比) */
-export const BATTERY_INITIAL = 100;
+/** 初始电量(百分比) — 与燃料值不同,模拟不同消耗速率 */
+export const BATTERY_INITIAL = 65;
 
 /** 初始姿态模式 */
 export const ATTITUDE_INITIAL = 'Nominal' as const;

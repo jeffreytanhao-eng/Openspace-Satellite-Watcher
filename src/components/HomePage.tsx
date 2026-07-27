@@ -20,7 +20,7 @@ import ManeuverPanel from '@/components/trea/ManeuverPanel';
 import MissionReportModal from '@/components/trea/MissionReportModal';
 import TreaSatelliteView from '@/components/trea/TreaSatelliteView';
 import CollisionAlertModal from '@/components/trea/CollisionAlertModal';
-import { useTreaLastReport, useTreaMissionPhase } from '@/store/treaMissionStore';
+import { useTreaLastReport, useTreaMissionPhase, useTreaMissionStore } from '@/store/treaMissionStore';
 import type { TLEData } from '@/lib/tle/parser';
 
 const CesiumGlobe = dynamic(() => import('@/components/visualization/CesiumGlobe'), {
@@ -132,6 +132,7 @@ export default function HomePage() {
   const removeSatellite = useSatelliteStore(state => state.removeSatellite);
   const removeSatellites = useSatelliteStore(state => state.removeSatellites);
   const setSelectedSatellite = useSatelliteStore(state => state.setSelectedSatellite);
+  const setTracking = useSatelliteStore(state => state.setTracking);
   const setVisibleSatellites = useSatelliteStore(state => state.setVisibleSatellites);
   const clearOrbitCache = useSatelliteStore(state => state.clearOrbitCache);
   const updateSatelliteImage = useSatelliteStore(state => state.updateSatelliteImage);
@@ -529,15 +530,21 @@ export default function HomePage() {
     setMissionMode(true);
   };
 
-  // 退出任务中心:停止时间播放 + 重置到 now + 恢复默认 10x 速率
-  // 目的:避免任务仿真中的时间跳转/加速影响主大屏默认行为(项目约束:默认 10x 播放)
+  // 退出任务中心:恢复到和首次打开应用一致的初始状态
+  // 1. 停止时间播放 + 重置到 now + 恢复默认 10x 速率
+  // 2. 重置 TREA-01 store(TLE/燃料/电量/任务阶段等)
+  // 3. 清除选中卫星 + 停止跟踪
+  // 4. 视角重置由 CesiumGlobe 监听 missionMode 变化自动执行
   const handleExitMission = () => {
     timeStopPlayback();
     timeResetToNow();
     timeSetRate(10);
+    useTreaMissionStore.getState().reset(); // 重置 TREA-01 store
+    setSelectedSatellite(null); // 清除选中卫星
+    setTracking(null); // 停止跟踪
     setMissionMode(false);
-    setManeuverEvent(null); // 清理变轨事件,避免重新进入时残留旧轨道对比
-    setRightPanelCollapsed(false); // 重置右侧面板折叠状态
+    setManeuverEvent(null);
+    setRightPanelCollapsed(false);
   };
 
   // 任务阶段离开 COMPLETED(新任务启动或重置)时,重置报告关闭状态

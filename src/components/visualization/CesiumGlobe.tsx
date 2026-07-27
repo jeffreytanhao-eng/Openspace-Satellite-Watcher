@@ -299,6 +299,16 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     resetView();
   }, [resetView]);
 
+  // 退出任务中心时(missionMode true→false)自动重置视角到东亚上空
+  // 确保退出后主大屏视角与首次打开应用时一致
+  const prevMissionMode = useRef(missionMode);
+  useEffect(() => {
+    if (prevMissionMode.current && !missionMode && isReady) {
+      resetView();
+    }
+    prevMissionMode.current = missionMode;
+  }, [missionMode, isReady, resetView]);
+
   const handleRightClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
   }, []);

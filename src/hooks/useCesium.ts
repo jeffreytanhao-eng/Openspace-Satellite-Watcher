@@ -678,7 +678,9 @@ export function useCesium() {
   // stopTrackingTrea01 注销。跟踪时相机跟随 TREA-01 位置移动(固定偏移距离)
   const trea01TrackingRef = useRef<(() => void) | null>(null);
 
-  /** 启动 TREA-01 持续跟踪:注册 preUpdate 监听器,相机跟随卫星位置 */
+  /** 启动 TREA-01 持续跟踪:注册 preUpdate 监听器,相机跟随卫星位置
+   *  支持鼠标滚轮拉近拉远(复用 trackingRangeRef 管理跟踪距离)
+   */
   const startTrackingTrea01 = useCallback(() => {
     const inst = cesiumRef.current;
     if (!inst) return;
@@ -694,24 +696,40 @@ export function useCesium() {
     const entity = viewer.entities.getById(`satellite-${noradId}`);
     if (!entity) return;
 
+    // 重置跟踪距离(复用 startTracking 的 trackingRangeRef)
+    trackingRangeRef.current = 2500000;
+
     // 先飞向 TREA-01,然后启动持续跟踪
     viewer.flyTo(entity, {
-      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 2500000),
+      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), trackingRangeRef.current),
       duration: 1.0,
     });
 
+    // 禁用 Cesium 默认缩放(避免与自定义滚轮事件冲突,同 startTracking)
+    viewer.scene.screenSpaceCameraController.enableZoom = false;
+
     // preUpdate 监听器:每帧更新相机位置,跟随 TREA-01
+    // range 使用 trackingRangeRef.current,支持滚轮动态调整
     const listener = () => {
       const inst2 = cesiumRef.current;
       if (!inst2) return;
       const pos = entity.position?.getValue?.(inst2.viewer.clock.currentTime);
       if (!pos) return;
-      // 相机保持在卫星上方 2500km,俯视角度 -45°
       const heading = 0;
       const pitch = inst2.Cesium.Math.toRadians(-45);
-      const range = 2500000;
-      inst2.viewer.camera.lookAt(pos, new inst2.Cesium.HeadingPitchRange(heading, pitch, range));
+      inst2.viewer.camera.lookAt(pos, new inst2.Cesium.HeadingPitchRange(heading, pitch, trackingRangeRef.current));
     };
+
+    // 滚轮缩放:原生 DOM 事件(同 startTracking 实现,deltaY>0=拉远,<0=拉近)
+    const canvas = viewer.scene.canvas as HTMLCanvasElement;
+    const wheelListener = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const factor = e.deltaY > 0 ? 1.15 : 0.87;
+      // 最小 100km 让用户能拉近看卫星细节;最大 20000km
+      trackingRangeRef.current = Math.max(100000, Math.min(20000000, trackingRangeRef.current * factor));
+    };
+    canvas.addEventListener('wheel', wheelListener, { capture: true, passive: false });
 
     // 延迟 1.2s 启动持续跟踪(等待 flyTo 完成)
     const timeoutId = setTimeout(() => {
@@ -721,6 +739,9 @@ export function useCesium() {
     trea01TrackingRef.current = () => {
       clearTimeout(timeoutId);
       viewer.scene.preUpdate.removeEventListener(listener);
+      canvas.removeEventListener('wheel', wheelListener, { capture: true } as EventListenerOptions);
+      // 恢复 Cesium 默认缩放
+      viewer.scene.screenSpaceCameraController.enableZoom = true;
     };
   }, []);
 
