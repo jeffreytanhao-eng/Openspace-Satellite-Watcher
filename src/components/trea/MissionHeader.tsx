@@ -4,7 +4,7 @@
 // missionMode=true 时替代原 HomePage 的 header,提供返回按钮和任务状态概览
 // 不透明深色背景(用户偏好,不使用半透明/玻璃态)
 
-import { Rocket, ArrowLeft, Satellite, Fuel, Battery, Activity } from 'lucide-react';
+import { Rocket, ArrowLeft, Satellite, Fuel, Battery, Activity, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   useTreaMissionPhase,
@@ -13,6 +13,7 @@ import {
   useTreaAttitude,
   useTreaPayloadStatus,
 } from '@/store/treaMissionStore';
+import { useCinematicStore } from '@/store/cinematicStore';
 import type { MissionPhase } from '@/lib/trea/constants';
 
 interface MissionHeaderProps {
@@ -59,6 +60,10 @@ export default function MissionHeader({ onExit }: MissionHeaderProps) {
   const battery = useTreaBattery();
   const attitude = useTreaAttitude();
   const payloadStatus = useTreaPayloadStatus();
+  // 电影回放模式状态(按钮文字/样式切换)
+  const cinematicActive = useCinematicStore(s => s.isActive);
+  const startCinematic = useCinematicStore(s => s.startCinematic);
+  const exitCinematic = useCinematicStore(s => s.exitCinematic);
 
   return (
     <header className="h-16 bg-space-900 border-b border-space-800 flex items-center justify-between px-4 z-10">
@@ -92,8 +97,23 @@ export default function MissionHeader({ onExit }: MissionHeaderProps) {
         </span>
       </div>
 
-      {/* 右侧:遥测状态(燃料/电量/姿态/载荷) */}
+      {/* 右侧:电影回放按钮 + 遥测状态(燃料/电量/姿态/载荷) */}
       <div className="flex items-center gap-4">
+        {/* 电影回放按钮:紫色渐变(激活时变红) */}
+        <Button
+          variant="outline"
+          size="sm"
+          className={
+            cinematicActive
+              ? 'h-9 bg-red-700 hover:bg-red-600 border-red-400/40 text-white'
+              : 'h-9 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 border-purple-400/40 text-white'
+          }
+          onClick={() => (cinematicActive ? exitCinematic() : startCinematic())}
+          title={cinematicActive ? '退出电影模式' : '一键播放电影回放'}
+        >
+          <Film className="h-4 w-4 mr-1.5" />
+          {cinematicActive ? '退出电影' : '电影回放'}
+        </Button>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-space-800 border border-space-700 rounded-lg">
           <Satellite className="h-4 w-4 text-cosmic-blue" />
           <div className="flex flex-col">

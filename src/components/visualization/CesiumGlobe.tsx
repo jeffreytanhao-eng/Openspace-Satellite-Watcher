@@ -10,6 +10,8 @@ import { useTreaTle, useTreaMissionStore } from '@/store/treaMissionStore';
 import { generateOrbitPoints } from '@/lib/cesium/positions';
 import type { TLEData } from '@/lib/tle/parser';
 import MissionSimulator from '@/components/trea/MissionSimulator';
+import CinematicController from '@/components/trea/CinematicController';
+import CinematicOverlay from '@/components/trea/CinematicOverlay';
 
 /** 变轨事件:ManeuverPanel 执行变轨后触发,包含新旧 TLE 供 Cesium 渲染轨道对比 */
 interface ManeuverEvent {
@@ -61,6 +63,14 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     clearManeuverEntities,
     startTrackingTrea01,
     stopTrackingTrea01,
+    refreshTrea01Orbit,
+    addOrbitTransition,
+    addScanTrailPoint,
+    clearScanTrail,
+    addScanBeam,
+    updateScanBeam,
+    clearScanBeam,
+    zoomOutCoverage,
   } = useCesium();
 
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -333,6 +343,28 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
           clearImagingFootprint={clearImagingFootprint}
         />
       )}
+
+      {/* 电影回放模式控制器(纯逻辑,missionMode 时挂载)
+          通过 props 注入相机方法,激活时用 RAF 推进时间 + 切换镜头 */}
+      {missionMode && isReady && !displayError && (
+        <CinematicController
+          focusTrea01={focusTrea01}
+          startTrackingTrea01={startTrackingTrea01}
+          stopTrackingTrea01={stopTrackingTrea01}
+          resetView={resetView}
+          refreshTrea01Orbit={refreshTrea01Orbit}
+          addOrbitTransition={addOrbitTransition}
+          addScanTrailPoint={addScanTrailPoint}
+          clearScanTrail={clearScanTrail}
+          clearManeuverEntities={clearManeuverEntities}
+          addScanBeam={addScanBeam}
+          updateScanBeam={updateScanBeam}
+          clearScanBeam={clearScanBeam}
+          zoomOutCoverage={zoomOutCoverage}
+        />
+      )}
+      {/* 电影回放模式 UI 覆层(字幕 + 进度条 + 控制按钮,用 Portal 渲染到 body) */}
+      {missionMode && <CinematicOverlay />}
 
       {/* Reset view button - 左下角,避免遮挡顶部信息与侧边栏 */}
       {isReady && !displayError && (

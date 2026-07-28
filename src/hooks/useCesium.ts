@@ -46,6 +46,12 @@ interface CesiumInstance {
   // 变轨可视化专用实体集合(燃烧弧 + 新旧轨道对比)
   // 与 missionAoiEntities/missionTrea01Entity 隔离,clearManeuverEntities 只清理这些
   missionManeuverEntities: CesiumType.Entity[];
+  // 成像扫描带实体集合(持久化的足迹矩形,累积形成扫描覆盖区)
+  // clearScanTrail/clearMissionEntities 清理这些
+  missionScanTrailEntities: CesiumType.Entity[];
+  // 成像扫描三角形光束实体集合(随卫星移动的金字塔光束,每帧更新位置)
+  // clearScanBeam 清理这些
+  missionScanBeamEntities: CesiumType.Entity[];
 }
 
 const MAX_VISIBLE_SATELLITES = 2000;
@@ -178,6 +184,8 @@ export function useCesium() {
         missionTrea01OrbitEntity: null,
         missionFootprintEntity: null,
         missionManeuverEntities: [],
+        missionScanTrailEntities: [],
+        missionScanBeamEntities: [],
       };
 
       cesiumRef.current = instance;
@@ -223,6 +231,16 @@ export function useCesium() {
         try { inst.viewer.entities.remove(e); } catch { /* ignore */ }
       });
       inst.missionManeuverEntities = [];
+      // 清理扫描带
+      inst.missionScanTrailEntities.forEach(e => {
+        try { inst.viewer.entities.remove(e); } catch { /* ignore */ }
+      });
+      inst.missionScanTrailEntities = [];
+      // 清理扫描光束
+      inst.missionScanBeamEntities.forEach(e => {
+        try { inst.viewer.entities.remove(e); } catch { /* ignore */ }
+      });
+      inst.missionScanBeamEntities = [];
       if (!inst.viewer.isDestroyed()) {
         inst.viewer.destroy();
       }
@@ -825,6 +843,11 @@ export function useCesium() {
       try { inst.viewer.entities.remove(inst.missionFootprintEntity); } catch { /* ignore */ }
       inst.missionFootprintEntity = null;
     }
+    // 清理扫描带
+    inst.missionScanTrailEntities.forEach(e => {
+      try { inst.viewer.entities.remove(e); } catch { /* ignore */ }
+    });
+    inst.missionScanTrailEntities = [];
   }, []);
 
   /**
@@ -1079,6 +1102,423 @@ export function useCesium() {
     inst.missionManeuverEntities = [];
   }, []);
 
+  /**
+   * 刷新 TREA-01 轨道线(用当前时间重新生成)
+   * 修复:卫星位置每帧用 currentTime 计算,但轨道线只在初始化时画一次
+   * 时间推进后(尤其 20x 加速)轨道线与卫星位置不重合 — 定期刷新解决
+   */
+  const refreshTrea01Orbit = useCallback((tle: TLEData, time: Date) => {
+    addTrea01OrbitLine(tle, time);
+  }, [addTrea01OrbitLine]);
+
+  /**
+   * 变轨轨道渐变动画 + 燃烧点脉冲
+   * 时间线(4 秒):
+   *   t=0-1s:   只有旧轨道(白色实线 alpha=0.9) + 燃烧点亮起脉动
+   *   t=1-3s:   新轨道渐显(青色发光 alpha 0→1.0) + 燃烧点持续脉动
+   *   t=3s:     卫星切换新轨道(由 CinematicController 调 executeManeuver)
+   *   t=3-4s:   旧轨道渐隐(alpha 0.9→0) + 燃烧点渐隐
+   *
+   * 视觉效果:
+   *   - 旧轨道:白色实线(前期完整可见,直观表达"当前圆轨道")
+   *   - 新轨道:青色发光粗线(渐显,表达"目标轨道")
+   *   - 燃烧点:橙红色脉动圆点(固定在变轨起始位置,模拟发动机点火)
+   */
+  const addOrbitTransition = useCallback(
+    (oldTle: TLEData, newTle: TLEData, time: Date) => {
+      const inst = cesiumRef.current;
+      if (!inst) return;
+      const { Cesium, viewer } = inst;
+
+      // 先清理旧的变轨实体
+      inst.missionManeuverEntities.forEach(e => {
+        try { viewer.entities.remove(e); } catch { /* ignore */ }
+      });
+      inst.missionManeuverEntities = [];
+
+      const startTime = Date.now();
+
+      // 计算卫星在变轨起始时刻的 ECI 位置(用于燃烧点定位)
+      const burnPos = calculateSatellitePosition([oldTle], time);
+
+      // ---- 燃烧脉动点:橙红色圆点,大小/透明度脉动(核心燃烧视觉) ----
+      if (burnPos) {
+        const burnPoint = viewer.entities.add({
+          id: `trea-burn-point-${startTime}`,
+          name: 'TREA-01 Burn Point',
+          position: new Cesium.ConstantProperty(
+            new Cesium.Cartesian3(burnPos.x, burnPos.y, burnPos.z)
+          ),
+          point: {
+            pixelSize: new Cesium.CallbackProperty(() => {
+              const elapsed = (Date.now() - startTime) / 1000;
+              if (elapsed > 4) return 0;
+              // 快速脉动:膨胀-收缩,每秒 3 次
+              const pulse = 15 + 12 * Math.sin(elapsed * 18);
+              return Math.max(2, pulse);
+            }, false),
+            color: new Cesium.CallbackProperty(() => {
+              const elapsed = (Date.now() - startTime) / 1000;
+              let alpha = 0;
+              if (elapsed < 0.3) alpha = elapsed / 0.3;          // 快速亮起
+              else if (elapsed < 3) alpha = 1.0;                 // 持续燃烧
+              else if (elapsed < 4) alpha = 1 - (elapsed - 3);   // 渐隐
+              // 颜色在橙红和亮黄之间脉动
+              const flicker = 0.7 + 0.3 * Math.sin(elapsed * 20);
+              return Cesium.Color.fromCssColorString('#ff6600').withAlpha(alpha * flicker);
+            }, false),
+            outlineColor: Cesium.Color.fromCssColorString('#ffcc00').withAlpha(1.0),
+            outlineWidth: 2,
+            disableDepthTestDistance: new Cesium.ConstantProperty(Number.POSITIVE_INFINITY),
+          },
+        });
+        inst.missionManeuverEntities.push(burnPoint);
+      }
+
+      // ---- 旧轨道:白色实线,前期保持,后期渐隐 ----
+      const oldPoints = generateOrbitPoints([oldTle], time, 180);
+      if (oldPoints && oldPoints.length >= 2) {
+        const oldPositions = oldPoints.map(p => new Cesium.Cartesian3(p.x, p.y, p.z));
+        const oldEntity = viewer.entities.add({
+          id: `trea-transition-old-${startTime}`,
+          name: 'TREA-01 Old Orbit (fading)',
+          polyline: {
+            positions: new Cesium.ConstantProperty(oldPositions),
+            width: new Cesium.ConstantProperty(2.5),
+            material: new Cesium.ColorMaterialProperty(
+              new Cesium.CallbackProperty(() => {
+                const elapsed = (Date.now() - startTime) / 1000;
+                let alpha = 0.9;
+                if (elapsed > 3) alpha = Math.max(0, 0.9 * (1 - (elapsed - 3)));
+                return Cesium.Color.fromCssColorString('#ffffff').withAlpha(alpha);
+              }, false)
+            ),
+            arcType: new Cesium.ConstantProperty(Cesium.ArcType.NONE),
+          },
+        });
+        inst.missionManeuverEntities.push(oldEntity);
+      }
+
+      // ---- 新轨道:青色发光粗线,渐显 ----
+      const newPoints = generateOrbitPoints([newTle], time, 180);
+      if (newPoints && newPoints.length >= 2) {
+        const newPositions = newPoints.map(p => new Cesium.Cartesian3(p.x, p.y, p.z));
+        const newEntity = viewer.entities.add({
+          id: `trea-transition-new-${startTime}`,
+          name: 'TREA-01 New Orbit (fading in)',
+          polyline: {
+            positions: new Cesium.ConstantProperty(newPositions),
+            width: new Cesium.ConstantProperty(4.0),
+            material: new Cesium.PolylineGlowMaterialProperty({
+              glowPower: 0.35,
+              color: new Cesium.CallbackProperty(() => {
+                const elapsed = (Date.now() - startTime) / 1000;
+                let alpha = 0;
+                if (elapsed > 1) alpha = Math.min(1.0, 1.0 * ((elapsed - 1) / 2));
+                return Cesium.Color.fromCssColorString('#00ffff').withAlpha(alpha);
+              }, false),
+            }),
+            arcType: new Cesium.ConstantProperty(Cesium.ArcType.NONE),
+          },
+        });
+        inst.missionManeuverEntities.push(newEntity);
+      }
+    },
+    []
+  );
+
+  /**
+   * 添加持久化扫描带点(要求 5)
+   * 成像期间每帧调用,累积形成扫描覆盖区
+   * 暗绿色半透明矩形,不随卫星移动(持久化)
+   */
+  const addScanTrailPoint = useCallback(
+    (centerLonLat: { lon: number; lat: number }, widthKm: number) => {
+      const inst = cesiumRef.current;
+      if (!inst) return;
+      const { Cesium, viewer } = inst;
+
+      const corners = computeFootprintCorners(centerLonLat, widthKm);
+      const positions = corners.map(c => Cesium.Cartesian3.fromDegrees(c.lon, c.lat));
+
+      // 扫描带:亮绿色半透明 + 亮色轮廓线,确保在地球表面可见
+      const fillColor = Cesium.Color.fromCssColorString('#00ff88').withAlpha(0.45);
+      const outlineColor = Cesium.Color.fromCssColorString('#00ff88').withAlpha(0.9);
+      const entity = viewer.entities.add({
+        id: `trea-scan-trail-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        name: 'TREA-01 Scan Trail',
+        polygon: {
+          hierarchy: new Cesium.PolygonHierarchy(positions),
+          material: fillColor,
+          outline: true,
+          outlineColor,
+          outlineWidth: 2,
+        },
+      });
+      inst.missionScanTrailEntities.push(entity);
+    },
+    []
+  );
+
+  /**
+   * 清理扫描带
+   */
+  const clearScanTrail = useCallback(() => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    inst.missionScanTrailEntities.forEach(e => {
+      try { inst.viewer.entities.remove(e); } catch { /* ignore */ }
+    });
+    inst.missionScanTrailEntities = [];
+  }, []);
+
+  // ============================================================
+  // ============================================================
+  // 成像扫描光束(卫星→地面扇形锥形光束)
+  // 方案:20+条发光polyline从卫星射向地面矩形各边,形成锥形光束
+  // 比 polygon 可靠:polyline 渲染稳定,线条密集后产生"面"的错觉
+  // ============================================================
+
+  /** 沿矩形周长插值 N 个点(含4角,顺时针闭合) */
+  function interpolatePerimeter(
+    corners: Array<{ lon: number; lat: number }>,
+    n: number
+  ): Array<{ lon: number; lat: number }> {
+    const result: Array<{ lon: number; lat: number }> = [];
+    // 每条边插值 ceil(n/4) 个点(首尾共享)
+    const perEdge = Math.max(2, Math.ceil(n / 4));
+    for (let e = 0; e < 4; e++) {
+      const a = corners[e];
+      const b = corners[(e + 1) % 4];
+      for (let i = 0; i < perEdge; i++) {
+        const t = i / (perEdge - 1);
+        result.push({
+          lon: a.lon + (b.lon - a.lon) * t,
+          lat: a.lat + (b.lat - a.lat) * t,
+        });
+      }
+    }
+    // 去掉最后一个点(与第一个点重复)
+    if (result.length > 0) result.pop();
+    return result;
+  }
+
+  /**
+   * 创建成像扫描锥形光束
+   * - 20条扇形射线:从卫星射向地面矩形各边,亮青色发光
+   * - 4条角线更粗更亮,中间射线更细半透明
+   * - 地面足印矩形:亮青色半透明填充+轮廓
+   * - 卫星光点:亮青色脉动点
+   *
+   * @param satelliteGeo 卫星地理坐标 {lon, lat, altM}(altM=高度米)
+   * @param groundCorners 地面扫描矩形4角 [{lon, lat}...],顺时针闭合
+   */
+  const addScanBeam = useCallback(
+    (satelliteGeo: { lon: number; lat: number; altM: number }, groundCorners: Array<{ lon: number; lat: number }>) => {
+      const inst = cesiumRef.current;
+      if (!inst) return;
+      const { Cesium, viewer } = inst;
+
+      // 清理旧光束
+      inst.missionScanBeamEntities.forEach(e => {
+        try { viewer.entities.remove(e); } catch { /* ignore */ }
+      });
+      inst.missionScanBeamEntities = [];
+
+      if (groundCorners.length < 3) return;
+
+      const satCart = Cesium.Cartesian3.fromDegrees(satelliteGeo.lon, satelliteGeo.lat, satelliteGeo.altM);
+      const groundCarts = groundCorners.map(c => Cesium.Cartesian3.fromDegrees(c.lon, c.lat));
+
+      const beamColor = Cesium.Color.fromCssColorString('#00ffcc');
+
+      // ---- 20条扇形射线:卫星→地面矩形各边 ----
+      const perimeterPts = interpolatePerimeter(groundCorners, 20);
+      const perimeterCarts = perimeterPts.map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat));
+
+      // 找出4个角点在 perimeterCarts 中的索引(角点对应 corners[0..3])
+      // 角点坐标完全匹配,用经纬度比较
+      const isCorner = (i: number) => {
+        const pt = perimeterPts[i];
+        return groundCorners.some(c => Math.abs(c.lon - pt.lon) < 1e-10 && Math.abs(c.lat - pt.lat) < 1e-10);
+      };
+
+      for (let i = 0; i < perimeterCarts.length; i++) {
+        const corner = isCorner(i);
+        const lineEntity = viewer.entities.add({
+          id: `trea-beam-fan-${i}-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+          name: 'TREA-01 Scan Beam Fan',
+          polyline: {
+            positions: new Cesium.ConstantProperty([satCart, perimeterCarts[i]]),
+            width: new Cesium.ConstantProperty(corner ? 4 : 1.5),
+            material: new Cesium.PolylineGlowMaterialProperty({
+              glowPower: corner ? 0.5 : 0.2,
+              color: beamColor.withAlpha(corner ? 1.0 : 0.6),
+            }),
+            arcType: new Cesium.ConstantProperty(Cesium.ArcType.NONE),
+          },
+        });
+        inst.missionScanBeamEntities.push(lineEntity);
+      }
+
+      // ---- 地面足印矩形边框(亮青色) ----
+      const footprintOutline = viewer.entities.add({
+        id: `trea-beam-footprint-outline-${Date.now()}`,
+        name: 'TREA-01 Scan Footprint Outline',
+        polyline: {
+          positions: new Cesium.ConstantProperty([
+            groundCarts[0], groundCarts[1], groundCarts[2], groundCarts[3], groundCarts[0],
+          ]),
+          width: new Cesium.ConstantProperty(4),
+          material: new Cesium.PolylineGlowMaterialProperty({
+            glowPower: 0.5,
+            color: beamColor.withAlpha(1.0),
+          }),
+          arcType: new Cesium.ConstantProperty(Cesium.ArcType.NONE),
+        },
+      });
+      inst.missionScanBeamEntities.push(footprintOutline);
+
+      // ---- 地面足印填充矩形(半透明亮青色) ----
+      const footprintFill = viewer.entities.add({
+        id: `trea-beam-footprint-fill-${Date.now()}`,
+        name: 'TREA-01 Scan Footprint Fill',
+        polygon: {
+          hierarchy: new Cesium.ConstantProperty(
+            new Cesium.PolygonHierarchy(groundCarts)
+          ),
+          material: beamColor.withAlpha(0.35),
+          outline: false,
+        },
+      });
+      inst.missionScanBeamEntities.push(footprintFill);
+
+      // ---- 卫星光点(亮青色脉动) ----
+      const satPoint = viewer.entities.add({
+        id: `trea-beam-sat-point-${Date.now()}`,
+        name: 'TREA-01 Scan Source',
+        position: new Cesium.ConstantProperty(satCart),
+        point: {
+          pixelSize: 10,
+          color: Cesium.Color.fromCssColorString('#00ffff').withAlpha(1.0),
+          outlineColor: Cesium.Color.fromCssColorString('#ffffff').withAlpha(0.8),
+          outlineWidth: 2,
+          disableDepthTestDistance: new Cesium.ConstantProperty(Number.POSITIVE_INFINITY),
+        },
+      });
+      inst.missionScanBeamEntities.push(satPoint);
+    },
+    []
+  );
+
+  /**
+   * 更新扫描光束位置(每帧调用,随卫星移动)
+   *
+   * 实体顺序:
+   *   [0..N-1]: 扇形射线(20条)
+   *   [N]:      地面矩形边框
+   *   [N+1]:    地面矩形填充
+   *   [N+2]:    卫星光点
+   */
+  const updateScanBeam = useCallback(
+    (satelliteGeo: { lon: number; lat: number; altM: number }, groundCorners: Array<{ lon: number; lat: number }>) => {
+      const inst = cesiumRef.current;
+      if (!inst || inst.missionScanBeamEntities.length === 0) return;
+      const { Cesium } = inst;
+
+      const satCart = Cesium.Cartesian3.fromDegrees(satelliteGeo.lon, satelliteGeo.lat, satelliteGeo.altM);
+      const groundCarts = groundCorners.map(c => Cesium.Cartesian3.fromDegrees(c.lon, c.lat));
+
+      // 重算周长插值点
+      const perimeterPts = interpolatePerimeter(groundCorners, 20);
+      const perimeterCarts = perimeterPts.map(p => Cesium.Cartesian3.fromDegrees(p.lon, p.lat));
+
+      const totalFanLines = perimeterCarts.length; // 20
+      const outlineIdx = totalFanLines;
+      const fillIdx = totalFanLines + 1;
+      const pointIdx = totalFanLines + 2;
+
+      // 更新扇形射线
+      for (let i = 0; i < totalFanLines; i++) {
+        const ent = inst.missionScanBeamEntities[i];
+        if (ent?.polyline) {
+          ent.polyline.positions = new Cesium.ConstantProperty([satCart, perimeterCarts[i]]);
+        }
+      }
+
+      // 更新地面边框
+      const outlineEnt = inst.missionScanBeamEntities[outlineIdx];
+      if (outlineEnt?.polyline) {
+        outlineEnt.polyline.positions = new Cesium.ConstantProperty([
+          groundCarts[0], groundCarts[1], groundCarts[2], groundCarts[3], groundCarts[0],
+        ]);
+      }
+
+      // 更新地面填充
+      const fillEnt = inst.missionScanBeamEntities[fillIdx];
+      if (fillEnt?.polygon) {
+        fillEnt.polygon.hierarchy = new Cesium.ConstantProperty(
+          new Cesium.PolygonHierarchy(groundCarts)
+        );
+      }
+
+      // 更新卫星光点
+      const pointEnt = inst.missionScanBeamEntities[pointIdx];
+      if (pointEnt?.position) {
+        pointEnt.position = new Cesium.ConstantProperty(satCart);
+      }
+    },
+    []
+  );
+
+  /**
+   * 清理扫描光束
+   */
+  const clearScanBeam = useCallback(() => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    inst.missionScanBeamEntities.forEach(e => {
+      try { inst.viewer.entities.remove(e); } catch { /* ignore */ }
+    });
+    inst.missionScanBeamEntities = [];
+  }, []);
+
+  /**
+   * 覆盖展示拉远效果:停止跟踪后飞向 AOI 上空俯视位置
+   * 距离 3000km,俯视看整个 AOI 和扫描覆盖区域
+   *
+   * @param center AOI 中心坐标 {lon, lat}
+   * @param heightM 相机高度(米),默认 3000000(3000km)
+   */
+  const zoomOutCoverage = useCallback((center: { lon: number; lat: number }, heightM?: number) => {
+    const inst = cesiumRef.current;
+    if (!inst) return;
+    const { Cesium, viewer } = inst;
+
+    // 停止跟踪监听器(与 stopTrackingTrea01 相同逻辑)
+    if (trea01TrackingRef.current) {
+      trea01TrackingRef.current();
+      trea01TrackingRef.current = null;
+    }
+    // 关键:释放 lookAt 锁定,否则 flyTo 会被 preUpdate 中的 lookAt 覆盖
+    if (!viewer.isDestroyed?.()) {
+      viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+      // 恢复缩放控制
+      viewer.scene.screenSpaceCameraController.enableZoom = true;
+    }
+
+    const h = heightM ?? 3000000;
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(center.lon, center.lat, h),
+      orientation: {
+        heading: 0.0,
+        pitch: Cesium.Math.toRadians(-60),
+        roll: 0.0,
+      },
+      duration: 1.5,
+    });
+  }, []);
+
   return {
     isReady: !!cesium,
     loadError,
@@ -1110,5 +1550,16 @@ export function useCesium() {
     addManeuverArc,
     addOrbitComparison,
     clearManeuverEntities,
+    // 电影回放模式专用方法
+    refreshTrea01Orbit,
+    addOrbitTransition,
+    addScanTrailPoint,
+    clearScanTrail,
+    // 成像扫描三角形光束
+    addScanBeam,
+    updateScanBeam,
+    clearScanBeam,
+    // 覆盖展示拉远
+    zoomOutCoverage,
   };
 }
