@@ -7,7 +7,7 @@ import { useTimeStore } from '@/store/timeStore';
 import { useCesium } from '@/hooks/useCesium';
 import { AOI_A, AOI_B } from '@/lib/trea/constants';
 import { useTreaTle, useTreaMissionStore } from '@/store/treaMissionStore';
-import { generateOrbitPoints } from '@/lib/cesium/positions';
+import { generateOrbitPointsECEF } from '@/lib/cesium/positions';
 import type { TLEData } from '@/lib/tle/parser';
 import MissionSimulator from '@/components/trea/MissionSimulator';
 import CinematicController from '@/components/trea/CinematicController';
@@ -65,11 +65,17 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     stopTrackingTrea01,
     refreshTrea01Orbit,
     addOrbitTransition,
-    addScanTrailPoint,
-    clearScanTrail,
     addScanBeam,
     updateScanBeam,
     clearScanBeam,
+    // V2-B/V3-C/V1/V3-D 新增方法
+    highlightAoi,
+    unhighlightAoi,
+    addContinuousSwathPoint,
+    clearContinuousSwath,
+    focusOrbitChange,
+    frameSatAndAoi,
+    lookDownAtScan,
     zoomOutCoverage,
   } = useCesium();
 
@@ -77,6 +83,10 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   const currentTime = useTimeStore(state => state.currentTime);
   // 订阅 store 中的当前 TLE(变轨后自动更新,替代硬编码 TREA01_INITIAL_TLE)
   const treaTle = useTreaTle();
+  // 虚拟任务轨道 TLE(任务执行期间使用,使卫星经过 AOI 上空)
+  const missionOrbitTle = useTreaMissionStore(s => s.missionOrbitTle);
+  // 活跃 TLE:任务期间使用虚拟 TLE,否则使用原 TLE
+  const activeTle = missionOrbitTle ?? treaTle;
   // TREA-01 跟踪状态(由 TreaSatelliteView 按钮切换,本组件监听并调用 startTrackingTrea01)
   const trea01Tracking = useTreaMissionStore(s => s.trea01Tracking);
   const focusTrigger = useSatelliteStore(state => state.focusTrigger);
@@ -156,14 +166,18 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [satellites, visibleSatellites, isReady, viewer, missionMode, updateOrbits]);
 
+  // 轨道线更新节流:记录上次更新的真实时间(与卫星位置更新共用同一 effect)
+  const lastOrbitUpdateRealRef = useRef(0);
+
   // ============================================================
   // TREA-01 任务模式:渲染 AOI、TREA-01 卫星实体 + 轨道线
   // ============================================================
   // missionMode=true: 添加 AOI_A、AOI_B、TREA-01 卫星实体 + 轨道线,并飞向 TREA-01
   // missionMode=false: 清理所有任务实体
-  // 依赖 treaTle:变轨后 TLE 变化 → 重新添加卫星实体 + 更新轨道线
-  // 注意:不依赖 currentTime!轨道形状由 TLE 轨道根数决定,与时间无关。
-  //   之前依赖 currentTime 导致时间播放时每帧重建实体 → 轨道线闪烁/消失。
+  // 依赖 activeTle:虚拟轨道 TLE 变化 → 重新添加卫星实体 + 更新轨道线
+  // 注意:只在首次进入 missionMode 时调用 focusTrea01(),
+  //   activeTle 变化(任务开始/结束)时不重复调用,避免打断跟踪状态。
+  const missionInitializedRef = useRef(false);
   useEffect(() => {
     if (!isReady || !viewer || !initCompleted.current) return;
 
@@ -171,22 +185,43 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
       // 添加两个 AOI 多边形
       addAoiEntity(AOI_A);
       addAoiEntity(AOI_B);
-      // 添加 TREA-01 卫星实体(使用 store 当前 TLE,变轨后自动更新)
-      addTrea01Entity(treaTle);
-      // 添加 TREA-01 轨道线(紫色发光线,采样起始时间用当前时刻,不依赖播放时间)
-      addTrea01OrbitLine(treaTle, new Date());
-      // 飞向 TREA-01 卫星
-      // 延迟一帧执行 flyTo,确保实体已添加到场景
-      const timeoutId = setTimeout(() => focusTrea01(), 100);
-      return () => {
-        clearTimeout(timeoutId);
-      };
+      // 添加 TREA-01 卫星实体(使用活跃 TLE,虚拟轨道/变轨后自动更新)
+      addTrea01Entity(activeTle);
+      // 添加 TREA-01 轨道线(紫色发光线,用当前仿真时间采样)
+      addTrea01OrbitLine(activeTle, useTimeStore.getState().currentTime);
+      lastOrbitUpdateRealRef.current = 0; // 重置,让下方 effect 立即触发首次更新
+      // 只在首次进入 missionMode 时飞向 TREA-01,避免 activeTle 变化时打断跟踪
+      if (!missionInitializedRef.current) {
+        missionInitializedRef.current = true;
+        // 延迟一帧执行 flyTo,确保实体已添加到场景
+        const timeoutId = setTimeout(() => focusTrea01(), 100);
+        return () => {
+          clearTimeout(timeoutId);
+        };
+      }
     } else {
+      missionInitializedRef.current = false;
       // 退出任务模式:清理所有任务实体(含轨道线、变轨可视化)
       clearMissionEntities();
       clearManeuverEntities();
     }
-  }, [missionMode, isReady, viewer, treaTle, addAoiEntity, addTrea01Entity, addTrea01OrbitLine, focusTrea01, clearMissionEntities, clearManeuverEntities]);
+  }, [missionMode, isReady, viewer, activeTle, addAoiEntity, addTrea01Entity, addTrea01OrbitLine, focusTrea01, clearMissionEntities, clearManeuverEntities]);
+
+  // TREA-01 卫星位置 + 轨道线更新:跟随仿真时间传播
+  // 轨道线与卫星位置使用相同的 currentTime 生成,确保 GMST 一致,不会偏差
+  // 节流:轨道线每 1 秒真实时间更新一次(避免每帧采样 180 个点),卫星位置每帧更新
+  // addTrea01OrbitLine 已改为"更新 positions"而非"删除重建",不会闪烁
+  useEffect(() => {
+    if (!isReady || !viewer || !initCompleted.current || !missionMode) return;
+    // 卫星位置:每帧更新
+    updateTrea01Position(activeTle, currentTime);
+    // 轨道线:每 1 秒真实时间更新一次,用当前 currentTime 确保与卫星位置时间基准一致
+    const nowReal = Date.now();
+    if (lastOrbitUpdateRealRef.current === 0 || nowReal - lastOrbitUpdateRealRef.current > 1000) {
+      addTrea01OrbitLine(activeTle, currentTime);
+      lastOrbitUpdateRealRef.current = nowReal;
+    }
+  }, [missionMode, currentTime, isReady, viewer, activeTle, updateTrea01Position, addTrea01OrbitLine]);
 
   // TREA-01 跟踪:trea01Tracking 状态变化时启动/停止持续跟踪
   // 跟踪状态由 TreaSatelliteView 的按钮切换(经 treaMissionStore 共享)
@@ -199,14 +234,6 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
       stopTrackingTrea01();
     }
   }, [trea01Tracking, missionMode, isReady, viewer, startTrackingTrea01, stopTrackingTrea01]);
-
-  // TREA-01 卫星位置更新:跟随仿真时间传播
-  // 仅在 missionMode=true 时执行,与默认卫星位置更新独立
-  // 使用 store 当前 TLE(变轨后位置传播自动切换到新轨道)
-  useEffect(() => {
-    if (!isReady || !viewer || !initCompleted.current || !missionMode) return;
-    updateTrea01Position(treaTle, currentTime);
-  }, [missionMode, currentTime, isReady, viewer, treaTle, updateTrea01Position]);
 
   // ============================================================
   // TREA-01 变轨可视化:燃烧弧 + 新旧轨道对比
@@ -222,9 +249,9 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     const { newTle, oldTle } = maneuverEvent;
     const now = new Date();
 
-    // 生成新旧轨道点(各一整圈,180 点)
-    const oldPoints = generateOrbitPoints([oldTle], now, 180);
-    const newPoints = generateOrbitPoints([newTle], now, 180);
+    // 生成新旧轨道点(各一整圈,180 点,ECEF 坐标与 Cesium FIXED 一致)
+    const oldPoints = generateOrbitPointsECEF([oldTle], now, 180);
+    const newPoints = generateOrbitPointsECEF([newTle], now, 180);
 
     // 渲染轨道对比(旧=灰色虚线,新=青色实线)
     if (oldPoints.length >= 2 && newPoints.length >= 2) {
@@ -335,35 +362,33 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
 
       {/* TREA-01 任务仿真状态机:纯逻辑组件无 UI,missionMode 时挂载
           通过 useCurrentTime() 驱动 EXECUTING→IMAGING→COMPLETED 状态转换
-          成像足迹方法由 useCesium 注入(每次调用产生独立 state,必须挂在 CesiumGlobe 内) */}
+          成像足迹/扫描光束/连续 swath/AOI 高亮方法由 useCesium 注入
+          V2-B/V3:正常任务模式也具备 AOI 高亮 + 连续 swath + 扫描光束 */}
       {missionMode && isReady && !displayError && (
         <MissionSimulator
           addImagingFootprint={addImagingFootprint}
           updateImagingFootprint={updateImagingFootprint}
           clearImagingFootprint={clearImagingFootprint}
+          addScanBeam={addScanBeam}
+          updateScanBeam={updateScanBeam}
+          clearScanBeam={clearScanBeam}
+          addContinuousSwathPoint={addContinuousSwathPoint}
+          clearContinuousSwath={clearContinuousSwath}
+          highlightAoi={highlightAoi}
+          unhighlightAoi={unhighlightAoi}
         />
       )}
 
       {/* 电影回放模式控制器(纯逻辑,missionMode 时挂载)
-          通过 props 注入相机方法,激活时用 RAF 推进时间 + 切换镜头 */}
+          v4 简化版:4 阶段(远景→拉近→视频→报告),无进度条 */}
       {missionMode && isReady && !displayError && (
         <CinematicController
-          focusTrea01={focusTrea01}
-          startTrackingTrea01={startTrackingTrea01}
-          stopTrackingTrea01={stopTrackingTrea01}
           resetView={resetView}
-          refreshTrea01Orbit={refreshTrea01Orbit}
-          addOrbitTransition={addOrbitTransition}
-          addScanTrailPoint={addScanTrailPoint}
-          clearScanTrail={clearScanTrail}
-          clearManeuverEntities={clearManeuverEntities}
-          addScanBeam={addScanBeam}
-          updateScanBeam={updateScanBeam}
-          clearScanBeam={clearScanBeam}
-          zoomOutCoverage={zoomOutCoverage}
+          focusTrea01={focusTrea01}
+          stopTrackingTrea01={stopTrackingTrea01}
         />
       )}
-      {/* 电影回放模式 UI 覆层(字幕 + 进度条 + 控制按钮,用 Portal 渲染到 body) */}
+      {/* 电影回放模式 UI 覆层(底部文字 + 视频/报告弹窗,用 Portal 渲染到 body) */}
       {missionMode && <CinematicOverlay />}
 
       {/* Reset view button - 左下角,避免遮挡顶部信息与侧边栏 */}

@@ -9,10 +9,12 @@ import { createSatrec, propagateOrbit, calculateOrbitParams, type OrbitParams } 
 import {
   TREA01_INITIAL_TLE,
   getTrea01InitialState,
+  AOI_LIST,
   type MissionPhase,
   type AttitudeMode,
   type PayloadStatus,
 } from '@/lib/trea/constants';
+import { generateMissionTle } from '@/lib/tle/generateMissionTle';
 // M4 / Task 12-13:任务执行结果与报告类型 + 报告生成函数
 import {
   generateReport,
@@ -134,6 +136,11 @@ export interface CollisionAvoidancePlan {
 export interface TreaMissionState {
   /** TLE 数据(机动后会被替换) */
   tle: TLEData;
+  /** 虚拟任务轨道 TLE(任务执行期间临时使用,任务完成后清除)
+   * 由 generateMissionTle 生成,使卫星在 windowStart 时刻经过 AOI 上空
+   * CesiumGlobe / MissionSimulator / CinematicController 优先使用此 TLE
+   * 为 null 时回退到 tle(原轨道) */
+  missionOrbitTle: TLEData | null;
   /** 轨道参数(由 TLE 计算) */
   orbitParams: OrbitParams | null;
   /** 燃料百分比 (0-100) */
@@ -186,6 +193,10 @@ export interface TreaMissionActions {
   updateTelemetry: (time: Date) => void;
   /** 执行机动:替换 TLE、扣除燃料、记录历史 */
   executeManeuver: (deltaV: number, newTle: TLEData, fuelCost: number) => void;
+  /** 设置/清除虚拟任务轨道 TLE
+   * - 设置后:卫星渲染与位置传播使用 missionOrbitTle
+   * - 清除(null):回退到原 TLE,卫星「返回原轨道」 */
+  setMissionOrbitTle: (tle: TLEData | null) => void;
   /** 设置任务阶段 */
   setMissionPhase: (phase: MissionPhase) => void;
   /** 设置当前任务 */
@@ -270,6 +281,7 @@ const initialState = getTrea01InitialState();
 export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>((set, get) => ({
   // ---------- State ----------
   tle: initialState.tle,
+  missionOrbitTle: null,
   orbitParams: computeOrbitParams(initialState.tle),
   fuel: initialState.fuel,
   battery: initialState.battery,
@@ -294,6 +306,7 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
     const init = getTrea01InitialState();
     set({
       tle: init.tle,
+      missionOrbitTle: null,
       orbitParams: computeOrbitParams(init.tle),
       fuel: init.fuel,
       battery: init.battery,
@@ -344,6 +357,10 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
     });
   },
 
+  setMissionOrbitTle: (tle) => {
+    set({ missionOrbitTle: tle ? { ...tle } : null });
+  },
+
   setMissionPhase: (phase) => {
     set({ missionPhase: phase });
   },
@@ -361,11 +378,27 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
   startTaskSimulation: (task) => {
     // 设置当前任务、进入执行阶段、记录启动时刻
     // 调用方负责时间播放设置(setRate/startPlayback/setCurrentTime)
+
+    // 自动生成虚拟任务轨道 TLE(任务期间卫星跳转到 AOI 上空)
+    const { tle } = get();
+    let missionOrbitTle: TLEData | null = null;
+    if (task.windowStart && task.aoiId) {
+      const aoi = AOI_LIST.find(a => a.id === task.aoiId);
+      if (aoi) {
+        const result = generateMissionTle(tle, aoi, task.windowStart);
+        missionOrbitTle = result.tle;
+        if (!result.tle) {
+          console.warn('[treaMissionStore] 虚拟轨道生成失败,使用原 TLE:', result.error);
+        }
+      }
+    }
+
     set({
       currentTask: task,
       missionPhase: 'EXECUTING',
       taskStartTime: new Date(),
       lastReport: null, // 清空上一次报告
+      missionOrbitTle, // 设置虚拟 TLE(失败时为 null,回退到原 TLE)
     });
   },
 
@@ -388,6 +421,7 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
       attitude: 'Nominal', // 成像结束恢复标称姿态
       fuel: result.finalFuel,
       lastReport: report,
+      missionOrbitTle: null, // 任务完成,清除虚拟 TLE,卫星回到原轨道
     });
   },
 
@@ -562,6 +596,7 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
 // ============================================================
 
 export const useTreaTle = () => useTreaMissionStore(state => state.tle);
+export const useTreaMissionOrbitTle = () => useTreaMissionStore(state => state.missionOrbitTle);
 export const useTreaOrbitParams = () => useTreaMissionStore(state => state.orbitParams);
 export const useTreaFuel = () => useTreaMissionStore(state => state.fuel);
 export const useTreaBattery = () => useTreaMissionStore(state => state.battery);

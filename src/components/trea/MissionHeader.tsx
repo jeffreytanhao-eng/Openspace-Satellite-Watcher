@@ -12,6 +12,9 @@ import {
   useTreaBattery,
   useTreaAttitude,
   useTreaPayloadStatus,
+  useTreaMissionStore,
+  useTreaCurrentTask,
+  useTreaLastReport,
 } from '@/store/treaMissionStore';
 import { useCinematicStore } from '@/store/cinematicStore';
 import type { MissionPhase } from '@/lib/trea/constants';
@@ -64,6 +67,28 @@ export default function MissionHeader({ onExit }: MissionHeaderProps) {
   const cinematicActive = useCinematicStore(s => s.isActive);
   const startCinematic = useCinematicStore(s => s.startCinematic);
   const exitCinematic = useCinematicStore(s => s.exitCinematic);
+  const currentTask = useTreaCurrentTask();
+  const lastReport = useTreaLastReport();
+
+  // 电影回放按钮启用条件:仅在对地遥感扫描任务完成后可用
+  // - missionPhase === 'COMPLETED'
+  // - 存在 currentTask 且为对地遥感任务(aoiId !== 'COLLISION_AVOIDANCE')
+  // - 存在 aoiCenter 和 windowStart(完整的对地遥感任务数据)
+  // - 存在 lastReport(任务执行完成生成了报告)
+  const canPlayCinematic = cinematicActive || (
+    missionPhase === 'COMPLETED'
+    && currentTask !== null
+    && currentTask.aoiId !== 'COLLISION_AVOIDANCE'
+    && !!currentTask.aoiCenter
+    && !!currentTask.windowStart
+    && lastReport !== null
+  );
+
+  const cinematicButtonTitle = cinematicActive
+    ? '退出电影模式'
+    : canPlayCinematic
+      ? '一键播放电影回放'
+      : '请先完成对地遥感扫描任务后再播放电影回放';
 
   return (
     <header className="h-16 bg-space-900 border-b border-space-800 flex items-center justify-between px-4 z-10">
@@ -99,17 +124,26 @@ export default function MissionHeader({ onExit }: MissionHeaderProps) {
 
       {/* 右侧:电影回放按钮 + 遥测状态(燃料/电量/姿态/载荷) */}
       <div className="flex items-center gap-4">
-        {/* 电影回放按钮:紫色渐变(激活时变红) */}
+        {/* 电影回放按钮:紫色渐变(激活时变红,未完成对地遥感任务时置灰) */}
         <Button
           variant="outline"
           size="sm"
+          disabled={!canPlayCinematic}
           className={
             cinematicActive
               ? 'h-9 bg-red-700 hover:bg-red-600 border-red-400/40 text-white'
-              : 'h-9 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 border-purple-400/40 text-white'
+              : canPlayCinematic
+                ? 'h-9 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 border-purple-400/40 text-white'
+                : 'h-9 bg-space-800 border-space-600 text-space-500 cursor-not-allowed opacity-50'
           }
-          onClick={() => (cinematicActive ? exitCinematic() : startCinematic())}
-          title={cinematicActive ? '退出电影模式' : '一键播放电影回放'}
+          onClick={() => {
+            if (cinematicActive) {
+              exitCinematic();
+            } else if (canPlayCinematic) {
+              startCinematic();
+            }
+          }}
+          title={cinematicButtonTitle}
         >
           <Film className="h-4 w-4 mr-1.5" />
           {cinematicActive ? '退出电影' : '电影回放'}

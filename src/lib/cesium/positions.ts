@@ -1,8 +1,13 @@
-import { createSatrec, propagateOrbit, calculateOrbitParams } from '@/lib/tle/orbit';
+import { createSatrec, propagateOrbit, calculateOrbitParams, getGmst } from '@/lib/tle/orbit';
 import type { TLEData } from '@/lib/tle/parser';
 
 /**
- * Calculate satellite ECI position in meters (Cesium uses meters) at a given time
+ * Calculate satellite ECEF position in meters at a given time.
+ *
+ * Cesium 的 ConstantPositionProperty 默认使用 FIXED(ECEF)坐标系,
+ * 因此必须返回 ECEF(state.ecf)而非 ECI(state.position)。
+ * 之前返回 ECI 会导致卫星位置偏移一个 GMST 旋转角度,
+ * 仿真时间快进时偏差增大。
  */
 export function calculateSatellitePosition(
   tleData: TLEData[],
@@ -16,11 +21,11 @@ export function calculateSatellitePosition(
     const state = propagateOrbit(satrec, time);
     if (!state) return null;
 
-    // Convert km to meters for Cesium
+    // 返回 ECEF 坐标(米制),Cesium ConstantPositionProperty 期望 ECEF
     return {
-      x: state.position.x * 1000,
-      y: state.position.y * 1000,
-      z: state.position.z * 1000,
+      x: state.ecf.x * 1000,
+      y: state.ecf.y * 1000,
+      z: state.ecf.z * 1000,
     };
   } catch {
     return null;
@@ -105,4 +110,35 @@ export function generateOrbitPoints(
   }
 
   return points;
+}
+
+/**
+ * Generate closed orbit trail points in ECEF (Fixed frame) for Cesium.
+ *
+ * 先用 generateOrbitPoints 生成 ECI 闭合椭圆(轨道形状不随地球自转变化),
+ * 再用采样起始时刻的 GMST 把所有点旋转到 ECEF。
+ * 使用同一 GMST 保证轨道线仍为闭合椭圆(而非 ECEF 下的螺旋),
+ * 同时与 Cesium ConstantPositionProperty(FIXED)坐标系一致。
+ *
+ * 注意:因地球自转,ECEF 下的轨道线会随时间偏移,调用方需定期重新生成。
+ */
+export function generateOrbitPointsECEF(
+  tleData: TLEData[],
+  startTime: Date,
+  numPoints: number = 180
+): Array<{ x: number; y: number; z: number }> {
+  // 1. 生成 ECI 轨道点(闭合椭圆,米制)
+  const eciPoints = generateOrbitPoints(tleData, startTime, numPoints);
+  if (eciPoints.length === 0) return [];
+
+  // 2. 用采样起始时间的 GMST 把 ECI 旋转到 ECEF
+  const gmst = getGmst(startTime);
+  const cosGmst = Math.cos(gmst);
+  const sinGmst = Math.sin(gmst);
+
+  return eciPoints.map(p => ({
+    x: p.x * cosGmst + p.y * sinGmst,
+    y: -p.x * sinGmst + p.y * cosGmst,
+    z: p.z,
+  }));
 }
