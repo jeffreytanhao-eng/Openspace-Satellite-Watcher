@@ -96,7 +96,7 @@ export interface CollisionAlert {
 /**
  * 躲避计划选项(用户在 CollisionAlertModal 中选择)
  * 每个计划包含:机动类型、Δv、执行时机、燃料消耗、机动后预测效果
- * 选择后由 executeCollisionAvoidance 执行,生成新 TLE 并触发 maneuverEvent
+ * 选择后由 prepareAvoidanceManeuver 准备(计算新 TLE),commitAvoidanceManeuver 提交(更新 tle)
  */
 export interface CollisionAvoidancePlan {
   /** 计划 ID */
@@ -183,7 +183,17 @@ export interface TreaMissionState {
     fuelCost: number;
     /** 唯一标识,每次执行递增,触发 useEffect 重执行 */
     id: number;
+    // ---- prepare 暂存的 commit 数据(commit 时取出使用,避免重复计算) ----
+    newFuel?: number;
+    newOrbitParams?: OrbitParams | null;
+    record?: ManeuverRecord;
   } | null;
+  /** 变轨动画阶段(驱动 CollisionAlertModal 视图切换 + 防止重复 commit)
+   *  - 'idle': 无动画
+   *  - 'running': prepare 已完成,动画播放中(等待 t=3s commit)
+   *  - 'committed': commit 已执行(t=3~5s 旧轨道渐隐中)
+   *  - 'done': 动画结束,可弹出成功窗口 */
+  maneuverAnimationPhase: 'idle' | 'running' | 'committed' | 'done';
 }
 
 export interface TreaMissionActions {
@@ -215,8 +225,16 @@ export interface TreaMissionActions {
   setEmergencyTask: (task: TreaMissionTask | null) => void;
   /** 生成躲避计划列表(3 个选项:沿迹微调/径向机动/组合机动) */
   generateAvoidancePlans: () => void;
-  /** 执行避撞机动:生成新 TLE、扣除燃料、记录历史、设置 lastAvoidanceExecution */
-  executeCollisionAvoidance: (planId: string) => void;
+  /** 准备避撞机动:计算新 TLE 并暂存到 lastAvoidanceExecution,启动动画阶段
+   *  不更新 tle/fuel/maneuverHistory(留给 commitAvoidanceManeuver 在动画 t=3s 时执行) */
+  prepareAvoidanceManeuver: (planId: string) => void;
+  /** 准备手动变轨(ManeuverPanel):用已算好的 newTle 暂存到 lastAvoidanceExecution,
+   *  启动 5s 动画;tle/fuel/历史在 t=3s 由 commitAvoidanceManeuver 提交,卫星延迟切换 */
+  prepareManeuver: (newTle: TLEData, deltaV: number, fuelCost: number) => void;
+  /** 提交避撞机动:用暂存数据更新 tle/fuel/maneuverHistory(幂等,仅 'running' 时生效) */
+  commitAvoidanceManeuver: () => void;
+  /** 设置变轨动画阶段 */
+  setManeuverAnimationPhase: (phase: 'idle' | 'running' | 'committed' | 'done') => void;
   // ---------- M4 / Task 12:任务执行状态机 Actions ----------
   /**
    * 启动任务仿真:设置 currentTask,missionPhase='EXECUTING',记录 taskStartTime
@@ -299,6 +317,7 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
   emergencyTask: null,
   avoidancePlans: [],
   lastAvoidanceExecution: null,
+  maneuverAnimationPhase: 'idle',
 
   // ---------- Actions ----------
 
@@ -324,6 +343,7 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
       emergencyTask: null,
       avoidancePlans: [],
       lastAvoidanceExecution: null,
+      maneuverAnimationPhase: 'idle',
     });
   },
 
@@ -460,7 +480,13 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
   },
 
   dismissCollisionAlert: () => {
-    set({ collisionAlert: null });
+    // 关闭警报:清除躲避计划 + 重置变轨动画状态(用户已看完成功画面,数据不再需要)
+    set({
+      collisionAlert: null,
+      avoidancePlans: [],
+      maneuverAnimationPhase: 'idle',
+      lastAvoidanceExecution: null,
+    });
   },
 
   setEmergencyTask: (task) => {
@@ -519,10 +545,13 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
     set({ avoidancePlans: plans });
   },
 
-  // 执行避撞机动:基于选定计划生成新 TLE,调用 executeManeuver 扣燃料 + 记录历史
-  // 同时设置 lastAvoidanceExecution,HomePage 监听后设置 maneuverEvent → CesiumGlobe 渲染变轨演示
-  executeCollisionAvoidance: (planId) => {
-    const { avoidancePlans, tle, fuel } = get();
+  // 准备避撞机动:计算新 TLE 并暂存到 lastAvoidanceExecution,启动动画阶段
+  // 不更新 tle/fuel/maneuverHistory(留给 commitAvoidanceManeuver 在动画 t=3s 时执行)
+  // 这样卫星在动画 t=0~3s 仍在原轨道运行,t=3s commit 后才切到新轨道
+  prepareAvoidanceManeuver: (planId) => {
+    const { avoidancePlans, tle, fuel, maneuverAnimationPhase } = get();
+    // 幂等:动画进行中不重复 prepare(防止重复触发)
+    if (maneuverAnimationPhase === 'running' || maneuverAnimationPhase === 'committed') return;
     const plan = avoidancePlans.find(p => p.id === planId);
     if (!plan) return;
 
@@ -531,7 +560,7 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
 
     // 生成新 TLE:调整 line2 中的平均运动字段(列 53-63, 0-indexed 52-62, 11 字符)
     // 平均运动格式: "xxxx.xxxxxxx"
-    // meanMotionDelta 为正 → 平均运动增大(周期变短,轨道降低)
+    // meanMotionDelta 为正 -> 平均运动增大(周期变短,轨道降低)
     const line2 = tle.line2;
     const meanMotionStr = line2.substring(52, 63);
     const meanMotion = parseFloat(meanMotionStr);
@@ -555,7 +584,7 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
       line2: newLine2,
     };
 
-    // 调用 executeManeuver 扣燃料 + 记录历史 + 更新 TLE
+    // 暂存 commit 所需数据(避免 commit 重复计算,保证一致性)
     const newFuel = Math.max(0, fuel - plan.fuelCost);
     const newOrbitParams = computeOrbitParams(newTle);
     const record: ManeuverRecord = {
@@ -568,11 +597,7 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
     };
 
     set({
-      tle: newTle,
-      orbitParams: newOrbitParams,
-      fuel: newFuel,
-      maneuverHistory: [...get().maneuverHistory, record],
-      // 设置 lastAvoidanceExecution 触发 HomePage maneuverEvent
+      // 设置 lastAvoidanceExecution(含暂存数据) -> 触发 HomePage maneuverEvent -> CesiumGlobe 启动动画
       lastAvoidanceExecution: {
         planId: plan.id,
         planName: plan.name,
@@ -581,13 +606,77 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
         deltaV: plan.deltaV,
         fuelCost: plan.fuelCost,
         id: Date.now(),
+        newFuel,
+        newOrbitParams,
+        record,
       },
-      // 清理警报和计划
-      collisionAlert: null,
-      avoidancePlans: [],
-      // 更新紧急任务状态为已完成
+      maneuverAnimationPhase: 'running',
+      // 清除虚拟轨道,强制 activeTle 回退到 treaTle(原轨道),保证动画期间卫星在原轨道
+      missionOrbitTle: null,
+      // 紧急任务已处理
       emergencyTask: null,
     });
+  },
+
+  // 准备手动变轨(ManeuverPanel):与避撞共用 commit/done 动画流程
+  // newTle 已由 suggestManeuver 算好,这里只做暂存 + 启动动画
+  // t=3s 由 commitAvoidanceManeuver 提交(tle/fuel/历史),t=5s onDone 置 'done'
+  prepareManeuver: (newTle, deltaV, fuelCost) => {
+    const { tle, fuel, maneuverAnimationPhase } = get();
+    // 幂等:动画进行中不重复 prepare(防止连点)
+    if (maneuverAnimationPhase === 'running' || maneuverAnimationPhase === 'committed') return;
+
+    const oldTle = { ...tle };
+    const newFuel = Math.max(0, fuel - fuelCost);
+    const newOrbitParams = computeOrbitParams(newTle);
+    const record: ManeuverRecord = {
+      time: new Date(),
+      deltaV,
+      oldLine1: oldTle.line1,
+      newLine1: newTle.line1,
+      fuelCost,
+      note: `手动变轨 Δv=${deltaV.toFixed(2)} m/s, 燃料消耗 ${fuelCost.toFixed(2)}%`,
+    };
+
+    set({
+      lastAvoidanceExecution: {
+        planId: 'manual',
+        planName: '手动变轨',
+        oldTle,
+        newTle,
+        deltaV,
+        fuelCost,
+        id: Date.now(),
+        newFuel,
+        newOrbitParams,
+        record,
+      },
+      maneuverAnimationPhase: 'running',
+      // 清除虚拟轨道,动画期间 activeTle 回退到 treaTle(原轨道),t=3s commit 后才切新轨道
+      missionOrbitTle: null,
+    });
+  },
+
+  // 提交避撞机动:在动画 t=3s 时由 CesiumGlobe onSwitch 回调触发
+  // 用 prepare 暂存的数据更新 tle/fuel/orbitParams/maneuverHistory -> 卫星切到新轨道
+  commitAvoidanceManeuver: () => {
+    const { lastAvoidanceExecution, maneuverAnimationPhase } = get();
+    // 幂等守卫:仅在 'running' 时 commit(防止 StrictMode 双跑等重复触发)
+    if (maneuverAnimationPhase !== 'running' || !lastAvoidanceExecution) return;
+    const { newTle, newFuel, newOrbitParams, record } = lastAvoidanceExecution;
+    if (!newTle || newFuel === undefined || !record) return;
+    set({
+      tle: { ...newTle },
+      fuel: newFuel,
+      orbitParams: newOrbitParams ?? null,
+      maneuverHistory: [...get().maneuverHistory, record],
+      maneuverAnimationPhase: 'committed',
+    });
+  },
+
+  // 设置变轨动画阶段(供 CesiumGlobe onDone 设 'done',CollisionAlertModal 重置 'idle')
+  setManeuverAnimationPhase: (phase) => {
+    set({ maneuverAnimationPhase: phase });
   },
 }));
 
@@ -613,6 +702,7 @@ export const useCollisionAlert = () => useTreaMissionStore(state => state.collis
 export const useEmergencyTask = () => useTreaMissionStore(state => state.emergencyTask);
 export const useAvoidancePlans = () => useTreaMissionStore(state => state.avoidancePlans);
 export const useLastAvoidanceExecution = () => useTreaMissionStore(state => state.lastAvoidanceExecution);
+export const useManeuverAnimationPhase = () => useTreaMissionStore(state => state.maneuverAnimationPhase);
 
 // 重新导出常量,方便调用方一站式引用
 export { TREA01_INITIAL_TLE };

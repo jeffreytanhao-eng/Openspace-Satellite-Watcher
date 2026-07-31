@@ -87,6 +87,13 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   const missionOrbitTle = useTreaMissionStore(s => s.missionOrbitTle);
   // 活跃 TLE:任务期间使用虚拟 TLE,否则使用原 TLE
   const activeTle = missionOrbitTle ?? treaTle;
+  // 变轨动画:订阅 store 用于判定 maneuverEvent 来源 + commit + 阶段控制
+  const lastAvoidanceExecution = useTreaMissionStore(s => s.lastAvoidanceExecution);
+  const commitAvoidanceManeuver = useTreaMissionStore(s => s.commitAvoidanceManeuver);
+  const setManeuverAnimationPhase = useTreaMissionStore(s => s.setManeuverAnimationPhase);
+  const maneuverAnimationPhase = useTreaMissionStore(s => s.maneuverAnimationPhase);
+  // 变轨动画 cleanup 句柄(effect 清理 + 卸载时清理 setTimeout,避免重复 commit)
+  const animationCleanupRef = useRef<(() => void) | null>(null);
   // TREA-01 跟踪状态(由 TreaSatelliteView 按钮切换,本组件监听并调用 startTrackingTrea01)
   const trea01Tracking = useTreaMissionStore(s => s.trea01Tracking);
   const focusTrigger = useSatelliteStore(state => state.focusTrigger);
@@ -144,10 +151,11 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     updateSatellitePositions(filteredSatellites, currentTime);
   }, [satellites, currentTime, visibleSatellites, isReady, viewer, missionMode, updateSatellitePositions]);
 
-  // Update orbits ONLY when satellite data or visibility changes (not on time change)
-  // Orbit shape is a fixed ellipse determined by TLE elements, not by current time.
-  // Skip orbit updates while tracking to prevent visual jumping.
+  // Update orbits: ECEF 下轨道线随地球自转偏移,需随 currentTime 节流重新生成
+  // 才能与卫星位置(GMST 一致)重合。跟踪时冻结轨道,防止视觉跳动。
   const isTrackingRef = useRef(false);
+  // 轨道线更新节流:记录上次更新的真实时间(普通模式与 TREA-01 轨道线共用)
+  const lastOrbitUpdateRealRef = useRef(0);
   useEffect(() => {
     if (!isReady || !viewer || !initCompleted.current) return;
     if (isTrackingRef.current) return; // Freeze orbits during tracking
@@ -161,22 +169,25 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     const visibleIds = new Set(visibleSatellites);
     const filteredSatellites = satellites.filter(s => visibleIds.has(s.noradId));
 
-    // 即使卫星列表为空也要执行，以清理 Cesium 中残留的轨道实体
-    updateOrbits(filteredSatellites, currentTime);
+    // 轨道线在 ECEF(固定)坐标系下会随地球自转而偏移,必须用最新 currentTime
+    // 重新生成才能与卫星位置(GMST 一致)重合。节流:每 1 秒真实时间更新一次,
+    // 避免每帧为多颗卫星各采样 180 个点的性能开销(与 TREA-01 轨道线策略一致)。
+    const nowReal = Date.now();
+    if (lastOrbitUpdateRealRef.current === 0 || nowReal - lastOrbitUpdateRealRef.current > 1000) {
+      // 即使卫星列表为空也要执行,以清理 Cesium 中残留的轨道实体
+      updateOrbits(filteredSatellites, currentTime);
+      lastOrbitUpdateRealRef.current = nowReal;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [satellites, visibleSatellites, isReady, viewer, missionMode, updateOrbits]);
-
-  // 轨道线更新节流:记录上次更新的真实时间(与卫星位置更新共用同一 effect)
-  const lastOrbitUpdateRealRef = useRef(0);
+  }, [satellites, visibleSatellites, currentTime, isReady, viewer, missionMode, updateOrbits]);
 
   // ============================================================
   // TREA-01 任务模式:渲染 AOI、TREA-01 卫星实体 + 轨道线
   // ============================================================
-  // missionMode=true: 添加 AOI_A、AOI_B、TREA-01 卫星实体 + 轨道线,并飞向 TREA-01
+  // missionMode=true: 添加 AOI_A、AOI_B、TREA-01 卫星实体 + 轨道线
   // missionMode=false: 清理所有任务实体
   // 依赖 activeTle:虚拟轨道 TLE 变化 → 重新添加卫星实体 + 更新轨道线
-  // 注意:只在首次进入 missionMode 时调用 focusTrea01(),
-  //   activeTle 变化(任务开始/结束)时不重复调用,避免打断跟踪状态。
+  // 相机定位由 trea01Tracking(startTrackingTrea01)负责,与"定位键"行为一致
   const missionInitializedRef = useRef(false);
   useEffect(() => {
     if (!isReady || !viewer || !initCompleted.current) return;
@@ -190,37 +201,25 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
       // 添加 TREA-01 轨道线(紫色发光线,用当前仿真时间采样)
       addTrea01OrbitLine(activeTle, useTimeStore.getState().currentTime);
       lastOrbitUpdateRealRef.current = 0; // 重置,让下方 effect 立即触发首次更新
-      // 只在首次进入 missionMode 时飞向 TREA-01,避免 activeTle 变化时打断跟踪
-      if (!missionInitializedRef.current) {
-        missionInitializedRef.current = true;
-        // 延迟一帧执行 flyTo,确保实体已添加到场景
-        const timeoutId = setTimeout(() => focusTrea01(), 100);
-        return () => {
-          clearTimeout(timeoutId);
-        };
-      }
+      missionInitializedRef.current = true;
     } else {
       missionInitializedRef.current = false;
       // 退出任务模式:清理所有任务实体(含轨道线、变轨可视化)
       clearMissionEntities();
       clearManeuverEntities();
+      // 重置轨道线节流:让默认卫星轨道 effect 立即重新生成(否则节流会跳过,轨道消失)
+      lastOrbitUpdateRealRef.current = 0;
     }
-  }, [missionMode, isReady, viewer, activeTle, addAoiEntity, addTrea01Entity, addTrea01OrbitLine, focusTrea01, clearMissionEntities, clearManeuverEntities]);
+  }, [missionMode, isReady, viewer, activeTle, addAoiEntity, addTrea01Entity, addTrea01OrbitLine, clearMissionEntities, clearManeuverEntities]);
 
   // TREA-01 卫星位置 + 轨道线更新:跟随仿真时间传播
-  // 轨道线与卫星位置使用相同的 currentTime 生成,确保 GMST 一致,不会偏差
-  // 节流:轨道线每 1 秒真实时间更新一次(避免每帧采样 180 个点),卫星位置每帧更新
-  // addTrea01OrbitLine 已改为"更新 positions"而非"删除重建",不会闪烁
+  // 轨道线与卫星位置每帧用相同 currentTime 生成,确保 GMST 一致、完全重合、不闪烁
+  // 单条轨道每帧采样 180 点开销可忽略(<1ms),无需节流(节流会导致 10x 播放时轨道 1s 跳变闪烁)
   useEffect(() => {
     if (!isReady || !viewer || !initCompleted.current || !missionMode) return;
-    // 卫星位置:每帧更新
+    // 卫星位置 + 轨道线:每帧更新(同一 currentTime,GMST 一致,不会偏差或闪烁)
     updateTrea01Position(activeTle, currentTime);
-    // 轨道线:每 1 秒真实时间更新一次,用当前 currentTime 确保与卫星位置时间基准一致
-    const nowReal = Date.now();
-    if (lastOrbitUpdateRealRef.current === 0 || nowReal - lastOrbitUpdateRealRef.current > 1000) {
-      addTrea01OrbitLine(activeTle, currentTime);
-      lastOrbitUpdateRealRef.current = nowReal;
-    }
+    addTrea01OrbitLine(activeTle, currentTime);
   }, [missionMode, currentTime, isReady, viewer, activeTle, updateTrea01Position, addTrea01OrbitLine]);
 
   // TREA-01 跟踪:trea01Tracking 状态变化时启动/停止持续跟踪
@@ -236,38 +235,73 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   }, [trea01Tracking, missionMode, isReady, viewer, startTrackingTrea01, stopTrackingTrea01]);
 
   // ============================================================
-  // TREA-01 变轨可视化:燃烧弧 + 新旧轨道对比
+  // TREA-01 变轨可视化:新旧轨道渐变动画(无燃烧弧)
   // ============================================================
-  // maneuverEvent 变化时(ManeuverPanel 执行变轨)触发:
-  // 1. 生成旧轨道点(灰色虚线) + 新轨道点(青色实线) → addOrbitComparison
-  // 2. 燃烧弧(亮橙色,取旧轨道最后 N 段) → addManeuverArc
-  // 3. 更新 TREA-01 轨道线为新 TLE
+  // maneuverEvent 变化时触发 addOrbitTransition 5s 动画:
+  // - 紧急避撞路径(id === lastAvoidanceExecution.id):挂 onSwitch(commit t=3s) + onDone(phase='done')
+  // - ManeuverPanel 路径:仅播放动画(已立即更新 tle,卫星 t=0 在新轨道)
   useEffect(() => {
     if (!isReady || !viewer || !initCompleted.current || !missionMode) return;
     if (!maneuverEvent) return;
 
-    const { newTle, oldTle } = maneuverEvent;
-    const now = new Date();
+    const { newTle, oldTle, id } = maneuverEvent;
+    // 使用仿真时间(而非真实时间 new Date())生成轨道点,确保轨道线与卫星位置(GMST 一致)重合
+    const simNow = useTimeStore.getState().currentTime;
 
-    // 生成新旧轨道点(各一整圈,180 点,ECEF 坐标与 Cesium FIXED 一致)
-    const oldPoints = generateOrbitPointsECEF([oldTle], now, 180);
-    const newPoints = generateOrbitPointsECEF([newTle], now, 180);
+    // 判定来源:走 prepare/commit 延迟切换(避撞 + 手动变轨共用流程)
+    // vs 旧版 maneuver-panel 立即切换(已废弃,但保留兼容)
+    const isPrepareCommitFlow =
+      !!lastAvoidanceExecution && id === lastAvoidanceExecution.id;
 
-    // 渲染轨道对比(旧=灰色虚线,新=青色实线)
-    if (oldPoints.length >= 2 && newPoints.length >= 2) {
-      addOrbitComparison(oldPoints, newPoints);
+    // 仅 prepare/commit 路径挂回调:t=3s commit(卫星切新轨道),t=5s 动画结束
+    const onSwitch = isPrepareCommitFlow ? () => commitAvoidanceManeuver() : undefined;
+    const onDone = isPrepareCommitFlow
+      ? () => setManeuverAnimationPhase('done')
+      : undefined;
+
+    // 聚焦相机到卫星变轨位置(1000km 近距侧视,突出新旧轨道分离)
+    // 仅在任务模式下执行,不影响态势感知界面
+    focusOrbitChange();
+
+    // 启动 5s 动画序列(addOrbitTransition 内部先清理旧变轨实体,无需手动清理)
+    // 卫星位置由下方 position effect 用 activeTle 自动更新,无需此处处理
+    const cleanup = addOrbitTransition(oldTle, newTle, simNow, onSwitch, onDone);
+    animationCleanupRef.current = cleanup;
+
+    // cleanup:清理 setTimeout + 实体(避免卸载/重触发后 setTimeout 残留导致重复 commit)
+    // commitAvoidanceManeuver 自带幂等守卫,即使 StrictMode 双跑也安全
+    return () => {
+      cleanup();
+      animationCleanupRef.current = null;
+    };
+  }, [
+    maneuverEvent,
+    isReady,
+    viewer,
+    missionMode,
+    addOrbitTransition,
+    focusOrbitChange,
+    lastAvoidanceExecution,
+    commitAvoidanceManeuver,
+    setManeuverAnimationPhase,
+  ]);
+
+  // 组件卸载时清理变轨动画(清理 setTimeout + 实体)
+  useEffect(() => {
+    return () => {
+      if (animationCleanupRef.current) {
+        animationCleanupRef.current();
+        animationCleanupRef.current = null;
+      }
+    };
+  }, []);
+
+  // 变轨动画结束(phase='done')或退出(phase='idle')时清理变轨演示实体,恢复大屏原始状态
+  useEffect(() => {
+    if (maneuverAnimationPhase === 'done' || maneuverAnimationPhase === 'idle') {
+      clearManeuverEntities();
     }
-
-    // 燃烧弧:取旧轨道最后 10% 段(变轨点附近的高亮)
-    const burnStart = Math.floor(oldPoints.length * 0.9);
-    const burnArc = oldPoints.slice(burnStart);
-    if (burnArc.length >= 2) {
-      addManeuverArc(burnArc);
-    }
-
-    // 更新 TREA-01 轨道线为新 TLE
-    addTrea01OrbitLine(newTle, now);
-  }, [maneuverEvent, isReady, viewer, missionMode, addOrbitComparison, addManeuverArc, addTrea01OrbitLine]);
+  }, [maneuverAnimationPhase, clearManeuverEntities]);
 
   // Handle selected satellite: 选中时显示 3D 模型 + 飞向卫星;取消选中切回光点
   useEffect(() => {
@@ -376,6 +410,7 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
           clearContinuousSwath={clearContinuousSwath}
           highlightAoi={highlightAoi}
           unhighlightAoi={unhighlightAoi}
+          frameSatAndAoi={frameSatAndAoi}
         />
       )}
 

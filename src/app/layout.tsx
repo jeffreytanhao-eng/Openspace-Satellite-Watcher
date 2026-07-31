@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata = {
-  title: '卫星守望者',
+  title: '开放太空 - 卫星守望者',
   description: '开源太空卫星观测与追踪平台',
 }
 

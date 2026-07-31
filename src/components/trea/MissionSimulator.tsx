@@ -70,6 +70,8 @@ interface MissionSimulatorProps {
   /** AOI 高亮(V2-B 抵达反馈) */
   highlightAoi?: (aoi: Aoi) => void;
   unhighlightAoi?: (aoiId: string) => void;
+  /** 卫星+AOI 同框相机(V2-B 抵达反馈):卫星飞越 AOI 时近景跟踪,展示飞跃过程 */
+  frameSatAndAoi?: (aoiCenter: { lon: number; lat: number }) => void;
 }
 
 // ============================================================
@@ -171,6 +173,7 @@ export default function MissionSimulator({
   clearContinuousSwath,
   highlightAoi,
   unhighlightAoi,
+  frameSatAndAoi,
 }: MissionSimulatorProps) {
   const currentTime = useCurrentTime();
   const missionPhase = useTreaMissionPhase();
@@ -232,6 +235,12 @@ export default function MissionSimulator({
           const aoi = AOI_LIST.find(a => a.id === currentTask.aoiId);
           if (aoi) {
             highlightAoi?.(aoi);
+            // 近景飞跃:卫星+AOI 同框跟踪,展示 TREA-01 飞跃目标区域的过程
+            // frameSatAndAoi 启动 preUpdate 监听器,相机始终看向卫星与 AOI 中点
+            const aoiCenter = currentTask.aoiCenter ?? aoi.center;
+            if (aoiCenter) {
+              frameSatAndAoi?.(aoiCenter);
+            }
           }
 
           // V3-B:扫描光束(首帧创建)
@@ -368,6 +377,7 @@ export default function MissionSimulator({
     clearContinuousSwath,
     highlightAoi,
     unhighlightAoi,
+    frameSatAndAoi,
     stopPlayback,
   ]);
 

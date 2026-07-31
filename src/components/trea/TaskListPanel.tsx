@@ -494,7 +494,7 @@ export default function TaskListPanel() {
   }
 
   return (
-    <aside className="w-96 bg-space-950 border-r border-space-800 flex flex-col overflow-hidden">
+    <aside className="w-96 h-full bg-space-950 border-r border-space-800 flex flex-col overflow-hidden">
       {/* 顶部标题栏 */}
       <div className="px-4 py-3 border-b border-space-800 bg-space-900">
         <div className="flex items-center justify-between">
@@ -525,7 +525,7 @@ export default function TaskListPanel() {
       </div>
 
       {/* AOI + 窗口列表(滚动区) */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+      <div className="trea-scroll flex-1 overflow-y-auto p-3 space-y-3">
         {/* 紧急避撞任务卡片(碰撞警报触发后显示,红色高亮) */}
         {emergencyTask && collisionAlert && (
           <div className="rounded-xl border-2 border-red-500/60 bg-red-500/10 p-3 space-y-2 shadow-[0_0_15px_rgba(239,68,68,0.2)]">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, X, Globe, Rocket, Clock, Activity, Info, Tag, Box, Crosshair } from 'lucide-react';
+import { ChevronDown, X, Globe, Rocket, Clock, Activity, Info, Box, Crosshair } from 'lucide-react';
 import { Button } from './button';
 import { Separator } from './separator';
 import type { SpaceObject } from '@/store/satelliteStore';
@@ -9,23 +9,12 @@ import { useSatelliteStore } from '@/store/satelliteStore';
 import { createSatrec, calculateOrbitParams } from '@/lib/tle/orbit';
 import OrbitParameters from './OrbitParameters';
 import TLEViewer from './TLEViewer';
-import TagSelector from './TagSelector';
-import { apiClient } from '@/lib/api/client';
 import SatelliteMedia from '@/components/visualization/SatelliteMedia';
 import { translateSatelliteName, translateCountry, translateObjectType } from '@/lib/translations';
-
-export interface Tag {
-  id: string;
-  name: string;
-  color: string;
-  objects?: { id: string; noradId: number; name: string }[];
-}
 
 interface SatelliteDetailPanelProps {
   satellite: SpaceObject;
   onClose: () => void;
-  tags?: Tag[];
-  getSatelliteTags?: (satellite: SpaceObject) => Tag[];
   onRequestUploadAuth?: (noradId: number) => void;
   onImageUploadFile?: (noradId: number, file: File) => void;
   uploadGrantedAt?: number;
@@ -58,10 +47,9 @@ function calculateOrbitData(satellite: SpaceObject) {
   }
 }
 
-export default function SatelliteDetailPanel({ satellite, onClose, tags = [], getSatelliteTags, onRequestUploadAuth, onImageUploadFile, uploadGrantedAt }: SatelliteDetailPanelProps) {
+export default function SatelliteDetailPanel({ satellite, onClose, onRequestUploadAuth, onImageUploadFile, uploadGrantedAt }: SatelliteDetailPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedSection, setExpandedSection] = useState<'orbit' | 'tle'>('orbit');
-  const [showTagSelector, setShowTagSelector] = useState(false);
   const triggerFocus = useSatelliteStore(state => state.triggerFocus);
   const trackingNoradId = useSatelliteStore(state => state.trackingNoradId);
   const setTracking = useSatelliteStore(state => state.setTracking);
@@ -69,9 +57,6 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
   const orbitData = calculateOrbitData(satellite);
   const tleData = satellite.tleData && satellite.tleData.length > 0 ? satellite.tleData[0] : null;
   const isTracking = trackingNoradId === satellite.noradId;
-  
-  const satelliteTags = getSatelliteTags ? getSatelliteTags(satellite) : [];
-  const [selectedTags, setSelectedTags] = useState<Tag[]>(satelliteTags);
 
   const formatPeriod = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
@@ -80,38 +65,6 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
       return `${hours}h ${mins}m`;
     }
     return `${mins}m`;
-  };
-
-  const handleTagChange = async (newTags: Tag[]) => {
-    setSelectedTags(newTags);
-    
-    const newTagIds = newTags.map(t => t.id);
-    const currentTagIds = satelliteTags.map(t => t.id);
-    
-    const addedTags = newTags.filter(t => !currentTagIds.includes(t.id));
-    const removedTags = satelliteTags.filter(t => !newTagIds.includes(t.id));
-
-    for (const tag of addedTags) {
-      await apiClient.patchTag({
-        id: tag.id,
-        name: tag.name,
-        color: tag.color
-      });
-    }
-    
-    setShowTagSelector(false);
-  };
-
-  const handleCreateTag = async (name: string, color: string) => {
-    try {
-      const response = await apiClient.createTag({ name, color });
-      if (response.success && response.data) {
-        const newTag = response.data as Tag;
-        setSelectedTags(prev => [...prev, newTag]);
-      }
-    } catch (error) {
-      console.error('Failed to create tag:', error);
-    }
   };
 
   const handleClose = () => {
@@ -246,51 +199,6 @@ export default function SatelliteDetailPanel({ satellite, onClose, tags = [], ge
                 </p>
               </div>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-space-300 text-xs font-medium">
-              <div className="flex items-center gap-2">
-                <Tag className="h-3.5 w-3.5" />
-                <span>标签</span>
-              </div>
-              <button
-                onClick={() => setShowTagSelector(!showTagSelector)}
-                className="text-cosmic-blue hover:text-cosmic-blue/80 text-xs"
-              >
-                {showTagSelector ? '收起' : '管理'}
-              </button>
-            </div>
-            
-            {showTagSelector ? (
-              <div className="bg-space-800/30 rounded-lg p-3">
-                <TagSelector
-                  tags={tags}
-                  selectedTags={selectedTags}
-                  onSelectTags={handleTagChange}
-                  onCreateTag={handleCreateTag}
-                />
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {satelliteTags.length > 0 ? (
-                  satelliteTags.map(tag => (
-                    <span
-                      key={tag.id}
-                      className="px-2 py-1 rounded-full text-xs"
-                      style={{
-                        backgroundColor: tag.color + '20',
-                        color: tag.color,
-                      }}
-                    >
-                      {tag.name}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-space-500 text-xs">暂无标签，点击管理添加</span>
-                )}
-              </div>
-            )}
           </div>
 
           <Separator className="bg-space-700" />

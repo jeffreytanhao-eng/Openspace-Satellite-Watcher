@@ -337,11 +337,22 @@ export function useCesium() {
       const C = inst.Cesium;
       visible.forEach(sat => {
         const pos = calculateSatellitePosition(sat.tleData, time);
-        if (!pos) return;
-        const color = getSatelliteColor(sat.objectType);
         const existing = inst.satelliteEntities.get(sat.noradId);
+        if (!pos) {
+          // 无有效位置(如已衰减/再入的卫星 SGP4 外推失败):隐藏已有实体,避免冻结在旧位置
+          // 用户选中跟踪中的卫星除外(保留可见,否则跟踪相机失去目标会报错)
+          if (existing && trackedSatRef.current?.satellite.noradId !== sat.noradId) {
+            const ent = inst.viewer.entities.getById(`satellite-${sat.noradId}`);
+            if (ent) ent.show = false;
+          }
+          return;
+        }
+        const color = getSatelliteColor(sat.objectType);
         if (existing) {
           existing.update({ position: pos, color });
+          // 恢复可见(之前可能因位置无效被隐藏)
+          const ent = inst.viewer.entities.getById(`satellite-${sat.noradId}`);
+          if (ent) ent.show = true;
         } else {
           const result = createSatelliteEntity(C, inst.viewer.entities, {
             noradId: sat.noradId,
@@ -383,6 +394,9 @@ export function useCesium() {
 
       if (existing) {
         existing.update({ points, color });
+        // 轨道点为空(已衰减卫星外推不可靠)时隐藏轨道线,避免残留上一帧的垃圾形状
+        const ent = inst.viewer.entities.getById(`orbit-${sat.noradId}`);
+        if (ent) ent.show = points.length >= 2;
       } else {
         const trailResult = createOrbitTrail(C, inst.viewer.entities, {
           noradId: sat.noradId, points, color, isSelected: false,
@@ -670,28 +684,43 @@ export function useCesium() {
     // 转换为 Cesium.Cartesian3
     const positions = points.map(p => new Cesium.Cartesian3(p.x, p.y, p.z));
 
-    // 如果旧实体已存在,直接更新 positions(避免删除再添加导致闪烁)
-    if (inst.missionTrea01OrbitEntity) {
+    // 紫色发光轨道线(与 TREA-01 卫星颜色一致 #b366ff)
+    // disableDepthTestDistance: 禁用深度测试,让轨道线不被地球遮挡
+    // (跟踪相机 800km 近距视角下,大部分轨道位于地平线以下,会被 depthTestAgainstTerrain 遮挡)
+    const orbitColor = Cesium.Color.fromCssColorString('#b366ff').withAlpha(0.85);
+
+    // 检查旧实体是否仍在 viewer 中(热重载/StrictMode 重挂载后引用可能失效,导致更新无效)
+    const existing = inst.missionTrea01OrbitEntity;
+    const stillInViewer = existing && viewer.entities.contains(existing);
+
+    if (stillInViewer) {
+      // 旧实体有效:直接更新 positions(避免删除再添加导致闪烁)
       try {
-        inst.missionTrea01OrbitEntity.polyline.positions = new Cesium.ConstantProperty(positions);
+        existing.polyline.positions = new Cesium.ConstantProperty(positions);
+        existing.polyline.disableDepthTestDistance = new Cesium.ConstantProperty(Number.POSITIVE_INFINITY);
       } catch { /* ignore update errors */ }
       return;
     }
 
-    // 首次创建紫色发光轨道线(与 TREA-01 卫星颜色一致 #b366ff)
-    const orbitColor = Cesium.Color.fromCssColorString('#b366ff').withAlpha(0.8);
+    // 旧实体失效(已从 viewer 移除):清理引用后重新创建
+    if (existing) {
+      inst.missionTrea01OrbitEntity = null;
+    }
+
+    // 创建紫色发光轨道线(使用 raw value 格式,与 OrbitTrail 一致)
     const entity = viewer.entities.add({
       id: `trea01-orbit-${Date.now()}`,
       name: 'TREA-01 Orbit',
       polyline: {
         positions: new Cesium.ConstantProperty(positions),
-        width: new Cesium.ConstantProperty(2),
+        width: 2.5,
         material: new Cesium.PolylineGlowMaterialProperty({
           glowPower: 0.25,
           color: orbitColor,
         }),
-        arcType: new Cesium.ConstantProperty(Cesium.ArcType.NONE),
-        show: new Cesium.ConstantProperty(true),
+        arcType: Cesium.ArcType.NONE,
+        show: true,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
     });
 
@@ -1396,9 +1425,15 @@ export function useCesium() {
    *   - 无燃烧点、无推力火焰、无粒子喷射
    */
   const addOrbitTransition = useCallback(
-    (oldTle: TLEData, newTle: TLEData, time: Date) => {
+    (
+      oldTle: TLEData,
+      newTle: TLEData,
+      time: Date,
+      onSwitch?: () => void,   // t=3s 触发(卫星切新轨道)
+      onDone?: () => void       // t=5s 触发(动画结束)
+    ): (() => void) => {
       const inst = cesiumRef.current;
-      if (!inst) return;
+      if (!inst) return () => {};
       const { Cesium, viewer } = inst;
 
       // 先清理旧的变轨实体
@@ -1410,6 +1445,8 @@ export function useCesium() {
       const startTime = Date.now();
 
       // ---- 旧轨道:灰色虚线,前期完全可见,t=3s 后渐隐 ----
+      // disableDepthTestDistance: 禁用深度测试,让轨道线不被地球遮挡
+      // (与 addTrea01OrbitLine 一致:大部分轨道位于地平线以下,会被 depthTestAgainstTerrain 遮挡)
       const oldPoints = generateOrbitPointsECEF([oldTle], time, 180);
       if (oldPoints && oldPoints.length >= 2) {
         const oldPositions = oldPoints.map(p => new Cesium.Cartesian3(p.x, p.y, p.z));
@@ -1430,12 +1467,14 @@ export function useCesium() {
               dashLength: 16.0,
             }),
             arcType: new Cesium.ConstantProperty(Cesium.ArcType.NONE),
+            disableDepthTestDistance: new Cesium.ConstantProperty(Number.POSITIVE_INFINITY),
           },
         });
         inst.missionManeuverEntities.push(oldEntity);
       }
 
       // ---- 新轨道:亮青色发光粗实线,渐显后保持 ----
+      // disableDepthTestDistance: 禁用深度测试,让轨道线不被地球遮挡(与旧轨道一致)
       const newPoints = generateOrbitPointsECEF([newTle], time, 180);
       if (newPoints && newPoints.length >= 2) {
         const newPositions = newPoints.map(p => new Cesium.Cartesian3(p.x, p.y, p.z));
@@ -1455,10 +1494,25 @@ export function useCesium() {
               }, false),
             }),
             arcType: new Cesium.ConstantProperty(Cesium.ArcType.NONE),
+            disableDepthTestDistance: new Cesium.ConstantProperty(Number.POSITIVE_INFINITY),
           },
         });
         inst.missionManeuverEntities.push(newEntity);
       }
+
+      // t=3s 触发卫星切换(onSwitch),t=5s 动画结束(onDone)
+      const switchTimer = onSwitch ? setTimeout(onSwitch, 3000) : null;
+      const doneTimer = onDone ? setTimeout(onDone, 5000) : null;
+
+      // 返回 cleanup:清理 setTimeout + 变轨实体(避免 CallbackProperty 卸载后继续计算)
+      return () => {
+        if (switchTimer) clearTimeout(switchTimer);
+        if (doneTimer) clearTimeout(doneTimer);
+        inst.missionManeuverEntities.forEach(e => {
+          try { viewer.entities.remove(e); } catch { /* ignore */ }
+        });
+        inst.missionManeuverEntities = [];
+      };
     },
     []
   );

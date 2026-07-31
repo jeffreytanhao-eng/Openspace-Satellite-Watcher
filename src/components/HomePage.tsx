@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { ViewSwitcher, TimeControlBar, SatelliteList, SearchBar, SatelliteDetailPanel, ImportModal, TagManager, AudioPlayer } from '@/components/ui';
+import { ViewSwitcher, TimeControlBar, SatelliteList, SearchBar, SatelliteDetailPanel, ImportModal, AudioPlayer } from '@/components/ui';
 import type { ImportSummary } from '@/components/ui/ImportModal';
 import { useSatelliteStore, useSatellites, useSelectedSatellite, useVisibleSatellites, useViewMode } from '@/store/satelliteStore';
 import { useTimeStore } from '@/store/timeStore';
@@ -11,7 +11,7 @@ import type { SpaceObject } from '@/store/satelliteStore';
 import { buildSatellitesFromTLE, parseTLETextClient, IMPORT_LIMIT_PER_BATCH, MAX_TOTAL_SATELLITES } from '@/lib/default-satellites';
 import { inferCountryFromName } from '@/lib/translations';
 import { apiClient } from '@/lib/api/client';
-import { Upload, Tags, RefreshCw, RotateCcw, Lock, Database, Rocket, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { Upload, RefreshCw, RotateCcw, Lock, Rocket, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MissionHeader from '@/components/trea/MissionHeader';
 import TaskListPanel from '@/components/trea/TaskListPanel';
@@ -32,8 +32,6 @@ const MapLibreMap = dynamic(() => import('@/components/visualization/MapLibreMap
   ssr: false,
   loading: () => <div className="h-full flex items-center justify-center text-space-400">加载地图...</div>,
 });
-
-export interface Tag { id: string; name: string; color: string; }
 
 function normalizeSatellite(raw: any): SpaceObject {
   const tleData = (raw.tleData || []).map((t: any) => ({
@@ -162,24 +160,23 @@ export default function HomePage() {
   // TREA-01 store:任务报告与阶段(用于驱动 MissionReportModal 显示)
   const treaLastReport = useTreaLastReport();
   const treaMissionPhase = useTreaMissionPhase();
-  // 时间播放控制(退出任务中心时重置,避免影响主大屏默认 10x 播放)
-  const timeStopPlayback = useTimeStore(s => s.stopPlayback);
+  // 时间播放控制(退出任务中心时恢复缺省 10x 播放)
+  const timeStartPlayback = useTimeStore(s => s.startPlayback);
   const timeResetToNow = useTimeStore(s => s.resetToNow);
   const timeSetRate = useTimeStore(s => s.setRate);
   const [searchQuery, setSearchQuery] = useState('');
-  const [tags, setTags] = useState<Tag[]>([]);
 
   const [showImportModal, setShowImportModal] = useState(false);
-  const [showTagManager, setShowTagManager] = useState(false);
   const [isRefreshingTLE, setIsRefreshingTLE] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
+  // TLE 刷新进度：{done, total, failed}，刷新期间实时更新，用于显示"已刷新 XX/YY 颗"
+  const [refreshProgress, setRefreshProgress] = useState<{ done: number; total: number; failed: number } | null>(null);
 
   // 密码弹窗状态
   const [passwordModal, setPasswordModal] = useState<{
-    isOpen: boolean; action: 'refreshTLE' | 'uploadImage' | 'sync' | 'advanced'; noradId?: number;
+    isOpen: boolean; action: 'refreshTLE' | 'uploadImage' | 'advanced'; noradId?: number;
   }>({ isOpen: false, action: 'refreshTLE' });
-  // 高级功能解锁状态：控制"轨道数据刷新"、"数据同步"、"标签管理"三个敏感按钮的可见性
+  // 高级功能解锁状态：控制"轨道数据刷新"敏感按钮的可见性
   const [advancedUnlocked, setAdvancedUnlocked] = useState(false);
   // 图片上传授权时间戳（密码验证通过后递增，触发子组件打开文件选择器）
   const [uploadAuthTs, setUploadAuthTs] = useState<{ noradId: number; ts: number } | null>(null);
@@ -190,13 +187,10 @@ export default function HomePage() {
     async function load() {
       setIsLoading(true);
       try {
-        const [satsResp, tagsResp] = await Promise.all([
-          apiClient.getSpaceObjects(), apiClient.getTags(),
-        ]);
+        const satsResp = await apiClient.getSpaceObjects();
         const dbSats = (satsResp.data || []).map(normalizeSatellite);
         setSatellites(dbSats);
         setVisibleSatellites(dbSats.map(s => s.noradId));
-        setTags((tagsResp.data || []).map((t: any) => ({ id: t.id, name: t.name, color: t.color })));
       } catch (err) {
         console.error('Failed to load data:', err);
         const { getDefaultSatellites } = await import('@/lib/default-satellites');
@@ -328,20 +322,63 @@ export default function HomePage() {
     sessionStorage.setItem(SAVED_PASSWORD_KEY, password);
     setIsRefreshingTLE(true);
     setRefreshMessage(null);
+    setRefreshProgress({ done: 0, total: allSatellites.length, failed: 0 });
     try {
-      const headers: Record<string, string> = { 'x-admin-password': password };
       const resp = await fetch('/api/tle/refresh', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', ...headers },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
         body: JSON.stringify({}),
       });
-      const result = await resp.json();
+      // 401 密码错误：响应体仍是 JSON
       if (resp.status === 401) {
         sessionStorage.removeItem(SAVED_PASSWORD_KEY);
         setRefreshMessage('密码错误，请重试');
         return;
       }
-      if (!result.success) { setRefreshMessage(`刷新失败: ${result.error}`); return; }
-      const { updated, failed, updatedCount, failedCount, total } = result.data;
+      if (!resp.body) { setRefreshMessage('刷新失败：无响应流'); return; }
+
+      // 读取 NDJSON 流：按行解析事件 {type:'start'|'progress'|'done'|'error', ...}
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let updated: { noradId: number; name: string; line1: string; line2: string }[] = [];
+      let total = allSatellites.length;
+      let updatedCount = 0;
+      let failedCount = 0;
+      let errorMsg: string | null = null;
+      let streamEnded = false;
+
+      while (!streamEnded) {
+        const { done, value } = await reader.read();
+        if (done) { streamEnded = true; }
+        if (value) {
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // 保留最后未满一行
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            try {
+              const evt = JSON.parse(line);
+              if (evt.type === 'start') {
+                total = evt.total;
+                setRefreshProgress({ done: 0, total, failed: 0 });
+              } else if (evt.type === 'progress') {
+                setRefreshProgress({ done: evt.done, total: evt.total, failed: evt.failed });
+              } else if (evt.type === 'done') {
+                updated = evt.updated || [];
+                total = evt.total;
+                updatedCount = evt.updatedCount;
+                failedCount = evt.failedCount;
+                setRefreshProgress({ done: evt.updatedCount + evt.failedCount, total: evt.total, failed: evt.failedCount });
+              } else if (evt.type === 'error') {
+                errorMsg = evt.error;
+              }
+            } catch { /* ignore malformed line */ }
+          }
+        }
+      }
+
+      if (errorMsg) { setRefreshMessage(`刷新失败: ${errorMsg}`); return; }
       if (updatedCount === 0) { setRefreshMessage('未能获取任何卫星的最新 TLE 数据'); return; }
       const tleMap = new Map<number, { name: string; line1: string; line2: string }>();
       for (const t of updated) tleMap.set(t.noradId, t);
@@ -358,52 +395,7 @@ export default function HomePage() {
       setRefreshMessage('刷新失败，请检查网络连接');
     } finally {
       setIsRefreshingTLE(false);
-      setTimeout(() => setRefreshMessage(null), 5000);
-    }
-  };
-
-  // 数据库同步：HK ↔ Neon 双向同步
-  const handleSync = () => {
-    const savedPw = typeof window !== 'undefined' ? sessionStorage.getItem(SAVED_PASSWORD_KEY) : null;
-    if (savedPw) {
-      doSync(savedPw);
-    } else {
-      setPasswordModal({ isOpen: true, action: 'sync' });
-    }
-  };
-
-  const doSync = async (password: string) => {
-    setPasswordModal(m => ({ ...m, isOpen: false }));
-    sessionStorage.setItem(SAVED_PASSWORD_KEY, password);
-    setIsSyncing(true);
-    setRefreshMessage(null);
-    try {
-      const resp = await fetch('/api/sync', {
-        method: 'POST',
-        headers: { 'x-admin-password': password },
-      });
-      const result = await resp.json();
-      if (resp.status === 401) {
-        sessionStorage.removeItem(SAVED_PASSWORD_KEY);
-        setRefreshMessage('密码错误，请重试');
-        return;
-      }
-      if (!result.success) {
-        setRefreshMessage(`同步失败: ${result.data?.error || '未知错误'}`);
-        return;
-      }
-      const { direction, count } = result.data;
-      const dirText = direction === 'hk-to-neon' ? 'HK → Neon' : direction === 'neon-to-hk' ? 'Neon → HK' : '无需同步';
-      setRefreshMessage(`数据库同步完成：${dirText}，共 ${count} 颗卫星`);
-      // 同步后重新加载数据（同步是高级操作，加载全部卫星）
-      const satsResp = await apiClient.getSpaceObjects(true);
-      const dbSats = (satsResp.data || []).map(normalizeSatellite);
-      setSatellites(dbSats);
-      setVisibleSatellites(dbSats.map(s => s.noradId));
-    } catch {
-      setRefreshMessage('同步失败，请检查网络连接');
-    } finally {
-      setIsSyncing(false);
+      setRefreshProgress(null);
       setTimeout(() => setRefreshMessage(null), 5000);
     }
   };
@@ -494,7 +486,6 @@ export default function HomePage() {
   const handleBatchShow = (noradIds: number[]) => setVisibleSatellites([...new Set([...visibleSatellites, ...noradIds])]);
   const handleBatchHide = (noradIds: number[]) => setVisibleSatellites(visibleSatellites.filter(id => !noradIds.includes(id)));
   const handleSearch = (query: string) => setSearchQuery(query);
-  const getSatelliteTags = (_s: SpaceObject): Tag[] => [];
 
   const handlePasswordSubmit = async (password: string): Promise<boolean> => {
     // 先验证密码是否正确（调用验证API）
@@ -521,9 +512,6 @@ export default function HomePage() {
       setPasswordModal(m => ({ ...m, isOpen: false }));
       // 密码验证通过，授权打开文件选择器
       setUploadAuthTs({ noradId: passwordModal.noradId, ts: Date.now() });
-    } else if (passwordModal.action === 'sync') {
-      setPasswordModal(m => ({ ...m, isOpen: false }));
-      doSync(password);
     } else if (passwordModal.action === 'advanced') {
       setPasswordModal(m => ({ ...m, isOpen: false }));
       setAdvancedUnlocked(true);
@@ -534,22 +522,24 @@ export default function HomePage() {
   // ============================================================
   // TREA-01 任务中心:进入/退出与报告模态框控制
   // ============================================================
-  // 进入任务中心:重置报告关闭状态(上次任务的关闭状态不影响新会话)
+  // 进入任务中心:重置报告关闭状态 + 自动定位到 TREA-01(与"定位键"行为一致)
   const handleEnterMission = () => {
     setReportDismissed(false);
+    // 进入即自动持续跟踪 TREA-01:相机锁定到卫星,与点击"定位键"后的显示相同
+    useTreaMissionStore.getState().setTrea01Tracking(true);
     setMissionMode(true);
   };
 
-  // 退出任务中心:恢复到和首次打开应用一致的初始状态
-  // 1. 停止时间播放 + 重置到 now + 恢复默认 10x 速率
-  // 2. 重置 TREA-01 store(TLE/燃料/电量/任务阶段等)
+  // 退出任务中心:恢复到态势感知主页缺省状态(10x 播放 + 默认卫星轨道可见)
+  // 1. 重置到 now + 恢复默认 10x 速率 + 启动播放(缺省播放状态)
+  // 2. 重置 TREA-01 store(TLE/燃料/电量/任务阶段/跟踪状态等)
   // 3. 清除选中卫星 + 停止跟踪
-  // 4. 视角重置由 CesiumGlobe 监听 missionMode 变化自动执行
+  // 4. 视角与默认轨道由 CesiumGlobe 监听 missionMode 变化自动恢复
   const handleExitMission = () => {
-    timeStopPlayback();
     timeResetToNow();
     timeSetRate(10);
-    useTreaMissionStore.getState().reset(); // 重置 TREA-01 store
+    timeStartPlayback(); // 恢复缺省 10x 播放(若已播放则幂等)
+    useTreaMissionStore.getState().reset(); // 重置 TREA-01 store(含 trea01Tracking=false)
     setSelectedSatellite(null); // 清除选中卫星
     setTracking(null); // 停止跟踪
     setMissionMode(false);
@@ -587,8 +577,8 @@ export default function HomePage() {
             </svg>
           </div>
           <div>
-            <h1 className="text-lg font-bold text-space-100">卫星守望者</h1>
-            <p className="text-xs text-space-400">Satellite Watcher</p>
+            <h1 className="text-lg font-bold text-space-100">开放太空 - 卫星守望者</h1>
+            <p className="text-xs text-space-400">OpenSpace - Satellite Watcher</p>
           </div>
         </div>
 
@@ -599,16 +589,9 @@ export default function HomePage() {
                 onClick={handleRefreshTLE} disabled={isRefreshingTLE || allSatellites.length === 0}
                 title="从 Celestrak 同步最新 TLE 轨道数据（仅刷新TLE，不影响元数据）">
                 <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingTLE ? 'animate-spin' : ''}`} />
-                {isRefreshingTLE ? '刷新中...' : '轨道数据刷新'}
-              </Button>
-              <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300"
-                onClick={handleSync} disabled={isSyncing}
-                title="同步 HK 与 Neon 数据库（需要密码）">
-                <Database className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? '同步中...' : '数据同步'}
-              </Button>
-              <Button variant="outline" size="sm" className="h-9 bg-space-800/50 hover:bg-space-700/50 border-space-700 text-space-300" onClick={() => setShowTagManager(true)}>
-                <Tags className="h-4 w-4 mr-2" />标签管理
+                {isRefreshingTLE && refreshProgress
+                  ? `刷新中 ${refreshProgress.done}/${refreshProgress.total}`
+                  : isRefreshingTLE ? '刷新中...' : '轨道数据刷新'}
               </Button>
             </>
           )}
@@ -620,7 +603,7 @@ export default function HomePage() {
           </Button>
           <Button variant="outline" size="sm" className={`h-9 border-space-700 text-space-300 ${advancedUnlocked ? 'bg-cosmic-blue/20 border-cosmic-blue/50 text-cosmic-blue' : 'bg-space-800/50 hover:bg-space-700/50'}`}
             onClick={handleAdvancedClick}
-            title={advancedUnlocked ? '点击重新隐藏高级功能' : '输入密码解锁轨道刷新、数据同步、标签管理'}>
+            title={advancedUnlocked ? '点击重新隐藏高级功能' : '输入密码解锁轨道刷新'}>
             <Lock className="h-4 w-4 mr-2" />
             {advancedUnlocked ? '已解锁' : '高级功能'}
           </Button>
@@ -634,7 +617,7 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center">
-          <span className="text-space-500/30 text-[10px] font-medium tracking-[0.15em] pointer-events-none select-none mr-3 hidden sm:inline">谭谈 - 万智</span>
+          <span className="text-space-500/30 text-[10px] font-medium tracking-[0.15em] pointer-events-none select-none mr-3 hidden sm:inline">谭谈</span>
           <button onClick={() => setShowSidebar(!showSidebar)} className="p-2 text-space-400 hover:text-cosmic-blue transition-colors">
             {showSidebar ? '◀' : '▶'}
           </button>
@@ -642,9 +625,11 @@ export default function HomePage() {
       </header>
       )}
 
-      {!missionMode && refreshMessage && (
+      {!missionMode && (refreshMessage || (isRefreshingTLE && refreshProgress)) && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-space-800/95 backdrop-blur-sm border border-space-700 text-sm text-space-100 shadow-lg">
-          {refreshMessage}
+          {isRefreshingTLE && refreshProgress
+            ? `正在刷新轨道数据 ${refreshProgress.done}/${refreshProgress.total} 颗${refreshProgress.failed > 0 ? `（${refreshProgress.failed} 颗失败）` : ''}…`
+            : refreshMessage}
         </div>
       )}
 
@@ -674,14 +659,13 @@ export default function HomePage() {
                         onToggleVisibility={handleToggleVisibility} onSelectAll={handleSelectAll}
                         onDeselectAll={handleDeselectAll} onDeleteSatellite={handleDeleteSatellite}
                         onBatchShow={handleBatchShow} onBatchHide={handleBatchHide}
-                        onBatchDelete={handleBatchDelete} tags={tags} getSatelliteTags={getSatelliteTags}
+                        onBatchDelete={handleBatchDelete}
                       />
                     </div>
                     {selectedSatellite && (
                       <div className="border-t border-space-800 p-3">
                         <SatelliteDetailPanel
                           satellite={selectedSatellite} onClose={() => setSelectedSatellite(null)}
-                          tags={tags} getSatelliteTags={getSatelliteTags}
                           onRequestUploadAuth={handleRequestUploadAuth}
                           onImageUploadFile={handleImageUploadFile}
                           uploadGrantedAt={uploadAuthTs && uploadAuthTs.noradId === selectedSatellite.noradId ? uploadAuthTs.ts : 0}
@@ -728,8 +712,7 @@ export default function HomePage() {
           {!missionMode && (
             <div className="absolute top-4 right-4 bg-space-900/80 backdrop-blur-sm border border-space-700 rounded-lg p-3 text-xs text-space-400 z-20">
               <div className="flex items-center gap-2 mb-2"><div className="w-3 h-3 rounded-full bg-cosmic-blue"></div><span>卫星</span></div>
-              <div className="flex items-center gap-2 mb-2"><div className="w-6 h-0.5 bg-cosmic-blue/50"></div><span>轨道</span></div>
-              <div className="flex items-center gap-2"><div className="w-6 h-0.5 bg-cosmic-blue/20"></div><span>预测轨道</span></div>
+              <div className="flex items-center gap-2"><div className="w-6 h-0.5 bg-cosmic-blue/50"></div><span>轨道</span></div>
             </div>
           )}
 
@@ -778,7 +761,7 @@ export default function HomePage() {
                   </div>
                   <TreaSatelliteView />
                   <TelemetryDashboard />
-                  <ManeuverPanel onManeuverExecuted={(newTle, oldTle) => setManeuverEvent({ newTle, oldTle, id: Date.now() })} />
+                  <ManeuverPanel />
                 </div>
               )}
             </>
@@ -794,8 +777,6 @@ export default function HomePage() {
         onConstellationImported={handleConstellationImported}
         importLimit={IMPORT_LIMIT_PER_BATCH} totalLimit={MAX_TOTAL_SATELLITES} currentCount={allSatellites.length}
       />
-
-      <TagManager isOpen={showTagManager} onClose={() => setShowTagManager(false)} />
 
       {/* TREA-01 任务报告模态框:任务完成后弹出,展示 mock 遥感报告 */}
       <MissionReportModal
@@ -813,17 +794,14 @@ export default function HomePage() {
         onSubmit={handlePasswordSubmit}
         title={
           passwordModal.action === 'refreshTLE' ? 'TLE 轨道数据刷新'
-          : passwordModal.action === 'sync' ? '数据库同步'
           : passwordModal.action === 'advanced' ? '解锁高级功能'
           : '上传图片'
         }
         description={
           passwordModal.action === 'refreshTLE'
             ? '刷新操作将批量请求 Celestrak 获取最新 TLE 数据（仅刷新TLE，不影响元数据），请输入操作密码。'
-            : passwordModal.action === 'sync'
-            ? '将 HK 本地数据库与 Neon 云数据库进行双向同步，请输入操作密码。'
             : passwordModal.action === 'advanced'
-            ? '解锁后将显示轨道数据刷新、数据同步、标签管理三个功能，请输入操作密码。'
+            ? '解锁后将显示轨道数据刷新功能，请输入操作密码。'
             : '图片将永久保存到服务器，请输入操作密码。'
         }
       />

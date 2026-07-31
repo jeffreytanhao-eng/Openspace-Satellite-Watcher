@@ -2,7 +2,7 @@
 
 一个开源的 Web 端空间态势感知（SSA, Space Situational Awareness）应用，基于 TLE 轨道数据实时计算并可视化近地轨道卫星的位置与轨迹。支持 2D / 3D 双视角切换、时间回放、星座临时导入、标签管理与卫星图片管理；内置 **TREA-01 遥感任务仿真闭环**（任务规划 → 变轨可视化 → 成像仿真 → 报告导出），并集成 **AI 大模型辅助任务规划**。默认视角为东亚区域（中国上空）。
 
-**线上地址**：[https://www.wanzhixuexi.cn](https://www.wanzhixuexi.cn)（部署于阿里云香港轻量服务器）
+**线上地址**：[https://www.wanzhixuexi.cn](https://www.wanzhixuexi.cn)（部署于 Vercel）
 
 ---
 
@@ -33,6 +33,8 @@
 - **变轨可视化**：执行相位调整机动后，渲染燃烧弧 + 新旧轨道对比（旧轨道灰色虚线、新轨道青色实线），TLE 自动更新驱动位置传播切换
 - **成像仿真**：任务状态机驱动 EXECUTING → IMAGING → COMPLETED 转换，实时渲染传感器成像足迹（200km 刈幅），扫描覆盖 AOI
 - **任务报告**：任务完成后弹出报告模态框，含任务摘要、成像时间、AOI 覆盖、机动记录与模拟遥感影像，支持导出打印
+- **电影回放**：对地遥感扫描任务完成后可一键播放 4 阶段电影回放（接受任务 → 变轨飞向目标区域 → 成像扫描视频 → 任务报告），任务期间自动生成经过 AOI 上空的虚拟轨道使卫星跳转至目标区域，完成后返回原轨道；仅对地遥感任务可用，紧急避撞任务不触发
+- **紧急避撞任务**：突发碎片接近警报触发红色预警模态框，生成 3 个躲避计划（沿迹微调/径向机动/组合机动）供选择；选择计划后执行机动切换轨道，播放 6 秒避撞机动视频，随后自动回到大屏显示成功画面并演示新旧轨道对比与燃烧弧
 - **TREA-01 卫星视图**：右侧遥测面板上方展示卫星线框示意图，含跟踪按钮（点击后相机自动跟随 TREA-01 轨迹）
 - **面板折叠**：左侧"任务规划"面板与右侧"遥测仪表盘"面板均支持一键缩进折叠，大屏复位键可将视角重置为东亚上空
 
@@ -86,11 +88,11 @@
 
 | 防护层 | 机制 |
 |-------|------|
-| **Nginx 层** | 分层限流（静态资源30r/s、普通API 10r/s、导入API 60r/min、敏感操作5r/min）；每IP并发连接≤10；全局并发≤100；`client_max_body_size 5m`（适配 base64 图片上传）；隐藏版本号；HTTP→HTTPS跳转 |
+| **Vercel 平台层** | 自带 DDoS 防护、全球 CDN 加速、自动 HTTPS；Serverless Functions 自动扩缩容 |
 | **Next.js Middleware 层** | 内存级 IP 限流；全局并发≤50 返回 503；安全响应头（X-Frame-Options、X-Content-Type-Options、CSP） |
 | **API 参数校验层** | Celestrak GROUP 白名单防注入；搜索参数长度≤100字符；pageSize 上限100；导入结果截断到100颗；星座导入过滤非 PAYLOAD；AI 路由输入校验 + 55s 超时 |
 | **密码验证** | `crypto.timingSafeEqual` 时序安全比较；敏感操作（TLE刷新、图片上传）需先经 `/api/admin/verify` 前置校验；密码保存在 sessionStorage |
-| **密钥隔离** | LLM API key/EP 通过环境变量读取，仅存于服务器（`.env.local` / Vercel / ecosystem.config.cjs），绝不返回前端；`.env.local` 已在 `.gitignore` |
+| **密钥隔离** | LLM API key/EP 通过环境变量读取，仅存于 Vercel 服务器环境变量（`.env.local` 本地开发），绝不返回前端；`.env.local` 已在 `.gitignore` |
 
 ---
 
@@ -131,14 +133,19 @@ src/
 ├── components/
 │   ├── HomePage.tsx          # 主页面布局与逻辑（含密码弹窗、任务模式切换、面板折叠）
 │   ├── trea/                 # TREA-01 任务中心组件
-│   │   ├── MissionHeader.tsx       # 任务中心顶部栏
+│   │   ├── MissionHeader.tsx       # 任务中心顶部栏（含电影回放按钮）
 │   │   ├── TaskListPanel.tsx       # 任务规划面板（过境窗口 + AI 辅助按钮）
 │   │   ├── AiPlanningModal.tsx    # AI 规划结果展示模态框
 │   │   ├── TelemetryDashboard.tsx  # 遥测仪表盘
 │   │   ├── TreaSatelliteView.tsx   # TREA-01 卫星线框示意图 + 跟踪
 │   │   ├── ManeuverPanel.tsx       # 变轨控制面板
 │   │   ├── MissionSimulator.tsx    # 任务仿真状态机（纯逻辑）
-│   │   └── MissionReportModal.tsx  # 任务报告模态框（含导出）
+│   │   ├── MissionReportModal.tsx  # 任务报告模态框（含导出）
+│   │   ├── CinematicController.tsx # 电影回放控制器（4 阶段流程调度）
+│   │   ├── CinematicOverlay.tsx    # 电影回放 UI 覆盖层（字幕/视频/报告）
+│   │   ├── ScanVideoModal.tsx      # 成像扫描视频播放窗口
+│   │   ├── AvoidanceVideoModal.tsx # 避撞机动视频播放窗口
+│   │   └── CollisionAlertModal.tsx # 碰撞警报模态框（躲避计划选择）
 │   ├── ui/                   # 业务 UI 组件
 │   │   ├── ImportModal.tsx       # 导入弹窗（支持滚动）
 │   │   ├── SatelliteDetailPanel.tsx  # 卫星详情面板
@@ -155,10 +162,15 @@ src/
 │   ├── api/client.ts         # API 客户端
 │   ├── security.ts           # 密码验证（timingSafeEqual）
 │   ├── tle/                  # TLE 解析与轨道计算（SSOT）
+│   │   ├── parser.ts            # TLE 解析
+│   │   ├── orbit.ts             # SGP4 轨道传播与参数计算
+│   │   ├── generateMissionTle.ts # 生成经过 AOI 上空的虚拟任务轨道 TLE
+│   │   └── tleFormat.ts        # TLE 字段替换与校验和工具
 │   ├── trea/                 # TREA-01 任务逻辑
 │   │   ├── constants.ts        # AOI 定义、传感器参数、初始 TLE
 │   │   ├── access.ts           # 过境窗口计算（仰角/持续时间）
 │   │   ├── ai-prompt.ts        # AI Prompt 设计（SSOT）+ 请求体构造
+│   │   ├── cinematicShots.ts   # 电影回放镜头脚本（4 阶段配置）
 │   │   └── report.ts           # 任务报告生成
 │   ├── prisma.ts             # Prisma 客户端
 │   ├── translations.ts       # 国家/类型翻译
@@ -167,17 +179,15 @@ src/
 └── store/                    # Zustand 状态
     ├── satelliteStore.ts      # 卫星列表/选中/跟踪
     ├── timeStore.ts           # 时间播放（默认 10x）
-    └── treaMissionStore.ts    # TREA-01 任务状态（TLE/轨道/燃料/任务阶段）
-
-deploy/
-└── nginx-secure.conf         # Nginx 安全加固配置（含限流）
+    ├── treaMissionStore.ts    # TREA-01 任务状态（TLE/轨道/燃料/任务阶段/避撞）
+    └── cinematicStore.ts      # 电影回放播放状态（当前镜头/暂停/已用时长）
 
 prisma/
 └── schema.prisma             # 数据库模型定义
 
 public/
 ├── models/                   # 预置 3D 模型（GLB）
-├── trea/                     # TREA-01 任务模拟遥感影像
+├── trea/                     # TREA-01 资源（模拟遥感影像 + 成像/避撞视频）
 └── cesium/                   # Cesium 静态资源（Workers、Assets）
 ```
 
@@ -187,30 +197,25 @@ public/
 
 ```
 ┌─────────────┐    HTTPS     ┌──────────────────────────┐    HTTPS   ┌──────────────────┐
-│  国内用户    │ ───────────→ │ 阿里云香港轻量服务器       │ ────────→ │ Celestrak / NASA │
-│             │  (BGP线路)   │                          │           │ (外部数据API)     │
-│             │              │  Nginx (443)             │           └──────────────────┘
-│             │              │  · SSL终端                │
-│             │              │  · IP限流/并发限制         │
-│             │              │  · 静态缓存/Gzip          │
-│             │              │    ↓ proxy_pass          │
-│             │              │  PM2 → Next.js (3000)    │
-│             │              │  · SSR页面/API            │
+│  全球用户    │ ───────────→ │  Vercel (Serverless)      │ ────────→ │ Celestrak / NASA │
+│             │   (CDN)     │                          │           │ (外部数据API)     │
+│             │              │  · 自动 HTTPS / CDN       │           └──────────────────┘
+│             │              │  · Next.js SSR + API      │
 │             │              │  · API内存缓存             │
-│             │              │  · 密码验证+限流           │ ────┐
-│             │              │  · 客户端状态隔离          │     │
+│             │              │  · 密码验证+限流           │
+│             │              │  · 客户端状态隔离          │ ────┐
+│             │              │                          │     │
 │             │              │                          │     ↓
-│             │              │                          │  PostgreSQL (本地)
+│             │              │                          │  Vercel Postgres (Neon)
 │             │              │                          │  · 13颗默认卫星
 │             │              │                          │  · TLE/标签/图片
 └─────────────┘              └──────────────────────────┘
 ```
 
-核心链路：**国内用户 → 香港轻量服务器（Nginx + Next.js + 本地 PostgreSQL）→ 外部 API（Celestrak/NASA）**
+核心链路：**全球用户 → Vercel（Next.js Serverless + Vercel Postgres）→ 外部 API（Celestrak/NASA）**
 
-- **Nginx**：HTTPS 终端（Let's Encrypt）、HTTP→HTTPS、IP 频率限制、并发连接限制、静态资源缓存、Gzip、安全响应头、隐藏版本信息
-- **PM2**：进程守护、开机自启、内存限制（512MB）
-- **本地 PostgreSQL**：卫星数据存储，API 响应 <25ms（首次 ~200ms + 内存缓存 5min TTL）
+- **Vercel 平台**：自动 HTTPS、全球 CDN 加速、Serverless Functions 自动扩缩容、零运维
+- **Vercel Postgres (Neon)**：云原生 PostgreSQL，卫星数据存储，自动备份
 - **API 内存缓存**：`/api/space-objects` 等读接口 5 分钟 TTL 缓存，缓存命中 <25ms
 
 ### 数据模型说明
@@ -259,7 +264,7 @@ npm run dev
 | `LLM_API_URL` | LLM 接入点 base URL（如 `https://ark.cn-beijing.volces.com/api/v3`） | AI 功能必填 |
 | `LLM_MODEL` | LLM 模型 EP（如 `ep-xxxxxxxxxxxx-xxxxxx`） | AI 功能必填 |
 
-> LLM 凭据仅存于服务器端（`.env.local` / Vercel 环境变量 / `ecosystem.config.cjs`），已在 `.gitignore`，不入库。未配置时 AI 路由返回 503 `MISSING_CONFIG`，其余功能不受影响。
+> LLM 凭据仅存于服务器端（`.env.local` 本地开发 / Vercel 环境变量），已在 `.gitignore`，不入库。未配置时 AI 路由返回 503 `MISSING_CONFIG`，其余功能不受影响。
 
 ### 默认卫星
 
@@ -285,39 +290,19 @@ npm run dev
 
 ## 部署方式
 
-### 方式一：Vercel（零配置）
+### Vercel 部署（零配置，推荐）
 
 1. 将代码推送到 GitHub
 2. 在 Vercel 控制台导入仓库
-3. 添加环境变量：`DATABASE_URL`、`POSTGRES_URL_NON_POOLING`、`ADMIN_PASSWORD`、`LLM_API_KEY`、`LLM_API_URL`、`LLM_MODEL`
-4. Deploy
-5. AI 路由已配置 `maxDuration = 60`，Hobby plan 支持（AI 调用实测 ~23s）；添加环境变量后需 Redeploy 生效
-
-### 方式二：自建香港轻量服务器（当前生产环境）
-
-适用于国内用户访问、免备案场景。
-
-详细部署文档参见 [HK_Deploy.md](./HK_Deploy.md)。
-
-部署要点：
-- 服务器安装本地 PostgreSQL，数据存储在本地，API 响应 <25ms
-- 一键部署脚本 `deploy.ps1`：自动上传、解压、迁移、启动
-- Nginx 配置 SSL + 限流（使用 [deploy/nginx-secure.conf](./deploy/nginx-secure.conf)）
-- PM2 进程管理 + API 内存缓存（5min TTL）
-- LLM 环境变量在 `ecosystem.config.cjs` 的 `env` 中声明（该文件在 `.gitignore`，不入库）
+3. 创建 Vercel Postgres 数据库（Storage → Create Database → Postgres）
+4. 添加环境变量：`DATABASE_URL`（使用 `POSTGRES_URL_NON_POOLING` 值）、`ADMIN_PASSWORD`、`LLM_API_KEY`、`LLM_API_URL`、`LLM_MODEL`
+5. Deploy
+6. 部署成功后，在本地执行 `npm run db:seed` 初始化数据库表结构和种子数据
+7. AI 路由已配置 `maxDuration = 60`，Hobby plan 支持（AI 调用实测 ~23s）；添加环境变量后需 Redeploy 生效
 
 ### 部署更新流程
 
-```powershell
-# 1. 本地构建
-npm run build
-
-# 2. 打包（含 node_modules，非 standalone）
-tar -czf app-pkg.tar.gz .next public node_modules ecosystem.config.cjs package.json
-
-# 3. 一键部署
-powershell -ExecutionPolicy Bypass -File deploy.ps1
-```
+代码推送到 GitHub 后，Vercel 自动检测并重新部署，无需手动操作。
 
 ---
 

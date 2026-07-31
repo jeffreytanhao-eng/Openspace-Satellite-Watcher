@@ -39,16 +39,9 @@ graphify-out/
 app-pkg/
 app-pkg.tar.gz
 
-# Server config backup
-satellite-nginx.conf
-
 # Environment files
-.env.hk
 .env.production
 .env.vercel
-
-# PM2 config (contains secrets)
-ecosystem.config.cjs
 
 # IDE internal
 .trae/

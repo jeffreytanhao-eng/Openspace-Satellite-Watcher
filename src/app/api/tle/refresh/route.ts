@@ -73,75 +73,108 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: '需要密码验证' }, { status: 401 });
   }
 
-  try {
-    // 从数据库获取所有已存在的卫星ID（不接受前端传来的ID，避免临时导入的卫星被写入DB）
-    const dbSatellites = await prisma.spaceObject.findMany({ select: { noradId: true } });
-    const noradIds = dbSatellites.map(s => s.noradId);
-    if (noradIds.length === 0) {
-      return NextResponse.json({ success: false, error: '数据库中没有卫星数据，请先初始化种子数据' }, { status: 400 });
-    }
-    if (noradIds.length > 200) {
-      return NextResponse.json({ success: false, error: `卫星数量过多(${noradIds.length})，单次最多刷新 200 颗` }, { status: 400 });
-    }
-
-    const updated: ParsedTLE[] = [];
-    const failed: { noradId: number; reason: string }[] = [];
-
-    for (let i = 0; i < noradIds.length; i += CONCURRENCY) {
-      const chunk = noradIds.slice(i, i + CONCURRENCY);
-      const results = await Promise.all(chunk.map(id => fetchOne(id)));
-      results.forEach((res, idx) => {
-        if (res.ok && res.data) updated.push(res.data);
-        else failed.push({ noradId: chunk[idx], reason: res.error || '未知错误' });
-      });
-    }
-
-    // 写入数据库
-    let savedCount = 0;
-    try {
-      for (const tle of updated) {
-        // 查找对应的卫星
-        const spaceObject = await prisma.spaceObject.findUnique({ where: { noradId: tle.noradId } });
-        if (spaceObject) {
-          const epoch = new Date(tle.epoch);
-          await prisma.tLEData.upsert({
-            where: {
-              spaceObjectId_epoch: { spaceObjectId: spaceObject.id, epoch },
-            },
-            update: {
-              line1: tle.line1,
-              line2: tle.line2,
-              source: Source.CELESTRAK_API,
-            },
-            create: {
-              spaceObjectId: spaceObject.id,
-              line1: tle.line1,
-              line2: tle.line2,
-              epoch,
-              source: Source.CELESTRAK_API,
-            },
-          });
-          savedCount++;
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (obj: Record<string, unknown>) => {
+        try {
+          controller.enqueue(encoder.encode(JSON.stringify(obj) + '\n'));
+        } catch {
+          // client may have disconnected
         }
-      }
-    } catch (dbError) {
-      console.error('Save TLE to DB error:', dbError);
-      // DB写入失败不影响前端返回数据
-    }
+      };
+      try {
+        // 从数据库获取所有已存在的卫星ID（不接受前端传来的ID，避免临时导入的卫星被写入DB）
+        const dbSatellites = await prisma.spaceObject.findMany({ select: { noradId: true } });
+        const noradIds = dbSatellites.map(s => s.noradId);
+        if (noradIds.length === 0) {
+          send({ type: 'error', error: '数据库中没有卫星数据，请先初始化种子数据' });
+          controller.close();
+          return;
+        }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        updated,
-        failed,
-        saved: savedCount,
-        total: noradIds.length,
-        updatedCount: updated.length,
-        failedCount: failed.length,
-      },
-    });
-  } catch (error) {
-    console.error('TLE refresh error:', error);
-    return NextResponse.json({ success: false, error: 'TLE 数据刷新失败，请稍后重试' }, { status: 500 });
-  }
+        // 通知前端：开始刷新，告知总数，便于显示 "已刷新 0/总数"
+        send({ type: 'start', total: noradIds.length });
+
+        const updated: ParsedTLE[] = [];
+        const failed: { noradId: number; reason: string }[] = [];
+
+        // 分批拉取 Celestrak：每批 CONCURRENCY 颗并发，每批完成后推送进度
+        for (let i = 0; i < noradIds.length; i += CONCURRENCY) {
+          const chunk = noradIds.slice(i, i + CONCURRENCY);
+          const results = await Promise.all(chunk.map(id => fetchOne(id)));
+          results.forEach((res, idx) => {
+            if (res.ok && res.data) updated.push(res.data);
+            else failed.push({ noradId: chunk[idx], reason: res.error || '未知错误' });
+          });
+          // 推送实时进度：已刷新(updated) / 总数，含失败数
+          send({
+            type: 'progress',
+            updated: updated.length,
+            failed: failed.length,
+            done: updated.length + failed.length,
+            total: noradIds.length,
+          });
+        }
+
+        // 写入数据库
+        let savedCount = 0;
+        try {
+          for (const tle of updated) {
+            // 查找对应的卫星
+            const spaceObject = await prisma.spaceObject.findUnique({ where: { noradId: tle.noradId } });
+            if (spaceObject) {
+              const epoch = new Date(tle.epoch);
+              await prisma.tLEData.upsert({
+                where: {
+                  spaceObjectId_epoch: { spaceObjectId: spaceObject.id, epoch },
+                },
+                update: {
+                  line1: tle.line1,
+                  line2: tle.line2,
+                  source: Source.CELESTRAK_API,
+                },
+                create: {
+                  spaceObjectId: spaceObject.id,
+                  line1: tle.line1,
+                  line2: tle.line2,
+                  epoch,
+                  source: Source.CELESTRAK_API,
+                },
+              });
+              savedCount++;
+            }
+          }
+        } catch (dbError) {
+          console.error('Save TLE to DB error:', dbError);
+          // DB写入失败不影响前端返回数据
+        }
+
+        // 通知前端：完成，附带最终汇总数据(兼容旧字段)
+        send({
+          type: 'done',
+          updated,
+          failed,
+          saved: savedCount,
+          total: noradIds.length,
+          updatedCount: updated.length,
+          failedCount: failed.length,
+        });
+      } catch (error) {
+        console.error('TLE refresh error:', error);
+        send({ type: 'error', error: 'TLE 数据刷新失败，请稍后重试' });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  // 以 NDJSON 流返回，前端按行读取实时进度
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'application/x-ndjson; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
 }

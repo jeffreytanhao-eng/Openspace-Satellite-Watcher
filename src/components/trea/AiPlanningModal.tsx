@@ -12,7 +12,7 @@
 //   - 成功态:推荐 AOI 卡片 + AOI 评分对比 + 推理/风险/执行计划分节
 //   - 置信度进度条 + 耗时显示
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, Loader2, Zap, Shield, ListChecks, Brain, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,6 +49,8 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
   // SSR 安全:确保 document 可用后再渲染 portal(脱离 TaskListPanel 的 stacking context)
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  // 加载起始时间戳(用 ref 记录,配合定时器实时读秒,减少用户等待焦虑)
+  const loadingStartRef = useRef<number>(0);
   // 加载阶段进度:每 3 秒推进一个阶段,给用户"分析正在进行"的感知
   // LLM 实际是单次请求,这里用定时器模拟分阶段(避免一直显示同一个文案)
   const [stage, setStage] = useState(0);
@@ -63,9 +65,22 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
     return () => clearInterval(timer);
   }, [status]);
 
+  // 实时计时:加载期间每 100ms 更新已耗时,让"已耗时 X.X 秒"实时读秒递增
+  useEffect(() => {
+    if (status !== 'loading') return;
+    const timer = setInterval(() => {
+      setElapsedMs(Date.now() - loadingStartRef.current);
+    }, 100);
+    return () => clearInterval(timer);
+  }, [status]);
+
   // 模态框打开时自动调用 AI
+  // 记录加载起始时间,供实时计时 effect 使用;调用结束后用同一基准计算最终耗时
   useEffect(() => {
     if (!isOpen) return;
+    // 记录加载起始时间(供实时计时 effect 每 100ms 读取),并重置耗时显示
+    loadingStartRef.current = Date.now();
+    setElapsedMs(0);
     setStatus('loading');
     setResult(null);
     setErrorMsg('');
@@ -73,11 +88,11 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
     let cancelled = false;
     (async () => {
       try {
-        const t0 = Date.now();
         const r = await onInvoke();
         if (cancelled) return;
         setResult(r);
-        setElapsedMs(Date.now() - t0);
+        // 用同一基准计算最终耗时,保证与加载期间读秒连续
+        setElapsedMs(Date.now() - loadingStartRef.current);
         setStatus('success');
       } catch (e) {
         if (cancelled) return;
@@ -93,14 +108,16 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
   if (!isOpen) return null;
 
   const handleRetry = () => {
+    // 重试时重置计时基准,让读秒从 0 重新开始递增
+    loadingStartRef.current = Date.now();
+    setElapsedMs(0);
     setStatus('loading');
     setErrorMsg('');
     (async () => {
       try {
-        const t0 = Date.now();
         const r = await onInvoke();
         setResult(r);
-        setElapsedMs(Date.now() - t0);
+        setElapsedMs(Date.now() - loadingStartRef.current);
         setStatus('success');
       } catch (e) {
         setErrorMsg(e instanceof Error ? e.message : String(e));

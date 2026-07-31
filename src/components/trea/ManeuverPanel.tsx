@@ -8,7 +8,7 @@
 // 机动计算:src/lib/trea/maneuver.ts(纯函数)
 // Cesium 通知:通过 onManeuverExecuted 回调,由父组件处理轨道对比可视化
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import { Orbit, Zap, Fuel, History, AlertTriangle, Gauge, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -163,9 +163,10 @@ interface SuggestionCardProps {
   suggestion: SuggestedManeuver | null;
   fuel: number;
   onExecute: () => void;
+  disabled?: boolean;
 }
 
-function SuggestionCard({ suggestion, fuel, onExecute }: SuggestionCardProps) {
+function SuggestionCard({ suggestion, fuel, onExecute, disabled = false }: SuggestionCardProps) {
   if (!suggestion) {
     return (
       <div className="px-3 py-2 bg-space-800 border border-space-700 rounded-lg">
@@ -226,11 +227,11 @@ function SuggestionCard({ suggestion, fuel, onExecute }: SuggestionCardProps) {
         size="sm"
         className="w-full h-8 bg-orange-600 hover:bg-orange-500 text-white border-orange-500"
         onClick={onExecute}
-        disabled={!fuelSufficient}
-        title={fuelSufficient ? '执行变轨机动' : '燃料不足,无法执行'}
+        disabled={!fuelSufficient || disabled}
+        title={!fuelSufficient ? '燃料不足,无法执行' : disabled ? '变轨进行中,请等待' : '执行变轨机动'}
       >
         <Rocket className="h-3.5 w-3.5 mr-1.5" />
-        {fuelSufficient ? '执行变轨' : '燃料不足'}
+        {disabled ? '变轨中…' : fuelSufficient ? '执行变轨' : '燃料不足'}
       </Button>
     </div>
   );
@@ -302,31 +303,51 @@ export default function ManeuverPanel({
 }: ManeuverPanelProps) {
   const tle = useTreaTle();
   const fuel = useTreaFuel();
-  const executeManeuver = useTreaMissionStore(state => state.executeManeuver);
+  const prepareManeuver = useTreaMissionStore(state => state.prepareManeuver);
+  const maneuverAnimationPhase = useTreaMissionStore(state => state.maneuverAnimationPhase);
+  const lastAvoidanceExecution = useTreaMissionStore(state => state.lastAvoidanceExecution);
+  const setManeuverAnimationPhase = useTreaMissionStore(state => state.setManeuverAnimationPhase);
 
   // 计算建议机动(依赖 tle,机动后自动重算)
   const suggestion = useMemo(() => {
     return suggestManeuver(tle, accessWindows);
   }, [tle, accessWindows]);
 
-  // 执行变轨
+  // 变轨动画进行中(running/committed/done)期间禁止再次执行:
+  // 1. 防止连点导致重复动画/重复 commit
+  // 2. 两次变轨间隔至少一个动画周期(约 5s),避免轨道半长轴累积下降到退化
+  const isManeuvering = maneuverAnimationPhase !== 'idle';
+
+  // 手动变轨动画结束(phase='done' 且来自 ManeuverPanel)→ 复位为 'idle',重新允许执行
+  // 避撞路径的 'done' 由 CollisionAlertModal 自行复位,这里不干预
+  useEffect(() => {
+    if (
+      maneuverAnimationPhase === 'done' &&
+      lastAvoidanceExecution?.planId === 'manual'
+    ) {
+      // 延迟 300ms 让 CesiumGlobe 先清理变轨实体再复位
+      const timer = setTimeout(() => setManeuverAnimationPhase('idle'), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [maneuverAnimationPhase, lastAvoidanceExecution, setManeuverAnimationPhase]);
+
+  // 执行变轨:走 prepare/commit 流程(t=3s 卫星切新轨道,t=5s 旧轨道渐隐完成)
   const handleExecute = useCallback(() => {
     if (!suggestion) return;
-    if (fuel < suggestion.fuelCost) return; // 安全检查
+    if (fuel < suggestion.fuelCost) return; // 燃料安全检查
+    if (isManeuvering) return; // 冷却期防连点
 
     // 转换为有符号 ΔV:prograde = +, retrograde = -
     const signedDeltaV =
       suggestion.direction === 'prograde' ? +suggestion.deltaV : -suggestion.deltaV;
 
-    // 捕获旧 TLE(执行前),用于回调通知 Cesium 渲染轨道对比
-    const oldTle = tle;
+    // prepare:暂存 newTle + 启动 5s 动画,t=3s 时 commitAvoidanceManeuver 提交
+    // 不再立即更新 tle,卫星在动画 t=0~3s 仍在原轨道,t=3s 后才切到新轨道
+    prepareManeuver(suggestion.newTle, signedDeltaV, suggestion.fuelCost);
 
-    // 调用 store 执行机动(更新 tle、燃料、历史)
-    executeManeuver(signedDeltaV, suggestion.newTle, suggestion.fuelCost);
-
-    // 通知父组件渲染 Cesium 新旧轨道对比
-    onManeuverExecuted?.(suggestion.newTle, oldTle);
-  }, [suggestion, fuel, tle, executeManeuver, onManeuverExecuted]);
+    // 兼容旧回调(若有外部监听需要)
+    onManeuverExecuted?.(suggestion.newTle, tle);
+  }, [suggestion, fuel, isManeuvering, tle, prepareManeuver, onManeuverExecuted]);
 
   return (
     <div
@@ -336,13 +357,16 @@ export default function ManeuverPanel({
       <div className="flex items-center gap-2 px-1 pb-1 border-b border-space-800">
         <Gauge className="h-4 w-4 text-cosmic-purple" />
         <h2 className="text-sm font-bold text-space-100">变轨控制</h2>
+        {isManeuvering && (
+          <span className="ml-auto text-[10px] text-orange-400 animate-pulse">变轨进行中…</span>
+        )}
       </div>
 
       {/* 当前轨道参数 */}
       <OrbitParamsCard />
 
       {/* 建议机动 + 执行按钮 */}
-      <SuggestionCard suggestion={suggestion} fuel={fuel} onExecute={handleExecute} />
+      <SuggestionCard suggestion={suggestion} fuel={fuel} onExecute={handleExecute} disabled={isManeuvering} />
 
       {/* 燃料状态 */}
       <FuelStatusCard />

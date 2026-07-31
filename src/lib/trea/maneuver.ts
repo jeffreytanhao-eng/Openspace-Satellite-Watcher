@@ -332,26 +332,32 @@ export function suggestManeuver(
       description,
     };
   } catch {
-    // 机动后轨道退化(半长轴过小),返回一个更保守的建议
+    // 机动后轨道退化(半长轴过小),尝试更保守的相位偏移
     const safePhaseShift = 3; // 3° 是安全的保守值
     const safeResult = computeAlongTrackDeltaV(currentTle, safePhaseShift);
     const safeSignedDV =
       safeResult.direction === 'prograde' ? +safeResult.deltaV : -safeResult.deltaV;
-    const safeNewTle = applyManeuver(currentTle, safeSignedDV);
-    const safeFuelCost = estimateFuelCost(safeResult.deltaV);
-    const safeDirectionLabel =
-      safeResult.direction === 'prograde' ? '正向(prograde)' : '逆向(retrograde)';
-    const safeDescription =
-      `当前访问窗口数 ${accessWindows.length} < ${minWindows}。` +
-      `目标相位偏移 ${targetPhaseShift}° 过大(ΔV=${deltaV.toFixed(2)} m/s)会导致轨道退化,` +
-      `已自动降级为 ${safePhaseShift}°(${safeDirectionLabel}):` +
-      `ΔV = ${safeResult.deltaV.toFixed(2)} m/s,燃料消耗 ${safeFuelCost.toFixed(2)}%。`;
-    return {
-      deltaV: safeResult.deltaV,
-      direction: safeResult.direction,
-      newTle: safeNewTle,
-      fuelCost: safeFuelCost,
-      description: safeDescription,
-    };
+    try {
+      const safeNewTle = applyManeuver(currentTle, safeSignedDV);
+      const safeFuelCost = estimateFuelCost(safeResult.deltaV);
+      const safeDirectionLabel =
+        safeResult.direction === 'prograde' ? '正向(prograde)' : '逆向(retrograde)';
+      const safeDescription =
+        `当前访问窗口数 ${accessWindows.length} < ${minWindows}。` +
+        `目标相位偏移 ${targetPhaseShift}° 过大(ΔV=${deltaV.toFixed(2)} m/s)会导致轨道退化,` +
+        `已自动降级为 ${safePhaseShift}°(${safeDirectionLabel}):` +
+        `ΔV = ${safeResult.deltaV.toFixed(2)} m/s,燃料消耗 ${safeFuelCost.toFixed(2)}%。`;
+      return {
+        deltaV: safeResult.deltaV,
+        direction: safeResult.direction,
+        newTle: safeNewTle,
+        fuelCost: safeFuelCost,
+        description: safeDescription,
+      };
+    } catch {
+      // 连续变轨导致轨道已过低(半长轴接近地球半径),任何机动都会退化
+      // 返回 null:不再建议机动,执行按钮不显示,避免崩溃
+      return null;
+    }
   }
 }

@@ -7,24 +7,30 @@
 // 视图状态机:
 //   'alert'  → 显示警报详情 + "立即制定躲避计划" 按钮
 //   'plans'  → 显示 3 个躲避计划卡片供用户选择
-//   'executing' → 显示执行中动画(1.5s)
-//   'success' → 显示成功提示 + 关闭按钮
-// 选择计划后调用 executeCollisionAvoidance → store 设置 lastAvoidanceExecution
-// → HomePage 监听并设置 maneuverEvent → CesiumGlobe 渲染变轨演示
+//   'executing' → 显示执行中动画(1.5s),随后切换轨道(执行机动)
+//   'success' → 机动执行后显示成功窗口(无遮罩,大屏可见变轨演示),
+//              提供"查看回放"(播放6秒视频)和"退出"(直接回退大屏)两个按钮
+//   'video'  → 点击"查看回放"后播放 6 秒避撞机动视频,播完自动回退大屏
+// 选择计划后 prepareAvoidanceManeuver → store 设置 lastAvoidanceExecution(不立即更新 tle)
+// → HomePage 监听并设置 maneuverEvent → CesiumGlobe 播放 5s 变轨动画
+// (t=3s commitAvoidanceManeuver 切换 tle → 卫星切新轨道,t=5s 弹出成功窗口)
 // ============================================================
 
 import { useState, useEffect } from 'react';
 import { AlertTriangle, X, Satellite, Zap, Gauge, Clock, Rocket, CheckCircle2, ChevronRight, Fuel, TrendingDown, Target } from 'lucide-react';
 import { useCollisionAlert, useTreaMissionStore, useAvoidancePlans } from '@/store/treaMissionStore';
+import AvoidanceVideoModal from '@/components/trea/AvoidanceVideoModal';
 
-type View = 'alert' | 'plans' | 'executing' | 'success';
+type View = 'alert' | 'plans' | 'executing' | 'maneuvering' | 'video' | 'success';
 
 export default function CollisionAlertModal() {
   const alert = useCollisionAlert();
   const plans = useAvoidancePlans();
   const dismissCollisionAlert = useTreaMissionStore(s => s.dismissCollisionAlert);
   const generateAvoidancePlans = useTreaMissionStore(s => s.generateAvoidancePlans);
-  const executeCollisionAvoidance = useTreaMissionStore(s => s.executeCollisionAvoidance);
+  const prepareAvoidanceManeuver = useTreaMissionStore(s => s.prepareAvoidanceManeuver);
+  const maneuverAnimationPhase = useTreaMissionStore(s => s.maneuverAnimationPhase);
+  const setManeuverAnimationPhase = useTreaMissionStore(s => s.setManeuverAnimationPhase);
 
   const [view, setView] = useState<View>('alert');
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -44,6 +50,15 @@ export default function CollisionAlertModal() {
       setSelectedPlanId(null);
     }
   }, [alert]);
+
+  // 监听变轨动画结束(phase='done')→ 弹出成功窗口
+  // 注意:必须放在 if(!alert) return null 之前,否则 alert 为 null 时 hooks 数量不一致报错
+  useEffect(() => {
+    if (maneuverAnimationPhase === 'done' && view === 'maneuvering') {
+      setView('success');
+      setManeuverAnimationPhase('idle');
+    }
+  }, [maneuverAnimationPhase, view, setManeuverAnimationPhase]);
 
   if (!alert) return null;
 
@@ -66,14 +81,14 @@ export default function CollisionAlertModal() {
     setView('plans');
   };
 
-  // 选择躲避计划:执行机动 + 切换到 executing → success
+  // 选择躲避计划:显示执行中动画(1.5s)→ prepare(启动动画+设置 lastAvoidanceExecution)→ 返回大屏观看变轨动画
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId);
     setView('executing');
-    // 模拟执行 1.5s 后切换到成功视图
+    // 1.5s 执行进度条后:prepare(不立即更新 tle,卫星仍在原轨道),返回大屏观看 5s 变轨动画
     setTimeout(() => {
-      executeCollisionAvoidance(planId);
-      setView('success');
+      prepareAvoidanceManeuver(planId);
+      setView('maneuvering');
     }, 1500);
   };
 
@@ -121,14 +136,37 @@ export default function CollisionAlertModal() {
   }
 
   // ============================================================
+  // 视图:变轨动画演示中(轻量顶部提示,不遮罩大屏)
+  // ============================================================
+  if (view === 'maneuvering') {
+    return (
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
+        <div className="px-4 py-2 rounded-lg bg-slate-950/80 border border-cyan-500/40 backdrop-blur-sm shadow-lg">
+          <div className="flex items-center gap-2 text-xs text-cyan-300">
+            <Satellite className="h-3.5 w-3.5 animate-pulse" />
+            <span>变轨动画演示中…</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // 视图:避撞回放视频(用户点击"查看回放"后播放,播完自动回退大屏)
+  // ============================================================
+  if (view === 'video') {
+    return <AvoidanceVideoModal onEnded={() => dismissCollisionAlert()} />;
+  }
+
+  // ============================================================
   // 视图:执行成功
   // ============================================================
   if (view === 'success') {
     const plan = plans.find(p => p.id === selectedPlanId);
     return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-auto">
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-        <div className="relative w-[440px] max-w-[90vw] rounded-2xl border-2 border-emerald-500 bg-slate-950 shadow-2xl overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+        {/* 无全屏遮罩:让用户看到大屏变轨演示,仅卡片可交互 */}
+        <div className="relative w-[440px] max-w-[90vw] rounded-2xl border-2 border-emerald-500 bg-slate-950 shadow-2xl overflow-hidden pointer-events-auto">
           {/* 顶部条 */}
           <div className="flex items-center gap-2 px-5 py-3 bg-emerald-500/15 border-b border-emerald-500/30">
             <CheckCircle2 className="h-5 w-5 text-emerald-400" />
@@ -168,19 +206,28 @@ export default function CollisionAlertModal() {
 
             <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
               <p className="text-xs text-emerald-200">
-                ✓ 轨道已调整,预测最近距离提升至 {plan?.missDistanceAfter.toFixed(1)} km,碰撞风险已规避。大屏正在演示新旧轨道对比与燃烧弧。
+                ✓ 轨道已调整,预测最近距离提升至 {plan?.missDistanceAfter.toFixed(1)} km,碰撞风险已规避。大屏已演示新旧轨道对比,变轨机动完成。
               </p>
             </div>
           </div>
 
-          {/* 底部按钮 */}
-          <div className="px-5 py-3 bg-slate-900/80 border-t border-slate-700">
+          {/* 底部按钮:查看回放(播放6秒视频)+ 退出(直接回退大屏) */}
+          <div className="px-5 py-3 bg-slate-900/80 border-t border-slate-700 flex gap-2">
             <button
               type="button"
               onClick={handleCloseSuccess}
-              className="w-full px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 border border-emerald-400 text-white text-sm font-semibold transition-colors shadow-lg"
+              className="flex-1 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 text-sm font-semibold transition-colors"
+              title="不观看回放,直接回退到大屏"
             >
-              查看大屏演示
+              退出
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('video')}
+              className="flex-1 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 border border-emerald-400 text-white text-sm font-semibold transition-colors shadow-lg"
+              title="播放 6 秒避撞机动回放视频"
+            >
+              查看回放
             </button>
           </div>
         </div>

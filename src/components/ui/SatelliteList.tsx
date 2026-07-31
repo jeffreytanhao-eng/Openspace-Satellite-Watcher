@@ -7,12 +7,6 @@ import type { SpaceObject } from '@/store/satelliteStore';
 import { createSatrec, calculateOrbitParams } from '@/lib/tle/orbit';
 import { translateSatelliteName, translateCountry } from '@/lib/translations';
 
-export interface Tag {
-  id: string;
-  name: string;
-  color: string;
-}
-
 interface SatelliteListProps {
   satellites: SpaceObject[];
   selectedSatellite: SpaceObject | null;
@@ -25,8 +19,6 @@ interface SatelliteListProps {
   onBatchShow?: (noradIds: number[]) => void;
   onBatchHide?: (noradIds: number[]) => void;
   onBatchDelete?: (noradIds: number[]) => void;
-  tags?: Tag[];
-  getSatelliteTags?: (satellite: SpaceObject) => Tag[];
 }
 
 function calculateAltitude(satellite: SpaceObject): number | null {
@@ -55,8 +47,6 @@ export default function SatelliteList({
   onBatchShow,
   onBatchHide,
   onBatchDelete,
-  tags,
-  getSatelliteTags,
 }: SatelliteListProps) {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -211,8 +201,7 @@ export default function SatelliteList({
             paginatedSatellites.map(satellite => {
               const altitude = calculateAltitude(satellite);
               const isVisible = visibleSatellites.includes(satellite.noradId);
-              const satelliteTags = getSatelliteTags ? getSatelliteTags(satellite) : [];
-              
+
               return (
                 <div
                   key={satellite.noradId}
@@ -269,25 +258,8 @@ export default function SatelliteList({
                           </span>
                         )}
                       </div>
-                      
-                      {satelliteTags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {satelliteTags.map(tag => (
-                            <span
-                              key={tag.id}
-                              className="px-1.5 py-0.5 rounded text-[10px]"
-                              style={{
-                                backgroundColor: tag.color + '20',
-                                color: tag.color,
-                              }}
-                            >
-                              {tag.name}
-                            </span>
-                          ))}
-                        </div>
-                      )}
                     </div>
-                    
+
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
