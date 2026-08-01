@@ -9,8 +9,8 @@
 //   'plans'  → 显示 3 个躲避计划卡片供用户选择
 //   'executing' → 显示执行中动画(1.5s),随后切换轨道(执行机动)
 //   'success' → 机动执行后显示成功窗口(无遮罩,大屏可见变轨演示),
-//              提供"查看回放"(播放6秒视频)和"退出"(直接回退大屏)两个按钮
-//   'video'  → 点击"查看回放"后播放 6 秒避撞机动视频,播完自动回退大屏
+//              提供"查看回放"(播放12秒视频)和"退出"(直接回退大屏)两个按钮
+//   'video'  → 点击"查看回放"后播放 12 秒避撞机动视频,播完自动回退大屏
 // 选择计划后 prepareAvoidanceManeuver → store 设置 lastAvoidanceExecution(不立即更新 tle)
 // → HomePage 监听并设置 maneuverEvent → CesiumGlobe 播放 5s 变轨动画
 // (t=3s commitAvoidanceManeuver 切换 tle → 卫星切新轨道,t=5s 弹出成功窗口)
@@ -211,7 +211,7 @@ export default function CollisionAlertModal() {
             </div>
           </div>
 
-          {/* 底部按钮:查看回放(播放6秒视频)+ 退出(直接回退大屏) */}
+          {/* 底部按钮:查看回放(播放12秒视频)+ 退出(直接回退大屏) */}
           <div className="px-5 py-3 bg-slate-900/80 border-t border-slate-700 flex gap-2">
             <button
               type="button"
@@ -225,7 +225,7 @@ export default function CollisionAlertModal() {
               type="button"
               onClick={() => setView('video')}
               className="flex-1 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 border border-emerald-400 text-white text-sm font-semibold transition-colors shadow-lg"
-              title="播放 6 秒避撞机动回放视频"
+              title="播放 12 秒避撞机动回放视频"
             >
               查看回放
             </button>

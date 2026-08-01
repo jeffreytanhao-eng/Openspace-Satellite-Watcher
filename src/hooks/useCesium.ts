@@ -635,8 +635,8 @@ export function useCesium() {
       inst.missionTrea01Entity = null;
     }
 
-    // 计算初始位置(米制 ECI)
-    const pos = calculateSatellitePosition([tle], new Date());
+    // 计算初始位置(使用仿真时间,与轨道线 currentTime 一致,避免 GMST 不匹配导致卫星偏离轨道)
+    const pos = calculateSatellitePosition([tle], useTimeStore.getState().currentTime);
     if (!pos) {
       console.warn('[useCesium] TREA-01 初始位置计算失败');
       return;
@@ -664,10 +664,15 @@ export function useCesium() {
     inst.missionTrea01Entity = { update: result.update, destroy: result.destroy };
   }, []);
 
+  // TREA-01 轨道线 positions 引用:CallbackProperty 每帧读取,确保 positions 持续更新
+  // (直接赋值 raw array 给 polyline.positions 可能不触发 Cesium 重新渲染,
+  //  导致变轨后紫色轨道线仍停留在旧轨道,相机跟踪新轨道卫星后旧轨道在视野外 → 看似"轨道消失")
+  const trea01OrbitPositionsRef = useRef<CesiumType.Cartesian3[] | null>(null);
+
   /**
    * 添加/更新 TREA-01 轨道线(紫色 Polyline,一整圈闭合轨道)
-   * 使用 generateOrbitPoints 采样一整圈轨道,绘制发光紫色线
-   * 如果旧实体已存在,直接更新 positions(避免删除再添加导致闪烁)
+   * 使用 CallbackProperty 读取 trea01OrbitPositionsRef,确保变轨后 positions 立即生效
+   * 实体只创建一次,后续每帧仅更新 ref → 无闪烁且 positions 始终最新
    *
    * @param tle TREA-01 当前 TLE(变轨后传入新 TLE)
    * @param time 采样起始时间(通常为仿真当前时间)
@@ -679,26 +684,29 @@ export function useCesium() {
 
     // 采样一整圈轨道点(ECEF 米制,与 Cesium FIXED 坐标系一致)
     const points = generateOrbitPointsECEF([tle], time, 180);
-    if (!points || points.length < 2) return;
+    if (!points || points.length < 2) {
+      console.warn('[DIAG addTrea01OrbitLine] points invalid:', { pointsLen: points?.length ?? 0, tleName: tle.name });
+      return;
+    }
 
-    // 转换为 Cesium.Cartesian3
+    // 转换为 Cesium.Cartesian3,更新 ref(CallbackProperty 每帧读取)
     const positions = points.map(p => new Cesium.Cartesian3(p.x, p.y, p.z));
+    trea01OrbitPositionsRef.current = positions;
 
     // 紫色发光轨道线(与 TREA-01 卫星颜色一致 #b366ff)
-    // disableDepthTestDistance: 禁用深度测试,让轨道线不被地球遮挡
-    // (跟踪相机 800km 近距视角下,大部分轨道位于地平线以下,会被 depthTestAgainstTerrain 遮挡)
     const orbitColor = Cesium.Color.fromCssColorString('#b366ff').withAlpha(0.85);
 
-    // 检查旧实体是否仍在 viewer 中(热重载/StrictMode 重挂载后引用可能失效,导致更新无效)
+    // 检查旧实体是否仍在 viewer 中(热重载/StrictMode 重挂载后引用可能失效)
     const existing = inst.missionTrea01OrbitEntity;
     const stillInViewer = existing && viewer.entities.contains(existing);
 
     if (stillInViewer) {
-      // 旧实体有效:直接更新 positions(避免删除再添加导致闪烁)
+      // 实体存在:CallbackProperty 自动读取 ref,无需手动更新 positions
+      // 仅确保 show=true(防止被某处隐藏)+ disableDepthTestDistance 生效(不被地球遮挡)
       try {
-        existing.polyline.positions = new Cesium.ConstantProperty(positions);
+        existing.polyline.show = new Cesium.ConstantProperty(true);
         existing.polyline.disableDepthTestDistance = new Cesium.ConstantProperty(Number.POSITIVE_INFINITY);
-      } catch { /* ignore update errors */ }
+      } catch { /* ignore */ }
       return;
     }
 
@@ -707,17 +715,19 @@ export function useCesium() {
       inst.missionTrea01OrbitEntity = null;
     }
 
-    // 创建紫色发光轨道线(使用 raw value 格式,与 OrbitTrail 一致)
+    console.log('[DIAG addTrea01OrbitLine] creating new orbit entity, points:', points.length);
+
+    // 创建紫色轨道线
+    // positions 用 CallbackProperty 读取 ref:变轨后仅更新 ref 即可让轨道线立即切到新轨道
+    // disableDepthTestDistance: 禁用深度测试,让轨道线不被地球遮挡
+    // (跟踪相机 800km 近距视角下,大部分轨道位于地平线以下,会被 depthTestAgainstTerrain 遮挡)
     const entity = viewer.entities.add({
       id: `trea01-orbit-${Date.now()}`,
       name: 'TREA-01 Orbit',
       polyline: {
-        positions: new Cesium.ConstantProperty(positions),
-        width: 2.5,
-        material: new Cesium.PolylineGlowMaterialProperty({
-          glowPower: 0.25,
-          color: orbitColor,
-        }),
+        positions: new Cesium.CallbackProperty(() => trea01OrbitPositionsRef.current ?? [], false),
+        width: 3,
+        material: orbitColor,
         arcType: Cesium.ArcType.NONE,
         show: true,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -725,6 +735,7 @@ export function useCesium() {
     });
 
     inst.missionTrea01OrbitEntity = entity;
+    console.log('[DIAG addTrea01OrbitLine] entity created, in viewer:', viewer.entities.contains(entity));
   }, []);
 
   /**
@@ -2009,6 +2020,7 @@ export function useCesium() {
     loadError,
     viewer: cesium?.viewer ?? null,
     scene: cesium?.scene ?? null,
+    Cesium: cesium?.Cesium ?? null,
     initCesium,
     destroyCesium,
     flyToSatellite,

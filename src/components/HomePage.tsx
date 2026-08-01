@@ -577,7 +577,7 @@ export default function HomePage() {
             </svg>
           </div>
           <div>
-            <h1 className="text-lg font-bold text-space-100">开放太空 - 卫星守望者</h1>
+            <h1 className="text-lg font-bold text-space-100">开源太空 - 卫星守望者</h1>
             <p className="text-xs text-space-400">OpenSpace - Satellite Watcher</p>
           </div>
         </div>

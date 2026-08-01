@@ -4,8 +4,8 @@
 // 避撞机动视频播放窗口
 // ------------------------------------------------------------
 // 紧急避撞任务:用户选择躲避计划并执行机动(切换轨道)后,
-// 弹出此窗口播放 6 秒"卫星变轨规避碎片"的视频。
-// 视频播放结束后(或 6 秒兜底超时)自动回调 onEnded,
+// 弹出此窗口播放 12 秒"卫星变轨规避碎片"的视频。
+// 视频播放结束后(或 12 秒兜底超时)自动回调 onEnded,
 // 由 CollisionAlertModal 切换到 success(大屏成功画面)。
 //
 // 设计:
@@ -18,6 +18,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useTreaMissionStore } from '@/store/treaMissionStore';
 
 interface AvoidanceVideoModalProps {
   /** 视频播放结束(或兜底超时)后的回调 */
@@ -29,15 +30,21 @@ export default function AvoidanceVideoModal({ onEnded }: AvoidanceVideoModalProp
   const videoRef = useRef<HTMLVideoElement>(null);
   // 用 ref 标记是否已触发 onEnded,避免 onEnded 与兜底 setTimeout 重复调用
   const endedRef = useRef(false);
+  // 暂停 Cesium 渲染释放 GPU 给视频解码(组件卸载时自动恢复)
+  const setVideoPlaying = useTreaMissionStore(s => s.setVideoPlaying);
+  useEffect(() => {
+    setVideoPlaying(true);
+    return () => setVideoPlaying(false);
+  }, [setVideoPlaying]);
 
-  // 6 秒兜底超时:即使视频 onEnded 未触发(如加载失败),6 秒后也强制结束
+  // 12 秒兜底超时:即使视频 onEnded 未触发(如加载失败),12 秒后也强制结束
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!endedRef.current) {
         endedRef.current = true;
         onEnded();
       }
-    }, 6500);
+    }, 12500);
     return () => clearTimeout(timer);
   }, [onEnded]);
 
@@ -83,6 +90,7 @@ export default function AvoidanceVideoModal({ onEnded }: AvoidanceVideoModalProp
           autoPlay
           muted
           playsInline
+          preload="auto"
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={handleEnded}
           className="w-full h-full object-contain"

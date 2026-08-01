@@ -7,6 +7,7 @@ import { useTimeStore } from '@/store/timeStore';
 import { useCesium } from '@/hooks/useCesium';
 import { AOI_A, AOI_B } from '@/lib/trea/constants';
 import { useTreaTle, useTreaMissionStore } from '@/store/treaMissionStore';
+import { useCinematicStore } from '@/store/cinematicStore';
 import { generateOrbitPointsECEF } from '@/lib/cesium/positions';
 import type { TLEData } from '@/lib/tle/parser';
 import MissionSimulator from '@/components/trea/MissionSimulator';
@@ -39,6 +40,7 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     isReady,
     loadError: cesiumLoadError,
     viewer,
+    Cesium: CesiumNS,
     initCesium,
     destroyCesium,
     flyToSatellite,
@@ -92,6 +94,10 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   const commitAvoidanceManeuver = useTreaMissionStore(s => s.commitAvoidanceManeuver);
   const setManeuverAnimationPhase = useTreaMissionStore(s => s.setManeuverAnimationPhase);
   const maneuverAnimationPhase = useTreaMissionStore(s => s.maneuverAnimationPhase);
+  // 电影回放状态(回放期间暂停跟踪,退出后自动恢复)
+  const cinematicActive = useCinematicStore(s => s.isActive);
+  // 视频播放中:暂停 Cesium 渲染(requestRenderMode)释放 GPU 给视频解码
+  const videoPlaying = useTreaMissionStore(s => s.videoPlaying);
   // 变轨动画 cleanup 句柄(effect 清理 + 卸载时清理 setTimeout,避免重复 commit)
   const animationCleanupRef = useRef<(() => void) | null>(null);
   // TREA-01 跟踪状态(由 TreaSatelliteView 按钮切换,本组件监听并调用 startTrackingTrea01)
@@ -200,6 +206,7 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
       addTrea01Entity(activeTle);
       // 添加 TREA-01 轨道线(紫色发光线,用当前仿真时间采样)
       addTrea01OrbitLine(activeTle, useTimeStore.getState().currentTime);
+      console.log('[DIAG missionMode init] orbit line added, tle:', activeTle.name, 'time:', useTimeStore.getState().currentTime.toISOString());
       lastOrbitUpdateRealRef.current = 0; // 重置,让下方 effect 立即触发首次更新
       missionInitializedRef.current = true;
     } else {
@@ -222,17 +229,47 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     addTrea01OrbitLine(activeTle, currentTime);
   }, [missionMode, currentTime, isReady, viewer, activeTle, updateTrea01Position, addTrea01OrbitLine]);
 
+  // 同步 Cesium 时钟与仿真时间
+  // Cesium 用 viewer.clock.currentTime 决定地球旋转角度(ECEF→INERTIAL 变换)
+  // 若不同步,ECEF 坐标会被 Cesium 用错误的 GMST 渲染到地球错误位置
+  // 仿真 10x 播放时偏差会累积,导致卫星视觉位置偏离轨道线
+  useEffect(() => {
+    if (!isReady || !viewer || !CesiumNS) return;
+    viewer.clock.currentTime = CesiumNS.JulianDate.fromDate(currentTime);
+  }, [currentTime, isReady, viewer, CesiumNS]);
+
   // TREA-01 跟踪:trea01Tracking 状态变化时启动/停止持续跟踪
   // 跟踪状态由 TreaSatelliteView 的按钮切换(经 treaMissionStore 共享)
   // 本组件持有 Cesium 实例,负责实际调用 startTrackingTrea01/stopTrackingTrea01
+  // 变轨动画(focusOrbitChange)和电影回放(CinematicController)会临时停止跟踪监听器,
+  // 但 trea01Tracking store 状态不变。此 effect 依赖 maneuverAnimationPhase/cinematicActive,
+  // 当动画/回放结束后(state 从 'running'→'done'/'idle' 或 cinematicActive false→true),
+  // effect 重新触发并自动恢复跟踪,无需用户重新点击按钮。
   useEffect(() => {
     if (!isReady || !viewer || !missionMode) return;
     if (trea01Tracking) {
+      // 变轨动画运行中(running/committed/done)或电影回放期间不启动跟踪
+      // (让 focusOrbitChange / 电影相机控制;动画结束后 phase 回到 'idle' 自动恢复)
+      if (maneuverAnimationPhase !== 'idle' || cinematicActive) return;
       startTrackingTrea01();
     } else {
       stopTrackingTrea01();
     }
-  }, [trea01Tracking, missionMode, isReady, viewer, startTrackingTrea01, stopTrackingTrea01]);
+  }, [trea01Tracking, missionMode, isReady, viewer, startTrackingTrea01, stopTrackingTrea01, maneuverAnimationPhase, cinematicActive]);
+
+  // 视频播放期间暂停 Cesium 连续渲染(requestRenderMode),释放 GPU 给视频解码
+  // 避撞视频/扫描视频全屏遮罩覆盖 Cesium,暂停渲染不影响视觉,但显著减少 GPU 负载
+  useEffect(() => {
+    if (!isReady || !viewer) return;
+    const scene = viewer.scene;
+    if (videoPlaying) {
+      scene.requestRenderMode = true;
+      scene.maximumRenderTimeChange = Infinity;
+    } else {
+      scene.requestRenderMode = false;
+      scene.requestRender();
+    }
+  }, [videoPlaying, isReady, viewer]);
 
   // ============================================================
   // TREA-01 变轨可视化:新旧轨道渐变动画(无燃烧弧)
@@ -261,7 +298,11 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
 
     // 聚焦相机到卫星变轨位置(1000km 近距侧视,突出新旧轨道分离)
     // 仅在任务模式下执行,不影响态势感知界面
-    focusOrbitChange();
+    // 若用户已开启跟踪,保持跟踪状态(相机继续跟随卫星),不切换到侧视角度
+    const isTrackingNow = useTreaMissionStore.getState().trea01Tracking;
+    if (!isTrackingNow) {
+      focusOrbitChange();
+    }
 
     // 启动 5s 动画序列(addOrbitTransition 内部先清理旧变轨实体,无需手动清理)
     // 卫星位置由下方 position effect 用 activeTle 自动更新,无需此处处理

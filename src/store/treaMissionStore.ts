@@ -167,6 +167,8 @@ export interface TreaMissionState {
   initialized: boolean;
   /** TREA-01 持续跟踪开关(由 TreaSatelliteView 按钮切换,CesiumGlobe 监听执行) */
   trea01Tracking: boolean;
+  /** 视频播放中(避撞视频/扫描视频):CesiumGlobe 据此暂停 Cesium 渲染释放 GPU 给视频解码 */
+  videoPlaying: boolean;
   /** 碰撞警报(非 null 时屏幕正中弹出红色警报,触发突发避撞任务) */
   collisionAlert: CollisionAlert | null;
   /** 紧急避撞任务(碰撞警报确认后生成,显示在任务规划面板) */
@@ -217,6 +219,8 @@ export interface TreaMissionActions {
   reset: () => void;
   /** 切换 TREA-01 持续跟踪 */
   setTrea01Tracking: (tracking: boolean) => void;
+  /** 设置视频播放状态(控制 Cesium 渲染暂停/恢复) */
+  setVideoPlaying: (playing: boolean) => void;
   /** 触发碰撞警报(生成模拟碎片接近数据,弹出红色警报) */
   triggerCollisionAlert: () => void;
   /** 关闭碰撞警报(不清理 emergencyTask,任务规划中保留避撞任务) */
@@ -339,6 +343,7 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
       telemetryCache: null,
       initialized: true,
       trea01Tracking: false,
+    videoPlaying: false,
       collisionAlert: null,
       emergencyTask: null,
       avoidancePlans: [],
@@ -451,6 +456,9 @@ export const useTreaMissionStore = create<TreaMissionState & TreaMissionActions>
 
   setTrea01Tracking: (tracking) => {
     set({ trea01Tracking: tracking });
+  },
+  setVideoPlaying: (playing) => {
+    set({ videoPlaying: playing });
   },
 
   // 触发碰撞警报:模拟太空碎片接近事件

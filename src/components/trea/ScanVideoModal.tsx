@@ -14,9 +14,10 @@
 //   - 无进度条、无文字覆盖
 // ============================================================
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useCinematicStore } from '@/store/cinematicStore';
+import { useTreaMissionStore } from '@/store/treaMissionStore';
 import { CINEMATIC_SHOTS } from '@/lib/trea/cinematicShots';
 
 export default function ScanVideoModal() {
@@ -24,11 +25,21 @@ export default function ScanVideoModal() {
   const currentShotIndex = useCinematicStore(s => s.currentShotIndex);
   const [videoRatio, setVideoRatio] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  if (typeof document === 'undefined') return null;
+  // 暂停 Cesium 渲染释放 GPU 给视频解码(组件卸载/视频结束时自动恢复)
+  const setVideoPlaying = useTreaMissionStore(s => s.setVideoPlaying);
 
   const shot = CINEMATIC_SHOTS[currentShotIndex];
-  if (!isActive || !shot?.showVideo) return null;
+  const showVideo = isActive && !!shot?.showVideo;
+
+  useEffect(() => {
+    if (showVideo) {
+      setVideoPlaying(true);
+      return () => setVideoPlaying(false);
+    }
+  }, [showVideo, setVideoPlaying]);
+
+  if (typeof document === 'undefined') return null;
+  if (!showVideo) return null;
 
   /** 视频元数据加载后,读取原始宽高比,让弹出框适配视频比例 */
   const handleLoadedMetadata = () => {
@@ -62,6 +73,7 @@ export default function ScanVideoModal() {
           autoPlay
           muted
           playsInline
+          preload="auto"
           onLoadedMetadata={handleLoadedMetadata}
           className="w-full h-full object-contain"
         />
