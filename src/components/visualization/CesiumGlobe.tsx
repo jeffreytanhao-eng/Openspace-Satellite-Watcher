@@ -257,15 +257,25 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     }
   }, [trea01Tracking, missionMode, isReady, viewer, startTrackingTrea01, stopTrackingTrea01, maneuverAnimationPhase, cinematicActive]);
 
-  // 视频播放期间暂停 Cesium 连续渲染(requestRenderMode),释放 GPU 给视频解码
-  // 避撞视频/扫描视频全屏遮罩覆盖 Cesium,暂停渲染不影响视觉,但显著减少 GPU 负载
+  // 视频回放期间暂停 Cesium 渲染,释放 GPU 给视频解码
+  // ------------------------------------------------------------
+  // 关键:仅用 requestRenderMode 不够——当场景有持续更新(跟踪 preUpdate 移相机、
+  // 仿真时钟 10x 运行导致卫星位置每帧变化)时,Cesium 仍会每帧渲染,与 <video> 解码
+  // 抢 GPU,使视频缓冲耗尽后卡死。故这里额外设 viewer.useDefaultRenderLoop=false,
+  // 彻底停掉 rAF 渲染循环。
+  //
+  // 作用域安全:仅在 videoPlaying=true 时生效。videoPlaying 只由电影回放/避撞回放
+  // 视频弹窗(AvoidanceVideoModal/ScanVideoModal)挂载时置 true,态势感知主大屏与
+  // 任务系统正常渲染(EXECUTING/IMAGING/变轨动画/扫描光束)均不会置 true,故不受影响。
   useEffect(() => {
     if (!isReady || !viewer) return;
     const scene = viewer.scene;
     if (videoPlaying) {
       scene.requestRenderMode = true;
       scene.maximumRenderTimeChange = Infinity;
+      viewer.useDefaultRenderLoop = false; // 真正停止渲染循环,释放 GPU
     } else {
+      viewer.useDefaultRenderLoop = true; // 恢复渲染循环
       scene.requestRenderMode = false;
       scene.requestRender();
     }

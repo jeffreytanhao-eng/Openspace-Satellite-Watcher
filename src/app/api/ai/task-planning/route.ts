@@ -52,9 +52,16 @@ interface LlmSuccessResponse {
 function validateConfig(): { ok: boolean; error?: string } {
   const { LLM_API_KEY, LLM_API_URL, LLM_MODEL } = process.env;
   if (!LLM_API_KEY || !LLM_API_URL || !LLM_MODEL) {
+    // 列出具体缺失项,便于在 Vercel Function Logs 中快速定位
+    const missing = [
+      !LLM_API_KEY && 'LLM_API_KEY',
+      !LLM_API_URL && 'LLM_API_URL',
+      !LLM_MODEL && 'LLM_MODEL',
+    ].filter(Boolean).join(', ');
+    console.error('[ai/task-planning] 环境变量缺失:', missing);
     return {
       ok: false,
-      error: 'LLM 配置缺失(请检查 LLM_API_KEY / LLM_API_URL / LLM_MODEL 环境变量)',
+      error: `LLM 配置缺失(缺少: ${missing})`,
     };
   }
   return { ok: true };
@@ -187,6 +194,13 @@ export async function POST(request: Request): Promise<NextResponse<LlmSuccessRes
 
   // 4. 调用 LLM(OpenAI 兼容协议)
   const url = `${LLM_API_URL}/chat/completions`;
+  console.log('[ai/task-planning] 开始调用 LLM', {
+    scenario,
+    model: LLM_MODEL,
+    url,
+    timeoutMs: LLM_TIMEOUT_MS,
+    ts: new Date().toISOString(),
+  });
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS);
 
@@ -259,6 +273,7 @@ export async function POST(request: Request): Promise<NextResponse<LlmSuccessRes
       ? mapCollisionToTaskPlanning(parsed as AiCollisionAvoidanceOutput)
       : normalizeOutput(parsed);
     const elapsedMs = Date.now() - startTime;
+    console.log('[ai/task-planning] 调用成功', { elapsedMs, contentLength: content.length });
 
     return NextResponse.json<LlmSuccessResponse>({
       success: true,
@@ -267,18 +282,38 @@ export async function POST(request: Request): Promise<NextResponse<LlmSuccessRes
       elapsedMs,
     });
   } catch (e) {
-    // 超时(abort)
-    if (e instanceof Error && e.name === 'AbortError') {
+    // fetch 失败时,Node(undici)会把网络层错误包装为 `TypeError: fetch failed`,
+    // 真实原因(DNS/连接重置/TLS/超时等)在 e.cause 里,必须取出才能定位。
+    const cause = (e as { cause?: unknown }).cause;
+
+    // 超时(abort):undici abort 时 e.name 可能是 'TypeError'(而非 'AbortError'),
+    // 真实 AbortError 在 e.cause 中,需同时检查 cause.name / cause.code。
+    const isAbort =
+      (e instanceof Error && e.name === 'AbortError') ||
+      (cause instanceof Error && cause.name === 'AbortError') ||
+      (cause instanceof Error && (cause as { code?: string }).code === 'ABORT_ERR');
+    if (isAbort) {
+      console.error('[ai/task-planning] LLM 调用超时(abort)', { timeoutMs: LLM_TIMEOUT_MS });
       return NextResponse.json<LlmErrorResponse>(
         { success: false, error: 'LLM 调用超时,请稍后重试', code: 'LLM_TIMEOUT' },
         { status: 504 }
       );
     }
-    console.error('[ai/task-planning] 调用失败:', e);
+
+    // 记录真实原因(如 ECONNRESET / ENOTFOUND / ETIMEDOUT / UNABLE_TO_VERIFY_LEAF_SIGNATURE)
+    const causeInfo =
+      cause instanceof Error
+        ? { name: cause.name, message: cause.message, code: (cause as { code?: string }).code }
+        : cause;
+    console.error('[ai/task-planning] 调用失败:', e, '| cause:', causeInfo);
+
+    // 在错误信息中附上 cause 摘要,前端可见,便于排查(不含敏感信息)
+    const causeSuffix =
+      cause instanceof Error && cause.message ? ` [${cause.name}: ${cause.message}]` : '';
     return NextResponse.json<LlmErrorResponse>(
       {
         success: false,
-        error: `LLM 调用失败: ${e instanceof Error ? e.message : String(e)}`,
+        error: `LLM 调用失败: ${e instanceof Error ? e.message : String(e)}${causeSuffix}`,
         code: 'LLM_ERROR',
       },
       { status: 502 }
