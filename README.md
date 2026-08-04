@@ -1,8 +1,6 @@
 # 卫星守望者 · Satellite Watcher
 
-一个开源的 Web 端空间态势感知（SSA, Space Situational Awareness）应用，基于 TLE 轨道数据实时计算并可视化近地轨道卫星的位置与轨迹。支持 2D / 3D 双视角切换、时间回放、星座临时导入、标签管理与卫星图片管理；内置 **TREA-01 遥感任务仿真闭环**（任务规划 → 变轨可视化 → 成像仿真 → 报告导出），并集成 **AI 大模型辅助任务规划**。默认视角为东亚区域（中国上空）。
-
-**线上地址**：[https://www.wanzhixuexi.cn](https://www.wanzhixuexi.cn)（部署于 Vercel）
+一个开源的 Web 端空间态势感知（SSA, Space Situational Awareness）应用，基于 TLE 轨道数据实时计算并可视化近地轨道卫星的位置与轨迹。支持 2D / 3D 双视角切换、时间回放、星座临时导入、标签管理与卫星图片管理；内置 **TREA-01 遥感任务仿真闭环**（任务规划 → 变轨可视化 → 成像仿真 → 报告导出）与 **第一视角驾驶舱**，并集成 **AI 大模型辅助任务规划**。默认视角为东亚区域（中国上空）。
 
 ---
 
@@ -37,6 +35,19 @@
 - **紧急避撞任务**：突发碎片接近警报触发红色预警模态框，生成 3 个躲避计划（沿迹微调/径向机动/组合机动）供选择；选择计划后执行机动切换轨道，播放 12 秒避撞机动视频，随后自动回到大屏显示成功画面并演示新旧轨道对比动画；跟踪状态下执行变轨会持续跟踪卫星，直至变轨完成
 - **TREA-01 卫星视图**：右侧遥测面板上方展示卫星线框示意图，含跟踪按钮（点击后相机自动跟随 TREA-01 轨迹）
 - **面板折叠**：左侧"任务规划"面板与右侧"遥测仪表盘"面板均支持一键缩进折叠，大屏复位键可将视角重置为东亚上空
+
+### 第一视角驾驶舱（First-Person Cockpit）
+
+通过任务中心或直接访问 `/cockpit` 进入 TREA-01 第一视角追尾驾驶舱，沉浸式体验卫星轨道飞行：
+
+- **独立 Cesium 实现**：驾驶舱使用独立的轻量化 Cesium 实例，直接操作 Model Primitive（而非 Entity 系统），避免连续渲染模式下模型抖动与消失
+- **追尾视角相机**：相机锁定在 TREA-01 卫星后方，支持滚轮缩放调整距离、方向键控制视角偏转
+- **交通卫星系统**：5 颗交通卫星按 Round-robin 轮换调度，首次启动后 **20 秒内（10x 倍速）** 出现第一颗，之后每 **30-45 秒** 交会一次；卫星以 3D 模型形式从视野中飞越，支持距离判断与可见时长控制
+- **昼夜变化**：加载 NASA Black Marble 夜间城市灯光纹理，地球随光照自转呈现真实昼夜过渡
+- **遥测仪表盘**：复用任务中心同款 8 卡片霓虹风格遥测面板，实时显示位置、速度、姿态、燃料、电池、载荷、链路质量与告警
+- **卫星线框示意图**：驾驶舱内显示 TREA-01 卫星线框图，增强驾驶舱沉浸感
+
+> 驾驶舱与任务中心之间通过全页面跳转（`window.location.href`）切换，避免 Next.js RSC 请求竞态导致的导航失效。
 
 ### 数据导入（临时）
 
@@ -128,15 +139,19 @@ src/
 │   │   └── tle/
 │   │       ├── import/       # TLE 导入（Celestrak代理/星座/搜索）
 │   │       └── refresh/      # TLE 刷新（需密码，写DB）
+│   ├── cockpit/
+│   │   └── page.tsx          # 第一视角驾驶舱页面（SSR disabled）
 │   ├── layout.tsx
 │   └── page.tsx              # 主页面
 ├── components/
 │   ├── HomePage.tsx          # 主页面布局与逻辑（含密码弹窗、任务模式切换、面板折叠）
+│   ├── cockpit/
+│   │   └── ChaseCockpit.tsx  # 第一视角驾驶舱主组件（追尾视角 + 遥测 + 线框图）
 │   ├── trea/                 # TREA-01 任务中心组件
 │   │   ├── MissionHeader.tsx       # 任务中心顶部栏（含电影回放按钮）
 │   │   ├── TaskListPanel.tsx       # 任务规划面板（过境窗口 + AI 辅助按钮）
 │   │   ├── AiPlanningModal.tsx    # AI 规划结果展示模态框
-│   │   ├── TelemetryDashboard.tsx  # 遥测仪表盘
+│   │   ├── TelemetryDashboard.tsx  # 遥测仪表盘（任务中心与驾驶舱共用）
 │   │   ├── TreaSatelliteView.tsx   # TREA-01 卫星线框示意图 + 跟踪
 │   │   ├── ManeuverPanel.tsx       # 变轨控制面板
 │   │   ├── MissionSimulator.tsx    # 任务仿真状态机（纯逻辑）
@@ -157,10 +172,13 @@ src/
 │       ├── MapLibreMap.tsx       # 2D 地图（默认东亚视角）
 │       └── ...
 ├── hooks/
-│   └── useCesium.ts         # Cesium 封装（实体管理、跟踪、AOI、变轨弧）
+│   ├── useCesium.ts         # Cesium 主视图封装（实体管理、跟踪、AOI、变轨弧）
+│   └── useChaseViewer.ts    # Cesium 驾驶舱封装（追尾视角、交通卫星调度、滚轮缩放）
 ├── lib/
 │   ├── api/client.ts         # API 客户端
 │   ├── security.ts           # 密码验证（timingSafeEqual）
+│   ├── cockpit/
+│   │   └── traffic-sats.ts   # 交通卫星 TLE 生成与调度算法（Round-robin）
 │   ├── tle/                  # TLE 解析与轨道计算（SSOT）
 │   │   ├── parser.ts            # TLE 解析
 │   │   ├── orbit.ts             # SGP4 轨道传播与参数计算
@@ -187,13 +205,25 @@ prisma/
 
 public/
 ├── models/                   # 预置 3D 模型（GLB）
-├── trea/                     # TREA-01 资源（模拟遥感影像 + 成像/避撞视频）
+├── textures/                 # 地球纹理（Black Marble 夜间灯光）
+├── trea/                     # TREA-01 资源（模拟遥感影像 + 成像/避撞视频 + 线框图）
 └── cesium/                   # Cesium 静态资源（Workers、Assets）
+
+deploy/                       # Docker 自托管部署
+├── Dockerfile                # 三阶段构建（deps → builder → runner）
+├── docker-compose.yml        # 四服务编排（postgres + migrate + app + caddy）
+├── Caddyfile                 # Caddy 反向代理 + 自动 HTTPS
+├── deploy.sh                 # 一键部署脚本
+└── README.md                 # 部署详细文档
 ```
 
 ---
 
 ## 生产架构
+
+支持两种部署方式：**Vercel Serverless**（零运维）与 **Docker Compose 自托管**（全可控）。
+
+### Vercel 部署架构
 
 ```
 ┌─────────────┐    HTTPS     ┌──────────────────────────┐    HTTPS   ┌──────────────────┐
@@ -201,22 +231,39 @@ public/
 │             │   (CDN)     │                          │           │ (外部数据API)     │
 │             │              │  · 自动 HTTPS / CDN       │           └──────────────────┘
 │             │              │  · Next.js SSR + API      │
-│             │              │  · API内存缓存             │
-│             │              │  · 密码验证+限流           │
-│             │              │  · 客户端状态隔离          │ ────┐
-│             │              │                          │     │
-│             │              │                          │     ↓
-│             │              │                          │  Vercel Postgres (Neon)
-│             │              │                          │  · 13颗默认卫星
-│             │              │                          │  · TLE/标签/图片
-└─────────────┘              └──────────────────────────┘
+│             │              │  · API内存缓存             │ ────┐
+│             │              │  · 密码验证+限流           │     │
+│             │              │  · 客户端状态隔离          │     ↓
+└─────────────┘              │                          │  Vercel Postgres (Neon)
+                             │                          │  · 13颗默认卫星
+                             │                          │  · TLE/标签/图片
+                             └──────────────────────────┘
 ```
 
-核心链路：**全球用户 → Vercel（Next.js Serverless + Vercel Postgres）→ 外部 API（Celestrak/NASA）**
+### Docker Compose 自托管架构
 
-- **Vercel 平台**：自动 HTTPS、全球 CDN 加速、Serverless Functions 自动扩缩容、零运维
-- **Vercel Postgres (Neon)**：云原生 PostgreSQL，卫星数据存储，自动备份
-- **API 内存缓存**：`/api/space-objects` 等读接口 5 分钟 TTL 缓存，缓存命中 <25ms
+```
+┌─────────────┐    HTTPS     ┌───────────┐  反代  ┌─────────────┐
+│   用户      │ ───────────→ │   Caddy   │ ─────→ │  Next.js App │
+│             │              │ (自动HTTPS)│ :3000  │ (Standalone) │
+└─────────────┘              └─────┬─────┘       └──────┬──────┘
+                                    │                     │
+                                    │                ┌────▼──────┐
+                                    │                │ PostgreSQL │
+                                    │                │ (卷持久化) │
+                                    │                └───────────┘
+                                    │
+                                    └─ migrate 一次性服务: prisma db push + seed
+```
+
+- **Caddy**：自动申请/续期 Let's Encrypt 证书，HTTP→HTTPS 跳转，反向代理到 Next.js
+- **Next.js Standalone**：Node 服务运行 `server.js`，Cesium 走 CDN
+- **PostgreSQL**：13 颗默认卫星 + 8 星座 + 标签，Docker 卷持久化
+- **migrate**：容器启动时一次性跑 `prisma db push` + 幂等 seed，完成后退出
+
+详细部署文档见 [deploy/README.md](deploy/README.md)。
+
+---
 
 ### 数据模型说明
 
@@ -290,7 +337,9 @@ npm run dev
 
 ## 部署方式
 
-### Vercel 部署（零配置，推荐）
+支持两种部署方式，按需选择。
+
+### Vercel 部署（零运维，推荐）
 
 1. 将代码推送到 GitHub
 2. 在 Vercel 控制台导入仓库
@@ -300,9 +349,49 @@ npm run dev
 6. 部署成功后，在本地执行 `npm run db:seed` 初始化数据库表结构和种子数据
 7. AI 路由已配置 `maxDuration = 60`，Hobby plan 支持（AI 调用实测 ~23s）；添加环境变量后需 Redeploy 生效
 
+### Docker Compose 自托管
+
+适用于有自有服务器、需要完全控制权的场景。使用 Caddy 自动申请 HTTPS 证书，PostgreSQL 数据卷持久化，一键部署。
+
+**前置条件：**
+- Linux 服务器（已装 Docker Engine + Docker Compose v2）
+- 域名已解析到服务器 IP（用于 HTTPS 证书）
+- 防火墙开放 80 和 443 端口
+
+**快速开始：**
+
+```bash
+# 克隆代码
+git clone <你的仓库地址>
+cd satellite-watcher
+
+# 配置环境变量
+cp deploy/.env.example deploy/.env
+# 编辑 deploy/.env，填入 DOMAIN / ACME_EMAIL / LLM_API_KEY / ADMIN_PASSWORD 等
+
+# 一键部署
+sh deploy/deploy.sh
+```
+
+部署后首次启动会自动：
+- 构建 Next.js 镜像（三阶段 Dockerfile）
+- 启动 PostgreSQL 并持久化数据卷
+- 跑 `prisma db push` + 幂等 seed（13 颗默认卫星 + 8 星座 + 标签）
+- Caddy 自动申请 Let's Encrypt HTTPS 证书
+- 反向代理到 Next.js 应用
+
+详细文档见 [deploy/README.md](deploy/README.md)。
+
 ### 部署更新流程
 
-代码推送到 GitHub 后，Vercel 自动检测并重新部署，无需手动操作。
+**Vercel**：代码推送到 GitHub 后自动重新部署。
+
+**Docker 自托管**：
+
+```bash
+git pull
+docker compose -f deploy/docker-compose.yml up -d --build
+```
 
 ---
 
