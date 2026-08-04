@@ -12,9 +12,8 @@
 // 完全独立:不修改任何现有文件;复用 treaMissionStore/timeStore(只读为主)。
 // ============================================================
 
-import { memo, useRef } from 'react';
+import { memo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   ChevronLeft,
@@ -119,15 +118,9 @@ function CockpitWireframe() {
 // ============================================================
 export default function ChaseCockpit() {
   const { containerRef, ready, loadError, setDirection } = useChaseViewer();
-  const router = useRouter();
-  // 导航防抖:防止快速多次点击导致 RSC 请求竞态(ERR_ABORTED)
-  const navigatingRef = useRef(false);
-
+  // 使用 window.location.href 全页面导航,避免 Cesium viewer 销毁与 Next.js RSC 请求竞态(ERR_ABORTED)
   const goBack = () => {
-    if (navigatingRef.current) return;
-    navigatingRef.current = true;
-    router.push('/?mission=1');
-    setTimeout(() => { navigatingRef.current = false; }, 1000);
+    window.location.href = '/?mission=1';
   };
 
   return (

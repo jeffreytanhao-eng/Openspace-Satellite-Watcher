@@ -125,6 +125,7 @@ interface ChaseInstance {
   removeWheel: () => void;
   removeKeydown: () => void;
   removeKeyup: () => void;
+  dispose: () => void;
 }
 
 export interface UseChaseViewerReturn {
@@ -374,21 +375,6 @@ export function useChaseViewer(): UseChaseViewerReturn {
       () => new Cesium.Cartesian3(0, 0, 0),
     );
 
-    // ---- 发光点标记(PointPrimitive,作为模型不可见时的视觉后备) ----
-    // 模型在 48km 距离下仅 <1 像素,PointPrimitive 确保始终可见
-    const pointCollection = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
-    const trafficPoints: CesiumType.PointPrimitive[] = trafficSats.map((ts) => {
-      return pointCollection.add({
-        position: new Cesium.Cartesian3(0, 0, 0),
-        pixelSize: 12,
-        color: Cesium.Color.fromCssColorString(ts.config.color).withAlpha(0.9),
-        outlineColor: Cesium.Color.WHITE.withAlpha(0.6),
-        outlineWidth: 2,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
-        show: false,
-      });
-    });
-
     // ============================================================
     // preUpdate:每帧更新 modelMatrix + 相机 + 调度
     // ============================================================
@@ -628,16 +614,8 @@ export function useChaseViewer(): UseChaseViewerReturn {
             label.text = `${ts.config.name} · ${dist.toFixed(1)} km`;
             label.show = true;
           }
-
-          // 发光点标记(仅当3D模型未加载时显示,避免遮挡模型)
-          const point = trafficPoints[i];
-          if (point) {
-            point.position = _trafficPos;
-            point.show = !model;  // 模型已加载时隐藏光点
-          }
         } else {
           if (trafficLabels[i]) trafficLabels[i].show = false;
-          if (trafficPoints[i]) trafficPoints[i].show = false;
         }
       }
 

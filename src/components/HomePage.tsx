@@ -140,8 +140,6 @@ export default function HomePage() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(480);
   const isResizing = useRef(false);
-  // 导航防抖:防止快速多次点击导致 RSC 请求竞态(ERR_ABORTED)
-  const navigatingRef = useRef(false);
   // TREA-01 任务中心模式:开启后隐藏原侧边栏与 header,渲染 MissionHeader 和任务专用 Cesium 视图
   const [missionMode, setMissionMode] = useState(false);
   // TREA-01 变轨事件:ManeuverPanel 执行变轨后设置,传递给 CesiumGlobe 渲染燃烧弧+轨道对比
@@ -755,10 +753,8 @@ export default function HomePage() {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (navigatingRef.current) return;
-                  navigatingRef.current = true;
-                  router.push('/cockpit');
-                  setTimeout(() => { navigatingRef.current = false; }, 1000);
+                  // 全页面导航:避免 Cesium viewer 与 Next.js RSC 请求竞态
+                  window.location.href = '/cockpit';
                 }}
                 onPointerDown={(e) => e.stopPropagation()}
                 className="px-6 py-2.5 bg-slate-950 border border-cyan-500/50 rounded-xl text-cyan-300 text-sm font-medium hover:bg-cyan-500/10 hover:border-cyan-400 hover:text-cyan-200 transition-all shadow-lg shadow-cyan-500/20"
