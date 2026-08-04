@@ -213,17 +213,22 @@ export default function HomePage() {
   }, [searchParams, setViewMode]);
 
   // ?mission=1 直接进入 TREA-01 任务中心(从 /cockpit 返回时使用)
-  // 重置到初始状态:时间恢复当前 + 默认 10x + 启动播放,然后进入任务模式
-  // 使用 missionMode 状态而非 ref,确保每次 ?mission=1 都能触发(修复"不是每次点击都生效")
+  // 使用 exitingRef 防止退出时 effect 立即重新进入(因为 URL 仍含 ?mission=1)
+  // 当 URL 清除 ?mission=1 后,exitingRef 重置为 false,下次 ?mission=1 可再次触发
+  const exitingRef = useRef(false);
   useEffect(() => {
     const missionParam = searchParams.get('mission');
-    if (missionParam === '1' && !missionMode) {
+    if (missionParam === '1' && !missionMode && !exitingRef.current) {
       timeResetToNow();
       timeSetRate(10);
       timeStartPlayback();
       setReportDismissed(false);
       useTreaMissionStore.getState().setTrea01Tracking(true);
       setMissionMode(true);
+    }
+    // URL 不再含 ?mission=1 时重置退出标志
+    if (missionParam !== '1') {
+      exitingRef.current = false;
     }
   }, [searchParams, missionMode, timeResetToNow, timeSetRate, timeStartPlayback]);
 
@@ -549,17 +554,19 @@ export default function HomePage() {
   };
 
   // 退出任务中心:恢复到态势感知主页缺省状态(10x 播放 + 默认卫星轨道可见)
-  // 1. 重置到 now + 恢复默认 10x 速率 + 启动播放(缺省播放状态)
-  // 2. 重置 TREA-01 store(TLE/燃料/电量/任务阶段/跟踪状态等)
-  // 3. 清除选中卫星 + 停止跟踪
+  // 1. 设置 exitingRef 防止 effect 立即重新进入任务中心
+  // 2. 清除 URL 中的 ?mission=1(防止 effect 重新触发)
+  // 3. 重置 TREA-01 store + 时间 + 跟踪状态
   // 4. 视角与默认轨道由 CesiumGlobe 监听 missionMode 变化自动恢复
   const handleExitMission = () => {
+    exitingRef.current = true;      // 阻止 effect 重新进入任务中心
+    router.replace('/');            // 清除 URL 中的 ?mission=1
     timeResetToNow();
     timeSetRate(10);
     timeStartPlayback(); // 恢复缺省 10x 播放(若已播放则幂等)
     useTreaMissionStore.getState().reset(); // 重置 TREA-01 store(含 trea01Tracking=false)
     setSelectedSatellite(null); // 清除选中卫星
-    setTracking(null); // 停止跟踪
+    setTracking(null); // 嵌入跟踪
     setMissionMode(false);
     setManeuverEvent(null);
     setRightPanelCollapsed(false);

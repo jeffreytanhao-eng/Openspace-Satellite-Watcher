@@ -246,7 +246,13 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   // 当动画/回放结束后(state 从 'running'→'done'/'idle' 或 cinematicActive false→true),
   // effect 重新触发并自动恢复跟踪,无需用户重新点击按钮。
   useEffect(() => {
-    if (!isReady || !viewer || !missionMode) return;
+    if (!isReady || !viewer) return;
+    // 退出任务中心(missionMode=false)时仍需停止跟踪,否则 enableZoom=false 和
+    // wheel 监听器残留,导致态势感知页面滚轮缩放失效
+    if (!missionMode) {
+      stopTrackingTrea01();
+      return;
+    }
     if (trea01Tracking) {
       // 变轨动画运行中(running/committed/done)或电影回放期间不启动跟踪
       // (让 focusOrbitChange / 电影相机控制;动画结束后 phase 回到 'idle' 自动恢复)
