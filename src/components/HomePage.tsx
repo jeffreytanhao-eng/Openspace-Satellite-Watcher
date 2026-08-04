@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { ViewSwitcher, TimeControlBar, SatelliteList, SearchBar, SatelliteDetailPanel, ImportModal, AudioPlayer } from '@/components/ui';
+import { ViewSwitcher, TimeControlBar, SatelliteList, SearchBar, SatelliteDetailPanel, ImportModal } from '@/components/ui';
 import type { ImportSummary } from '@/components/ui/ImportModal';
 import { useSatelliteStore, useSatellites, useSelectedSatellite, useVisibleSatellites, useViewMode } from '@/store/satelliteStore';
 import { useTimeStore } from '@/store/timeStore';
@@ -119,6 +119,7 @@ const SAVED_PASSWORD_KEY = 'satellite-op-password';
 
 export default function HomePage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const viewMode = useViewMode();
   const setViewMode = useSatelliteStore(state => state.setViewMode);
 
@@ -208,6 +209,22 @@ export default function HomePage() {
     const viewParam = searchParams.get('view');
     if (viewParam === '2d' || viewParam === '3d') setViewMode(viewParam);
   }, [searchParams, setViewMode]);
+
+  // ?mission=1 直接进入 TREA-01 任务中心(从 /cockpit 返回时使用)
+  // 重置到初始状态:时间恢复当前 + 默认 10x + 启动播放,然后进入任务模式
+  const missionEnteredRef = useRef(false);
+  useEffect(() => {
+    const missionParam = searchParams.get('mission');
+    if (missionParam === '1' && !missionEnteredRef.current) {
+      missionEnteredRef.current = true;
+      timeResetToNow();
+      timeSetRate(10);
+      timeStartPlayback();
+      setReportDismissed(false);
+      useTreaMissionStore.getState().setTrea01Tracking(true);
+      setMissionMode(true);
+    }
+  }, [searchParams, timeResetToNow, timeSetRate, timeStartPlayback]);
 
   // 高级功能默认隐藏，用户必须点击"高级功能"按钮才能解锁
   // （即使 sessionStorage 中有密码，页面加载后也不自动解锁）
@@ -721,8 +738,25 @@ export default function HomePage() {
           {/* ---------------------------------------------------------- */}
           {/* 左侧:任务列表/规划面板(侧边栏式) */}
           {/* 右侧:遥测仪表盘 + 变轨控制面板(上下分栏,可滚动) */}
+          {/* 底部正中:进入第一视角按钮 */}
           {/* 均为不透明深色背景(用户偏好),不与默认 13 颗卫星逻辑耦合 */}
           {/* ============================================================ */}
+          {missionMode && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  router.push('/cockpit');
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="px-6 py-2.5 bg-slate-950 border border-cyan-500/50 rounded-xl text-cyan-300 text-sm font-medium hover:bg-cyan-500/10 hover:border-cyan-400 hover:text-cyan-200 transition-all shadow-lg shadow-cyan-500/20"
+              >
+                进入第一视角
+              </button>
+            </div>
+          )}
           {missionMode && (
             <>
               {/* 左侧任务列表面板 */}
@@ -805,8 +839,6 @@ export default function HomePage() {
             : '图片将永久保存到服务器，请输入操作密码。'
         }
       />
-
-      <AudioPlayer />
     </div>
   );
 }

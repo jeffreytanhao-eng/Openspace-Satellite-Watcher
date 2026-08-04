@@ -175,7 +175,12 @@ function NeonCard({ title, icon, accent = 'cyan', children, className = '' }: Ca
 // 主组件
 // ============================================================
 
-export default function TelemetryDashboard() {
+interface TelemetryDashboardProps {
+  /** 网格列数(默认 2;cockpit 传 3 实现 3×3 布局) */
+  columns?: 2 | 3;
+}
+
+export default function TelemetryDashboard({ columns = 2 }: TelemetryDashboardProps) {
   // ----- 订阅仿真时间 + TREA 状态 -----
   const currentTime = useCurrentTime();
   const updateTelemetry = useTreaMissionStore((s) => s.updateTelemetry);
@@ -263,6 +268,13 @@ export default function TelemetryDashboard() {
     return bars;
   }, [signalPct]);
 
+  // ----- 轨道根数(来自 TLE,仅 3 列布局时显示第 9 张卡) -----
+  const el = tle?.elements;
+  const inclination = el?.inclination ?? 0;
+  const eccentricity = el?.eccentricity ?? 0;
+  const meanMotion = el?.meanMotion ?? 0;
+  const periodMin = meanMotion > 0 ? 1440 / meanMotion : 0;  // 周期(分钟)= 1440 / meanMotion
+
   return (
     <div className="w-full bg-slate-950 rounded-xl border border-cyan-500/30 p-3 shadow-[0_0_25px_rgba(34,211,238,0.15)]">
       {/* ===== 顶部标题栏 ===== */}
@@ -284,8 +296,8 @@ export default function TelemetryDashboard() {
         </div>
       </div>
 
-      {/* ===== 卡片网格(固定 2 列,确保标题不换行) ===== */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* ===== 卡片网格(columns 列,cockpit 传 3 实现 3×3 布局) ===== */}
+      <div className={`grid ${columns === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
         {/* 1. 实时位置卡 */}
         <NeonCard title="实时位置" icon={<Satellite className="h-4 w-4" />} accent="cyan">
           <div className="space-y-1.5 font-mono">
@@ -403,12 +415,12 @@ export default function TelemetryDashboard() {
           </div>
         </NeonCard>
 
-        {/* 8. 告警灯 */}
+        {/* 8. 告警灯(2 列布局时跨满,3 列布局时单列) */}
         <NeonCard
           title="告警"
           icon={<AlertTriangle className="h-4 w-4" />}
           accent={hasAlert ? 'red' : 'cyan'}
-          className="col-span-2"
+          className={columns === 2 ? 'col-span-2' : ''}
         >
           <div className="grid grid-cols-3 gap-2">
             <AlertLight label="燃料低" triggered={fuelLow} />
@@ -416,6 +428,30 @@ export default function TelemetryDashboard() {
             <AlertLight label="姿态异常" triggered={attitudeAnomaly} />
           </div>
         </NeonCard>
+
+        {/* 9. 轨道参数(仅 3 列布局时显示,补满 3×3 网格) */}
+        {columns === 3 && (
+          <NeonCard title="轨道参数" icon={<Gauge className="h-4 w-4" />} accent="cyan">
+            <div className="space-y-1.5 font-mono">
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-slate-400">倾角</span>
+                <span className="text-sm text-cyan-300">{inclination.toFixed(2)}°</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-slate-400">偏心率</span>
+                <span className="text-sm text-cyan-300">{eccentricity.toFixed(4)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-slate-400">平均运动</span>
+                <span className="text-sm text-cyan-300">{meanMotion.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-slate-400">周期</span>
+                <span className="text-sm text-cyan-300">{periodMin.toFixed(2)} min</span>
+              </div>
+            </div>
+          </NeonCard>
+        )}
       </div>
 
       {/* ===== 底部状态条 ===== */}

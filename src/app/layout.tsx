@@ -3,6 +3,7 @@ import Script from 'next/script'
 import './globals.css'
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
+import AudioPlayer from "@/components/ui/AudioPlayer";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -28,6 +29,8 @@ export default function RootLayout({
         <Suspense fallback={<div className="h-screen flex items-center justify-center">Loading...</div>}>
           {children}
         </Suspense>
+        {/* 背景音乐:全局渲染,跨路由(/ → /cockpit → /)持续播放 */}
+        <AudioPlayer />
       </body>
     </html>
   )

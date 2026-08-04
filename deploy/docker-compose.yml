@@ -1,0 +1,88 @@
+# ============================================================
+# TREA 卫星观测平台 — HK 服务器部署编排
+# 服务:postgres + migrate(一次性 seed) + app(Next standalone) + caddy(自动 HTTPS)
+# 用法见 deploy/README.md,或直接 sh deploy/deploy.sh
+# 构建上下文为仓库根(context: ..),Dockerfile 在 deploy/
+# ============================================================
+
+services:
+  # ---------- PostgreSQL 数据库 ----------
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    # 不暴露端口给宿主机,仅 compose 内部网络可访问(更安全)
+
+  # ---------- 一次性迁移 + Seed ----------
+  # 同步 schema(prisma db push)+ 幂等 seed(13 默认卫星 + 标签 + 8 星座)
+  # seed 用 upsert/skipIfExists,每次 docker compose up 重跑都安全
+  migrate:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: builder
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      POSTGRES_URL_NON_POOLING: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+    working_dir: /app
+    command: ["sh", "-c", "npx prisma db push --skip-generate && npx tsx prisma/seed.ts"]
+
+  # ---------- Next.js 应用 ----------
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: runner
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      POSTGRES_URL_NON_POOLING: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_API_URL: ${LLM_API_URL}
+      LLM_MODEL: ${LLM_MODEL}
+      LLM_TIMEOUT_MS: ${LLM_TIMEOUT_MS:-60000}
+      NODE_ENV: production
+    expose:
+      - "3000"
+    # 仅 compose 内部可达,caddy 反代;不直接暴露给宿主机
+
+  # ---------- Caddy 反向代理 + 自动 HTTPS ----------
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

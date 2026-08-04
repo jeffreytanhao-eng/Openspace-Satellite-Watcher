@@ -1,0 +1,35 @@
+# ============================================================
+# Caddy 反向代理 + 自动 HTTPS(Let's Encrypt)
+# Caddy 首次启动自动为 {$DOMAIN} 申请证书并自动续期,HTTP 自动跳转 HTTPS
+# {$DOMAIN} / {$ACME_EMAIL} 由 docker-compose 从 .env 注入
+# ============================================================
+
+{
+	# Let's Encrypt 账户邮箱(用于证书到期通知)
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	# gzip / zstd 压缩
+	encode gzip zstd
+
+	# 静态资源缓存(3D 模型/视频/音频/图片/Next 静态产物)
+	@static path /models/* /trea/* /audio/* /images/* /_next/static/*
+	handle @static {
+		header Cache-Control "public, max-age=86400"
+		reverse_proxy app:3000
+	}
+
+	# 其余请求反代到 Next.js
+	handle {
+		reverse_proxy app:3000
+	}
+
+	# 访问日志(按大小滚动)
+	log {
+		output file /data/access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+	}
+}
