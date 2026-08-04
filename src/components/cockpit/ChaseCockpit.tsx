@@ -12,7 +12,7 @@
 // 完全独立:不修改任何现有文件;复用 treaMissionStore/timeStore(只读为主)。
 // ============================================================
 
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -120,11 +120,14 @@ function CockpitWireframe() {
 export default function ChaseCockpit() {
   const { containerRef, ready, loadError, setDirection } = useChaseViewer();
   const router = useRouter();
+  // 导航防抖:防止快速多次点击导致 RSC 请求竞态(ERR_ABORTED)
+  const navigatingRef = useRef(false);
 
-  const goBack = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const goBack = () => {
+    if (navigatingRef.current) return;
+    navigatingRef.current = true;
     router.push('/?mission=1');
+    setTimeout(() => { navigatingRef.current = false; }, 1000);
   };
 
   return (

@@ -140,6 +140,8 @@ export default function HomePage() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(480);
   const isResizing = useRef(false);
+  // 导航防抖:防止快速多次点击导致 RSC 请求竞态(ERR_ABORTED)
+  const navigatingRef = useRef(false);
   // TREA-01 任务中心模式:开启后隐藏原侧边栏与 header,渲染 MissionHeader 和任务专用 Cesium 视图
   const [missionMode, setMissionMode] = useState(false);
   // TREA-01 变轨事件:ManeuverPanel 执行变轨后设置,传递给 CesiumGlobe 渲染燃烧弧+轨道对比
@@ -212,11 +214,10 @@ export default function HomePage() {
 
   // ?mission=1 直接进入 TREA-01 任务中心(从 /cockpit 返回时使用)
   // 重置到初始状态:时间恢复当前 + 默认 10x + 启动播放,然后进入任务模式
-  const missionEnteredRef = useRef(false);
+  // 使用 missionMode 状态而非 ref,确保每次 ?mission=1 都能触发(修复"不是每次点击都生效")
   useEffect(() => {
     const missionParam = searchParams.get('mission');
-    if (missionParam === '1' && !missionEnteredRef.current) {
-      missionEnteredRef.current = true;
+    if (missionParam === '1' && !missionMode) {
       timeResetToNow();
       timeSetRate(10);
       timeStartPlayback();
@@ -224,7 +225,7 @@ export default function HomePage() {
       useTreaMissionStore.getState().setTrea01Tracking(true);
       setMissionMode(true);
     }
-  }, [searchParams, timeResetToNow, timeSetRate, timeStartPlayback]);
+  }, [searchParams, missionMode, timeResetToNow, timeSetRate, timeStartPlayback]);
 
   // 高级功能默认隐藏，用户必须点击"高级功能"按钮才能解锁
   // （即使 sessionStorage 中有密码，页面加载后也不自动解锁）
@@ -747,8 +748,10 @@ export default function HomePage() {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  e.preventDefault();
+                  if (navigatingRef.current) return;
+                  navigatingRef.current = true;
                   router.push('/cockpit');
+                  setTimeout(() => { navigatingRef.current = false; }, 1000);
                 }}
                 onPointerDown={(e) => e.stopPropagation()}
                 className="px-6 py-2.5 bg-slate-950 border border-cyan-500/50 rounded-xl text-cyan-300 text-sm font-medium hover:bg-cyan-500/10 hover:border-cyan-400 hover:text-cyan-200 transition-all shadow-lg shadow-cyan-500/20"
