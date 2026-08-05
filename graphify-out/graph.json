@@ -129,7 +129,7 @@
       "label": "\u536b\u661f\u7ba1\u7406",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L18",
+      "source_location": "L20",
       "id": "\u5f00\u53d1\u533a_readme_\u536b\u661f\u7ba1\u7406",
       "community": 11,
       "norm_label": "\u536b\u661f\u7ba1\u7406"
@@ -138,7 +138,7 @@
       "label": "TREA-01 \u9065\u611f\u4efb\u52a1\u4eff\u771f\u95ed\u73af",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L25",
+      "source_location": "L27",
       "id": "\u5f00\u53d1\u533a_readme_trea_01_\u9065\u611f\u4efb\u52a1\u4eff\u771f\u95ed\u73af",
       "community": 11,
       "norm_label": "trea-01 \u9065\u611f\u4efb\u52a1\u4eff\u771f\u95ed\u73af"
@@ -147,7 +147,7 @@
       "label": "\u7b2c\u4e00\u89c6\u89d2\u9a7e\u9a76\u8231\uff08First-Person Cockpit\uff09",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L39",
+      "source_location": "L41",
       "id": "\u5f00\u53d1\u533a_readme_\u7b2c\u4e00\u89c6\u89d2\u9a7e\u9a76\u8231_first_person_cockpit",
       "community": 11,
       "norm_label": "\u7b2c\u4e00\u89c6\u89d2\u9a7e\u9a76\u8231(first-person cockpit)"
@@ -156,7 +156,7 @@
       "label": "\u6570\u636e\u5bfc\u5165\uff08\u4e34\u65f6\uff09",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L52",
+      "source_location": "L54",
       "id": "\u5f00\u53d1\u533a_readme_\u6570\u636e\u5bfc\u5165_\u4e34\u65f6",
       "community": 11,
       "norm_label": "\u6570\u636e\u5bfc\u5165(\u4e34\u65f6)"
@@ -165,7 +165,7 @@
       "label": "\u6570\u636e\u7ba1\u7406\uff08\u9700\u5bc6\u7801\uff09",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L60",
+      "source_location": "L62",
       "id": "\u5f00\u53d1\u533a_readme_\u6570\u636e\u7ba1\u7406_\u9700\u5bc6\u7801",
       "community": 11,
       "norm_label": "\u6570\u636e\u7ba1\u7406(\u9700\u5bc6\u7801)"
@@ -174,7 +174,7 @@
       "label": "\u65f6\u95f4\u63a7\u5236",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L66",
+      "source_location": "L68",
       "id": "\u5f00\u53d1\u533a_readme_\u65f6\u95f4\u63a7\u5236",
       "community": 11,
       "norm_label": "\u65f6\u95f4\u63a7\u5236"
@@ -183,7 +183,7 @@
       "label": "API \u670d\u52a1",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L75",
+      "source_location": "L77",
       "id": "\u5f00\u53d1\u533a_readme_api_\u670d\u52a1",
       "community": 11,
       "norm_label": "api \u670d\u52a1"
@@ -192,7 +192,7 @@
       "label": "\u5b89\u5168\u9632\u62a4",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L96",
+      "source_location": "L98",
       "id": "\u5f00\u53d1\u533a_readme_\u5b89\u5168\u9632\u62a4",
       "community": 11,
       "norm_label": "\u5b89\u5168\u9632\u62a4"
@@ -201,7 +201,7 @@
       "label": "\u6280\u672f\u6846\u67b6",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L110",
+      "source_location": "L112",
       "id": "\u5f00\u53d1\u533a_readme_\u6280\u672f\u6846\u67b6",
       "community": 11,
       "norm_label": "\u6280\u672f\u6846\u67b6"
@@ -210,7 +210,7 @@
       "label": "\u9879\u76ee\u7ed3\u6784",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L127",
+      "source_location": "L129",
       "id": "\u5f00\u53d1\u533a_readme_\u9879\u76ee\u7ed3\u6784",
       "community": 11,
       "norm_label": "\u9879\u76ee\u7ed3\u6784"
@@ -219,7 +219,7 @@
       "label": "code:block1 (src/)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L129",
+      "source_location": "L131",
       "id": "\u5f00\u53d1\u533a_readme_codeblock_1",
       "community": 11,
       "norm_label": "code:block1 (src/)"
@@ -228,7 +228,7 @@
       "label": "\u751f\u4ea7\u67b6\u6784",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L222",
+      "source_location": "L228",
       "id": "\u5f00\u53d1\u533a_readme_\u751f\u4ea7\u67b6\u6784",
       "community": 11,
       "norm_label": "\u751f\u4ea7\u67b6\u6784"
@@ -237,7 +237,7 @@
       "label": "Vercel \u90e8\u7f72\u67b6\u6784",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L226",
+      "source_location": "L232",
       "id": "\u5f00\u53d1\u533a_readme_vercel_\u90e8\u7f72\u67b6\u6784",
       "community": 11,
       "norm_label": "vercel \u90e8\u7f72\u67b6\u6784"
@@ -246,7 +246,7 @@
       "label": "code:block2 (\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    HTTPS     \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   )",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L228",
+      "source_location": "L234",
       "id": "\u5f00\u53d1\u533a_readme_codeblock_2",
       "community": 11,
       "norm_label": "code:block2 (\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    https     \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510   )"
@@ -255,7 +255,7 @@
       "label": "Docker Compose \u81ea\u6258\u7ba1\u67b6\u6784",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L243",
+      "source_location": "L249",
       "id": "\u5f00\u53d1\u533a_readme_docker_compose_\u81ea\u6258\u7ba1\u67b6\u6784",
       "community": 11,
       "norm_label": "docker compose \u81ea\u6258\u7ba1\u67b6\u6784"
@@ -264,7 +264,7 @@
       "label": "code:block3 (\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    HTTPS     \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u53cd\u4ee3  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L245",
+      "source_location": "L251",
       "id": "\u5f00\u53d1\u533a_readme_codeblock_3",
       "community": 11,
       "norm_label": "code:block3 (\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510    https     \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u53cd\u4ee3  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500)"
@@ -273,7 +273,7 @@
       "label": "\u6570\u636e\u6a21\u578b\u8bf4\u660e",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L268",
+      "source_location": "L274",
       "id": "\u5f00\u53d1\u533a_readme_\u6570\u636e\u6a21\u578b\u8bf4\u660e",
       "community": 11,
       "norm_label": "\u6570\u636e\u6a21\u578b\u8bf4\u660e"
@@ -282,7 +282,7 @@
       "label": "\u672c\u5730\u5f00\u53d1",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L276",
+      "source_location": "L282",
       "id": "\u5f00\u53d1\u533a_readme_\u672c\u5730\u5f00\u53d1",
       "community": 11,
       "norm_label": "\u672c\u5730\u5f00\u53d1"
@@ -291,7 +291,7 @@
       "label": "\u73af\u5883\u8981\u6c42",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L278",
+      "source_location": "L284",
       "id": "\u5f00\u53d1\u533a_readme_\u73af\u5883\u8981\u6c42",
       "community": 11,
       "norm_label": "\u73af\u5883\u8981\u6c42"
@@ -300,7 +300,7 @@
       "label": "\u5b89\u88c5\u4e0e\u542f\u52a8",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L284",
+      "source_location": "L290",
       "id": "\u5f00\u53d1\u533a_readme_\u5b89\u88c5\u4e0e\u542f\u52a8",
       "community": 11,
       "norm_label": "\u5b89\u88c5\u4e0e\u542f\u52a8"
@@ -309,7 +309,7 @@
       "label": "code:bash (# 1. \u5b89\u88c5\u4f9d\u8d56)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L286",
+      "source_location": "L292",
       "id": "\u5f00\u53d1\u533a_readme_codeblock_4",
       "community": 11,
       "norm_label": "code:bash (# 1. \u5b89\u88c5\u4f9d\u8d56)"
@@ -318,7 +318,7 @@
       "label": "\u73af\u5883\u53d8\u91cf",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L302",
+      "source_location": "L308",
       "id": "\u5f00\u53d1\u533a_readme_\u73af\u5883\u53d8\u91cf",
       "community": 11,
       "norm_label": "\u73af\u5883\u53d8\u91cf"
@@ -327,7 +327,7 @@
       "label": "\u9ed8\u8ba4\u536b\u661f",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L317",
+      "source_location": "L323",
       "id": "\u5f00\u53d1\u533a_readme_\u9ed8\u8ba4\u536b\u661f",
       "community": 11,
       "norm_label": "\u9ed8\u8ba4\u536b\u661f"
@@ -336,7 +336,7 @@
       "label": "\u90e8\u7f72\u65b9\u5f0f",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L339",
+      "source_location": "L345",
       "id": "\u5f00\u53d1\u533a_readme_\u90e8\u7f72\u65b9\u5f0f",
       "community": 11,
       "norm_label": "\u90e8\u7f72\u65b9\u5f0f"
@@ -345,7 +345,7 @@
       "label": "Vercel \u90e8\u7f72\uff08\u96f6\u8fd0\u7ef4\uff0c\u63a8\u8350\uff09",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L343",
+      "source_location": "L349",
       "id": "\u5f00\u53d1\u533a_readme_vercel_\u90e8\u7f72_\u96f6\u8fd0\u7ef4_\u63a8\u8350",
       "community": 11,
       "norm_label": "vercel \u90e8\u7f72(\u96f6\u8fd0\u7ef4,\u63a8\u8350)"
@@ -354,7 +354,7 @@
       "label": "Docker Compose \u81ea\u6258\u7ba1",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L353",
+      "source_location": "L359",
       "id": "\u5f00\u53d1\u533a_readme_docker_compose_\u81ea\u6258\u7ba1",
       "community": 11,
       "norm_label": "docker compose \u81ea\u6258\u7ba1"
@@ -363,7 +363,7 @@
       "label": "code:bash (# \u514b\u9686\u4ee3\u7801)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L364",
+      "source_location": "L370",
       "id": "\u5f00\u53d1\u533a_readme_codeblock_5",
       "community": 11,
       "norm_label": "code:bash (# \u514b\u9686\u4ee3\u7801)"
@@ -372,7 +372,7 @@
       "label": "\u90e8\u7f72\u66f4\u65b0\u6d41\u7a0b",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L386",
+      "source_location": "L392",
       "id": "\u5f00\u53d1\u533a_readme_\u90e8\u7f72\u66f4\u65b0\u6d41\u7a0b",
       "community": 11,
       "norm_label": "\u90e8\u7f72\u66f4\u65b0\u6d41\u7a0b"
@@ -381,7 +381,7 @@
       "label": "code:bash (git pull)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L392",
+      "source_location": "L398",
       "id": "\u5f00\u53d1\u533a_readme_codeblock_6",
       "community": 11,
       "norm_label": "code:bash (git pull)"
@@ -390,10 +390,109 @@
       "label": "\u8bb8\u53ef\u8bc1",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L399",
+      "source_location": "L405",
       "id": "\u5f00\u53d1\u533a_readme_\u8bb8\u53ef\u8bc1",
       "community": 11,
       "norm_label": "\u8bb8\u53ef\u8bc1"
+    },
+    {
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "src/app/cockpit/page.tsx",
+      "source_location": "L1",
+      "id": "src_app_cockpit_page_tsx",
+      "community": 57,
+      "norm_label": "page.tsx"
+    },
+    {
+      "label": "ChaseCockpit",
+      "file_type": "code",
+      "source_file": "src/app/cockpit/page.tsx",
+      "source_location": "L14",
+      "id": "cockpit_page_chasecockpit",
+      "community": 57,
+      "norm_label": "chasecockpit"
+    },
+    {
+      "label": "CockpitPage()",
+      "file_type": "code",
+      "source_file": "src/app/cockpit/page.tsx",
+      "source_location": "L26",
+      "id": "cockpit_page_cockpitpage",
+      "community": 57,
+      "norm_label": "cockpitpage()"
+    },
+    {
+      "label": "FullscreenButton.tsx",
+      "file_type": "code",
+      "source_file": "src/components/FullscreenButton.tsx",
+      "source_location": "L1",
+      "id": "src_components_fullscreenbutton_tsx",
+      "community": 2,
+      "norm_label": "fullscreenbutton.tsx"
+    },
+    {
+      "label": "FullscreenButton()",
+      "file_type": "code",
+      "source_file": "src/components/FullscreenButton.tsx",
+      "source_location": "L10",
+      "id": "components_fullscreenbutton_fullscreenbutton",
+      "community": 2,
+      "norm_label": "fullscreenbutton()"
+    },
+    {
+      "label": "HomePage.tsx",
+      "file_type": "code",
+      "source_file": "src/components/HomePage.tsx",
+      "source_location": "L1",
+      "id": "src_components_homepage_tsx",
+      "community": 38,
+      "norm_label": "homepage.tsx"
+    },
+    {
+      "label": "CesiumGlobe",
+      "file_type": "code",
+      "source_file": "src/components/HomePage.tsx",
+      "source_location": "L27",
+      "id": "components_homepage_cesiumglobe",
+      "community": 38,
+      "norm_label": "cesiumglobe"
+    },
+    {
+      "label": "MapLibreMap",
+      "file_type": "code",
+      "source_file": "src/components/HomePage.tsx",
+      "source_location": "L32",
+      "id": "components_homepage_maplibremap",
+      "community": 38,
+      "norm_label": "maplibremap"
+    },
+    {
+      "label": "normalizeSatellite()",
+      "file_type": "code",
+      "source_file": "src/components/HomePage.tsx",
+      "source_location": "L37",
+      "id": "components_homepage_normalizesatellite",
+      "community": 38,
+      "norm_label": "normalizesatellite()"
+    },
+    {
+      "label": "PasswordModal()",
+      "file_type": "code",
+      "source_file": "src/components/HomePage.tsx",
+      "source_location": "L58",
+      "id": "components_homepage_passwordmodal",
+      "community": 38,
+      "norm_label": "passwordmodal()"
+    },
+    {
+      "label": "HomePage()",
+      "file_type": "code",
+      "source_file": "src/components/HomePage.tsx",
+      "source_location": "L121",
+      "id": "components_homepage_homepage",
+      "community": 38,
+      "norm_label": "homepage()"
     },
     {
       "label": "ChaseCockpit.tsx",
@@ -408,7 +507,7 @@
       "label": "TimeControl",
       "file_type": "code",
       "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L39",
+      "source_location": "L40",
       "id": "cockpit_chasecockpit_timecontrol",
       "community": 2,
       "norm_label": "timecontrol"
@@ -417,7 +516,7 @@
       "label": "CockpitWireframe()",
       "file_type": "code",
       "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L82",
+      "source_location": "L83",
       "id": "cockpit_chasecockpit_cockpitwireframe",
       "community": 2,
       "norm_label": "cockpitwireframe()"
@@ -426,289 +525,496 @@
       "label": "ChaseCockpit()",
       "file_type": "code",
       "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L119",
+      "source_location": "L120",
       "id": "cockpit_chasecockpit_chasecockpit",
       "community": 2,
       "norm_label": "chasecockpit()"
+    },
+    {
+      "label": "MissionHeader.tsx",
+      "file_type": "code",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L1",
+      "id": "src_components_trea_missionheader_tsx",
+      "community": 0,
+      "norm_label": "missionheader.tsx"
+    },
+    {
+      "label": "MissionHeaderProps",
+      "file_type": "code",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L23",
+      "id": "trea_missionheader_missionheaderprops",
+      "community": 0,
+      "norm_label": "missionheaderprops"
+    },
+    {
+      "label": "PHASE_LABELS",
+      "file_type": "code",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L29",
+      "id": "trea_missionheader_phase_labels",
+      "community": 0,
+      "norm_label": "phase_labels"
+    },
+    {
+      "label": "PHASE_COLORS",
+      "file_type": "code",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L38",
+      "id": "trea_missionheader_phase_colors",
+      "community": 0,
+      "norm_label": "phase_colors"
+    },
+    {
+      "label": "ATTITUDE_LABELS",
+      "file_type": "code",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L47",
+      "id": "trea_missionheader_attitude_labels",
+      "community": 0,
+      "norm_label": "attitude_labels"
+    },
+    {
+      "label": "PAYLOAD_LABELS",
+      "file_type": "code",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L55",
+      "id": "trea_missionheader_payload_labels",
+      "community": 0,
+      "norm_label": "payload_labels"
+    },
+    {
+      "label": "MissionHeader()",
+      "file_type": "code",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L61",
+      "id": "trea_missionheader_missionheader",
+      "community": 0,
+      "norm_label": "missionheader()"
+    },
+    {
+      "label": "TelemetryDashboard.tsx",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L1",
+      "id": "src_components_trea_telemetrydashboard_tsx",
+      "community": 0,
+      "norm_label": "telemetrydashboard.tsx"
+    },
+    {
+      "label": "formatLat()",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L56",
+      "id": "trea_telemetrydashboard_formatlat",
+      "community": 0,
+      "norm_label": "formatlat()"
+    },
+    {
+      "label": "formatLon()",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L62",
+      "id": "trea_telemetrydashboard_formatlon",
+      "community": 0,
+      "norm_label": "formatlon()"
+    },
+    {
+      "label": "formatAlt()",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L71",
+      "id": "trea_telemetrydashboard_formatalt",
+      "community": 0,
+      "norm_label": "formatalt()"
+    },
+    {
+      "label": "levelColor()",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L76",
+      "id": "trea_telemetrydashboard_levelcolor",
+      "community": 0,
+      "norm_label": "levelcolor()"
+    },
+    {
+      "label": "PAYLOAD_DISPLAY",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L99",
+      "id": "trea_telemetrydashboard_payload_display",
+      "community": 0,
+      "norm_label": "payload_display"
+    },
+    {
+      "label": "ATTITUDE_LABELS",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L121",
+      "id": "trea_telemetrydashboard_attitude_labels",
+      "community": 0,
+      "norm_label": "attitude_labels"
+    },
+    {
+      "label": "CardProps",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L132",
+      "id": "trea_telemetrydashboard_cardprops",
+      "community": 0,
+      "norm_label": "cardprops"
+    },
+    {
+      "label": "ACCENT_BORDER",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L140",
+      "id": "trea_telemetrydashboard_accent_border",
+      "community": 0,
+      "norm_label": "accent_border"
+    },
+    {
+      "label": "ACCENT_ICON",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L148",
+      "id": "trea_telemetrydashboard_accent_icon",
+      "community": 0,
+      "norm_label": "accent_icon"
+    },
+    {
+      "label": "MiniCard()",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L156",
+      "id": "trea_telemetrydashboard_minicard",
+      "community": 0,
+      "norm_label": "minicard()"
+    },
+    {
+      "label": "TelemetryDashboardProps",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L176",
+      "id": "trea_telemetrydashboard_telemetrydashboardprops",
+      "community": 0,
+      "norm_label": "telemetrydashboardprops"
+    },
+    {
+      "label": "TelemetryDashboard()",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L181",
+      "id": "trea_telemetrydashboard_telemetrydashboard",
+      "community": 0,
+      "norm_label": "telemetrydashboard()"
+    },
+    {
+      "label": "GeoCell()",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L418",
+      "id": "trea_telemetrydashboard_geocell",
+      "community": 0,
+      "norm_label": "geocell()"
+    },
+    {
+      "label": "AttMini()",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L431",
+      "id": "trea_telemetrydashboard_attmini",
+      "community": 0,
+      "norm_label": "attmini()"
+    },
+    {
+      "label": "ResourceMini()",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L451",
+      "id": "trea_telemetrydashboard_resourcemini",
+      "community": 0,
+      "norm_label": "resourcemini()"
+    },
+    {
+      "label": "AlertMini()",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L480",
+      "id": "trea_telemetrydashboard_alertmini",
+      "community": 0,
+      "norm_label": "alertmini()"
+    },
+    {
+      "label": "ParamCell()",
+      "file_type": "code",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L509",
+      "id": "trea_telemetrydashboard_paramcell",
+      "community": 0,
+      "norm_label": "paramcell()"
+    },
+    {
+      "label": "useFullscreen.ts",
+      "file_type": "code",
+      "source_file": "src/hooks/useFullscreen.ts",
+      "source_location": "L1",
+      "id": "src_hooks_usefullscreen_ts",
+      "community": 2,
+      "norm_label": "usefullscreen.ts"
+    },
+    {
+      "label": "FullscreenDocument",
+      "file_type": "code",
+      "source_file": "src/hooks/useFullscreen.ts",
+      "source_location": "L6",
+      "id": "hooks_usefullscreen_fullscreendocument",
+      "community": 2,
+      "norm_label": "fullscreendocument"
+    },
+    {
+      "label": "FullscreenElement",
+      "file_type": "code",
+      "source_file": "src/hooks/useFullscreen.ts",
+      "source_location": "L10",
+      "id": "hooks_usefullscreen_fullscreenelement",
+      "community": 2,
+      "norm_label": "fullscreenelement"
+    },
+    {
+      "label": "useFullscreen()",
+      "file_type": "code",
+      "source_file": "src/hooks/useFullscreen.ts",
+      "source_location": "L18",
+      "id": "hooks_usefullscreen_usefullscreen",
+      "community": 2,
+      "norm_label": "usefullscreen()"
     },
     {
       "label": "useCesium.ts",
       "file_type": "code",
       "source_file": "src/hooks/useCesium.ts",
       "source_location": "L1",
-      "id": "src_hooks_usecesium_ts",
       "community": 1,
-      "norm_label": "usecesium.ts"
+      "norm_label": "usecesium.ts",
+      "id": "src_hooks_usecesium_ts"
     },
     {
       "label": "CesiumNS",
       "file_type": "code",
       "source_file": "src/hooks/useCesium.ts",
       "source_location": "L14",
-      "id": "hooks_usecesium_cesiumns",
       "community": 1,
-      "norm_label": "cesiumns"
+      "norm_label": "cesiumns",
+      "id": "hooks_usecesium_cesiumns"
     },
     {
       "label": "getCesium()",
       "file_type": "code",
       "source_file": "src/hooks/useCesium.ts",
       "source_location": "L19",
-      "id": "hooks_usecesium_getcesium",
       "community": 1,
-      "norm_label": "getcesium()"
+      "norm_label": "getcesium()",
+      "id": "hooks_usecesium_getcesium"
     },
     {
       "label": "CesiumInstance",
       "file_type": "code",
       "source_file": "src/hooks/useCesium.ts",
       "source_location": "L31",
-      "id": "hooks_usecesium_cesiuminstance",
       "community": 1,
-      "norm_label": "cesiuminstance"
+      "norm_label": "cesiuminstance",
+      "id": "hooks_usecesium_cesiuminstance"
     },
     {
       "label": "useCesium()",
       "file_type": "code",
       "source_file": "src/hooks/useCesium.ts",
       "source_location": "L66",
-      "id": "hooks_usecesium_usecesium",
-      "community": 0,
-      "norm_label": "usecesium()"
+      "community": 1,
+      "norm_label": "usecesium()",
+      "id": "hooks_usecesium_usecesium"
     },
     {
       "label": "useChaseViewer.ts",
       "file_type": "code",
       "source_file": "src/hooks/useChaseViewer.ts",
       "source_location": "L1",
-      "id": "src_hooks_usechaseviewer_ts",
       "community": 5,
-      "norm_label": "usechaseviewer.ts"
+      "norm_label": "usechaseviewer.ts",
+      "id": "src_hooks_usechaseviewer_ts"
     },
     {
       "label": "CesiumNS",
       "file_type": "code",
       "source_file": "src/hooks/useChaseViewer.ts",
       "source_location": "L41",
-      "id": "hooks_usechaseviewer_cesiumns",
       "community": 5,
-      "norm_label": "cesiumns"
+      "norm_label": "cesiumns",
+      "id": "hooks_usechaseviewer_cesiumns"
     },
     {
       "label": "TRAFFIC_MODEL_SCALE",
       "file_type": "code",
       "source_file": "src/hooks/useChaseViewer.ts",
       "source_location": "L96",
-      "id": "hooks_usechaseviewer_traffic_model_scale",
       "community": 5,
-      "norm_label": "traffic_model_scale"
+      "norm_label": "traffic_model_scale",
+      "id": "hooks_usechaseviewer_traffic_model_scale"
     },
     {
       "label": "getCesium()",
       "file_type": "code",
       "source_file": "src/hooks/useChaseViewer.ts",
       "source_location": "L108",
-      "id": "hooks_usechaseviewer_getcesium",
       "community": 5,
-      "norm_label": "getcesium()"
+      "norm_label": "getcesium()",
+      "id": "hooks_usechaseviewer_getcesium"
     },
     {
       "label": "ChaseInstance",
       "file_type": "code",
       "source_file": "src/hooks/useChaseViewer.ts",
       "source_location": "L123",
-      "id": "hooks_usechaseviewer_chaseinstance",
       "community": 5,
-      "norm_label": "chaseinstance"
+      "norm_label": "chaseinstance",
+      "id": "hooks_usechaseviewer_chaseinstance"
     },
     {
       "label": "UseChaseViewerReturn",
       "file_type": "code",
       "source_file": "src/hooks/useChaseViewer.ts",
       "source_location": "L132",
-      "id": "hooks_usechaseviewer_usechaseviewerreturn",
       "community": 5,
-      "norm_label": "usechaseviewerreturn"
+      "norm_label": "usechaseviewerreturn",
+      "id": "hooks_usechaseviewer_usechaseviewerreturn"
     },
     {
       "label": "useChaseViewer()",
       "file_type": "code",
       "source_file": "src/hooks/useChaseViewer.ts",
       "source_location": "L143",
-      "id": "hooks_usechaseviewer_usechaseviewer",
       "community": 2,
-      "norm_label": "usechaseviewer()"
+      "norm_label": "usechaseviewer()",
+      "id": "hooks_usechaseviewer_usechaseviewer"
     },
     {
       "label": "imagery.ts",
       "file_type": "code",
       "source_file": "src/lib/cesium/imagery.ts",
       "source_location": "L1",
-      "id": "src_lib_cesium_imagery_ts",
       "community": 5,
-      "norm_label": "imagery.ts"
+      "norm_label": "imagery.ts",
+      "id": "src_lib_cesium_imagery_ts"
     },
     {
       "label": "CesiumNS",
       "file_type": "code",
       "source_file": "src/lib/cesium/imagery.ts",
       "source_location": "L5",
-      "id": "cesium_imagery_cesiumns",
       "community": 5,
-      "norm_label": "cesiumns"
+      "norm_label": "cesiumns",
+      "id": "cesium_imagery_cesiumns"
     },
     {
       "label": "createEarthImageryProvider()",
       "file_type": "code",
       "source_file": "src/lib/cesium/imagery.ts",
       "source_location": "L24",
-      "id": "cesium_imagery_createearthimageryprovider",
       "community": 5,
-      "norm_label": "createearthimageryprovider()"
+      "norm_label": "createearthimageryprovider()",
+      "id": "cesium_imagery_createearthimageryprovider"
     },
     {
       "label": "middleware.ts",
       "file_type": "code",
       "source_file": "src/middleware.ts",
       "source_location": "L1",
-      "id": "src_middleware_ts",
       "community": 21,
-      "norm_label": "middleware.ts"
+      "norm_label": "middleware.ts",
+      "id": "src_middleware_ts"
     },
     {
       "label": "RateLimitEntry",
       "file_type": "code",
       "source_file": "src/middleware.ts",
       "source_location": "L5",
-      "id": "src_middleware_ratelimitentry",
       "community": 21,
-      "norm_label": "ratelimitentry"
+      "norm_label": "ratelimitentry",
+      "id": "src_middleware_ratelimitentry"
     },
     {
       "label": "ipBuckets",
       "file_type": "code",
       "source_file": "src/middleware.ts",
       "source_location": "L6",
-      "id": "src_middleware_ipbuckets",
       "community": 21,
-      "norm_label": "ipbuckets"
+      "norm_label": "ipbuckets",
+      "id": "src_middleware_ipbuckets"
     },
     {
       "label": "now",
       "file_type": "code",
       "source_file": "src/middleware.ts",
       "source_location": "L10",
-      "id": "src_middleware_now",
       "community": 21,
-      "norm_label": "now"
+      "norm_label": "now",
+      "id": "src_middleware_now"
     },
     {
       "label": "RateLimit",
       "file_type": "code",
       "source_file": "src/middleware.ts",
       "source_location": "L16",
-      "id": "src_middleware_ratelimit",
       "community": 21,
-      "norm_label": "ratelimit"
+      "norm_label": "ratelimit",
+      "id": "src_middleware_ratelimit"
     },
     {
       "label": "RATE_LIMITS",
       "file_type": "code",
       "source_file": "src/middleware.ts",
       "source_location": "L17",
-      "id": "src_middleware_rate_limits",
       "community": 21,
-      "norm_label": "rate_limits"
+      "norm_label": "rate_limits",
+      "id": "src_middleware_rate_limits"
     },
     {
       "label": "getClientIp()",
       "file_type": "code",
       "source_file": "src/middleware.ts",
       "source_location": "L40",
-      "id": "src_middleware_getclientip",
       "community": 21,
-      "norm_label": "getclientip()"
+      "norm_label": "getclientip()",
+      "id": "src_middleware_getclientip"
     },
     {
       "label": "checkRateLimit()",
       "file_type": "code",
       "source_file": "src/middleware.ts",
       "source_location": "L48",
-      "id": "src_middleware_checkratelimit",
       "community": 21,
-      "norm_label": "checkratelimit()"
+      "norm_label": "checkratelimit()",
+      "id": "src_middleware_checkratelimit"
     },
     {
       "label": "middleware()",
       "file_type": "code",
       "source_file": "src/middleware.ts",
       "source_location": "L76",
-      "id": "src_middleware_middleware",
       "community": 21,
-      "norm_label": "middleware()"
+      "norm_label": "middleware()",
+      "id": "src_middleware_middleware"
     },
     {
       "label": "config",
       "file_type": "code",
       "source_file": "src/middleware.ts",
       "source_location": "L130",
-      "id": "src_middleware_config",
       "community": 21,
-      "norm_label": "config"
-    },
-    {
-      "label": "HomePage.tsx",
-      "file_type": "code",
-      "source_file": "src/components/HomePage.tsx",
-      "source_location": "L1",
-      "community": 38,
-      "norm_label": "homepage.tsx",
-      "id": "src_components_homepage_tsx"
-    },
-    {
-      "label": "CesiumGlobe",
-      "file_type": "code",
-      "source_file": "src/components/HomePage.tsx",
-      "source_location": "L26",
-      "community": 38,
-      "norm_label": "cesiumglobe",
-      "id": "components_homepage_cesiumglobe"
-    },
-    {
-      "label": "MapLibreMap",
-      "file_type": "code",
-      "source_file": "src/components/HomePage.tsx",
-      "source_location": "L31",
-      "community": 38,
-      "norm_label": "maplibremap",
-      "id": "components_homepage_maplibremap"
-    },
-    {
-      "label": "normalizeSatellite()",
-      "file_type": "code",
-      "source_file": "src/components/HomePage.tsx",
-      "source_location": "L36",
-      "community": 38,
-      "norm_label": "normalizesatellite()",
-      "id": "components_homepage_normalizesatellite"
-    },
-    {
-      "label": "PasswordModal()",
-      "file_type": "code",
-      "source_file": "src/components/HomePage.tsx",
-      "source_location": "L57",
-      "community": 38,
-      "norm_label": "passwordmodal()",
-      "id": "components_homepage_passwordmodal"
-    },
-    {
-      "label": "HomePage()",
-      "file_type": "code",
-      "source_file": "src/components/HomePage.tsx",
-      "source_location": "L120",
-      "community": 38,
-      "norm_label": "homepage()",
-      "id": "components_homepage_homepage"
+      "norm_label": "config",
+      "id": "src_middleware_config"
     },
     {
       "label": "README.md",
@@ -1160,38 +1466,11 @@
       "id": "scripts_sim_traffic_scheduling_gaps"
     },
     {
-      "label": "page.tsx",
-      "file_type": "code",
-      "source_file": "src/app/cockpit/page.tsx",
-      "source_location": "L1",
-      "community": 57,
-      "norm_label": "page.tsx",
-      "id": "src_app_cockpit_page_tsx"
-    },
-    {
-      "label": "ChaseCockpit",
-      "file_type": "code",
-      "source_file": "src/app/cockpit/page.tsx",
-      "source_location": "L14",
-      "community": 57,
-      "norm_label": "chasecockpit",
-      "id": "cockpit_page_chasecockpit"
-    },
-    {
-      "label": "CockpitPage()",
-      "file_type": "code",
-      "source_file": "src/app/cockpit/page.tsx",
-      "source_location": "L26",
-      "community": 57,
-      "norm_label": "cockpitpage()",
-      "id": "cockpit_page_cockpitpage"
-    },
-    {
       "label": "layout.tsx",
       "file_type": "code",
       "source_file": "src/app/layout.tsx",
       "source_location": "L1",
-      "community": 2,
+      "community": 15,
       "norm_label": "layout.tsx",
       "id": "src_app_layout_tsx"
     },
@@ -1200,7 +1479,7 @@
       "file_type": "code",
       "source_file": "src/app/layout.tsx",
       "source_location": "L8",
-      "community": 2,
+      "community": 15,
       "norm_label": "inter",
       "id": "app_layout_inter"
     },
@@ -1209,7 +1488,7 @@
       "file_type": "code",
       "source_file": "src/app/layout.tsx",
       "source_location": "L10",
-      "community": 2,
+      "community": 15,
       "norm_label": "metadata",
       "id": "app_layout_metadata"
     },
@@ -1218,153 +1497,9 @@
       "file_type": "code",
       "source_file": "src/app/layout.tsx",
       "source_location": "L15",
-      "community": 2,
+      "community": 15,
       "norm_label": "rootlayout()",
       "id": "app_layout_rootlayout"
-    },
-    {
-      "label": "TelemetryDashboard.tsx",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L1",
-      "community": 0,
-      "norm_label": "telemetrydashboard.tsx",
-      "id": "src_components_trea_telemetrydashboard_tsx"
-    },
-    {
-      "label": "formatLat()",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L55",
-      "community": 0,
-      "norm_label": "formatlat()",
-      "id": "trea_telemetrydashboard_formatlat"
-    },
-    {
-      "label": "formatLon()",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L61",
-      "community": 0,
-      "norm_label": "formatlon()",
-      "id": "trea_telemetrydashboard_formatlon"
-    },
-    {
-      "label": "formatAlt()",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L70",
-      "community": 0,
-      "norm_label": "formatalt()",
-      "id": "trea_telemetrydashboard_formatalt"
-    },
-    {
-      "label": "levelColor()",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L75",
-      "community": 0,
-      "norm_label": "levelcolor()",
-      "id": "trea_telemetrydashboard_levelcolor"
-    },
-    {
-      "label": "PAYLOAD_DISPLAY",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L101",
-      "community": 0,
-      "norm_label": "payload_display",
-      "id": "trea_telemetrydashboard_payload_display"
-    },
-    {
-      "label": "ATTITUDE_LABELS",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L123",
-      "community": 0,
-      "norm_label": "attitude_labels",
-      "id": "trea_telemetrydashboard_attitude_labels"
-    },
-    {
-      "label": "CardProps",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L134",
-      "community": 0,
-      "norm_label": "cardprops",
-      "id": "trea_telemetrydashboard_cardprops"
-    },
-    {
-      "label": "ACCENT_BORDER",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L142",
-      "community": 0,
-      "norm_label": "accent_border",
-      "id": "trea_telemetrydashboard_accent_border"
-    },
-    {
-      "label": "ACCENT_ICON",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L150",
-      "community": 0,
-      "norm_label": "accent_icon",
-      "id": "trea_telemetrydashboard_accent_icon"
-    },
-    {
-      "label": "NeonCard()",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L158",
-      "community": 0,
-      "norm_label": "neoncard()",
-      "id": "trea_telemetrydashboard_neoncard"
-    },
-    {
-      "label": "TelemetryDashboardProps",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L178",
-      "community": 0,
-      "norm_label": "telemetrydashboardprops",
-      "id": "trea_telemetrydashboard_telemetrydashboardprops"
-    },
-    {
-      "label": "TelemetryDashboard()",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L183",
-      "community": 0,
-      "norm_label": "telemetrydashboard()",
-      "id": "trea_telemetrydashboard_telemetrydashboard"
-    },
-    {
-      "label": "AttitudeRow()",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L478",
-      "community": 0,
-      "norm_label": "attituderow()",
-      "id": "trea_telemetrydashboard_attituderow"
-    },
-    {
-      "label": "ResourceBar()",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L499",
-      "community": 0,
-      "norm_label": "resourcebar()",
-      "id": "trea_telemetrydashboard_resourcebar"
-    },
-    {
-      "label": "AlertLight()",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L533",
-      "community": 0,
-      "norm_label": "alertlight()",
-      "id": "trea_telemetrydashboard_alertlight"
     },
     {
       "label": "traffic-sats.ts",
@@ -1623,7 +1758,7 @@
       "file_type": "code",
       "source_file": "src/components/visualization/CesiumGlobe.tsx",
       "source_location": "L35",
-      "community": 0,
+      "community": 1,
       "norm_label": "cesiumglobe()",
       "id": "visualization_cesiumglobe_cesiumglobe"
     },
@@ -1767,7 +1902,7 @@
       "file_type": "code",
       "source_file": "src/store/treaMissionStore.ts",
       "source_location": "L201",
-      "community": 0,
+      "community": 7,
       "norm_label": "treamissionactions",
       "id": "store_treamissionstore_treamissionactions"
     },
@@ -2082,7 +2217,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L1",
-      "community": 0,
+      "community": 26,
       "norm_label": "maneuverpanel.tsx",
       "id": "src_components_trea_maneuverpanel_tsx"
     },
@@ -2091,7 +2226,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L32",
-      "community": 0,
+      "community": 26,
       "norm_label": "maneuverpanelprops",
       "id": "trea_maneuverpanel_maneuverpanelprops"
     },
@@ -2100,7 +2235,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L46",
-      "community": 0,
+      "community": 26,
       "norm_label": "formattime()",
       "id": "trea_maneuverpanel_formattime"
     },
@@ -2109,7 +2244,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L55",
-      "community": 0,
+      "community": 26,
       "norm_label": "getdirectionlabel()",
       "id": "trea_maneuverpanel_getdirectionlabel"
     },
@@ -2118,7 +2253,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L63",
-      "community": 0,
+      "community": 26,
       "norm_label": "orbitparamscard()",
       "id": "trea_maneuverpanel_orbitparamscard"
     },
@@ -2127,7 +2262,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L123",
-      "community": 0,
+      "community": 26,
       "norm_label": "fuelstatuscard()",
       "id": "trea_maneuverpanel_fuelstatuscard"
     },
@@ -2136,7 +2271,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L162",
-      "community": 0,
+      "community": 26,
       "norm_label": "suggestioncardprops",
       "id": "trea_maneuverpanel_suggestioncardprops"
     },
@@ -2145,7 +2280,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L169",
-      "community": 0,
+      "community": 26,
       "norm_label": "suggestioncard()",
       "id": "trea_maneuverpanel_suggestioncard"
     },
@@ -2154,7 +2289,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L244",
-      "community": 0,
+      "community": 26,
       "norm_label": "maneuverhistorylist()",
       "id": "trea_maneuverpanel_maneuverhistorylist"
     },
@@ -2478,7 +2613,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/maneuver.ts",
       "source_location": "L31",
-      "community": 0,
+      "community": 26,
       "norm_label": "suggestedmaneuver",
       "id": "trea_maneuver_suggestedmaneuver"
     },
@@ -2487,7 +2622,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/maneuver.ts",
       "source_location": "L45",
-      "community": 0,
+      "community": 26,
       "norm_label": "accesswindow",
       "id": "trea_maneuver_accesswindow"
     },
@@ -2595,7 +2730,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/CinematicController.tsx",
       "source_location": "L1",
-      "community": 20,
+      "community": 0,
       "norm_label": "cinematiccontroller.tsx",
       "id": "src_components_trea_cinematiccontroller_tsx"
     },
@@ -2604,7 +2739,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/CinematicController.tsx",
       "source_location": "L25",
-      "community": 20,
+      "community": 0,
       "norm_label": "cinematiccontrollerprops",
       "id": "trea_cinematiccontroller_cinematiccontrollerprops"
     },
@@ -2613,7 +2748,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/CinematicController.tsx",
       "source_location": "L31",
-      "community": 20,
+      "community": 0,
       "norm_label": "cinematiccontroller()",
       "id": "trea_cinematiccontroller_cinematiccontroller"
     },
@@ -2634,69 +2769,6 @@
       "community": 0,
       "norm_label": "cinematicoverlay()",
       "id": "trea_cinematicoverlay_cinematicoverlay"
-    },
-    {
-      "label": "MissionHeader.tsx",
-      "file_type": "code",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L1",
-      "community": 0,
-      "norm_label": "missionheader.tsx",
-      "id": "src_components_trea_missionheader_tsx"
-    },
-    {
-      "label": "MissionHeaderProps",
-      "file_type": "code",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L22",
-      "community": 0,
-      "norm_label": "missionheaderprops",
-      "id": "trea_missionheader_missionheaderprops"
-    },
-    {
-      "label": "PHASE_LABELS",
-      "file_type": "code",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L28",
-      "community": 0,
-      "norm_label": "phase_labels",
-      "id": "trea_missionheader_phase_labels"
-    },
-    {
-      "label": "PHASE_COLORS",
-      "file_type": "code",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L37",
-      "community": 0,
-      "norm_label": "phase_colors",
-      "id": "trea_missionheader_phase_colors"
-    },
-    {
-      "label": "ATTITUDE_LABELS",
-      "file_type": "code",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L46",
-      "community": 0,
-      "norm_label": "attitude_labels",
-      "id": "trea_missionheader_attitude_labels"
-    },
-    {
-      "label": "PAYLOAD_LABELS",
-      "file_type": "code",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L54",
-      "community": 0,
-      "norm_label": "payload_labels",
-      "id": "trea_missionheader_payload_labels"
-    },
-    {
-      "label": "MissionHeader()",
-      "file_type": "code",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L60",
-      "community": 0,
-      "norm_label": "missionheader()",
-      "id": "trea_missionheader_missionheader"
     },
     {
       "label": "generateMissionTle.ts",
@@ -3234,7 +3306,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L110",
-      "community": 20,
+      "community": 0,
       "norm_label": "aoi_list",
       "id": "trea_constants_aoi_list"
     },
@@ -3261,7 +3333,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L146",
-      "community": 0,
+      "community": 7,
       "norm_label": "missionphase",
       "id": "trea_constants_missionphase"
     },
@@ -4863,7 +4935,7 @@
       "file_type": "code",
       "source_file": "src/components/visualization/SatelliteMedia.tsx",
       "source_location": "L1",
-      "community": 16,
+      "community": 74,
       "norm_label": "satellitemedia.tsx",
       "id": "src_components_visualization_satellitemedia_tsx"
     },
@@ -4872,7 +4944,7 @@
       "file_type": "code",
       "source_file": "src/components/visualization/SatelliteMedia.tsx",
       "source_location": "L6",
-      "community": 16,
+      "community": 74,
       "norm_label": "satellitemediaprops",
       "id": "visualization_satellitemedia_satellitemediaprops"
     },
@@ -4881,7 +4953,7 @@
       "file_type": "code",
       "source_file": "src/components/visualization/SatelliteMedia.tsx",
       "source_location": "L16",
-      "community": 16,
+      "community": 74,
       "norm_label": "satellitemedia()",
       "id": "visualization_satellitemedia_satellitemedia"
     },
@@ -6897,7 +6969,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/SearchBar.tsx",
       "source_location": "L1",
-      "community": 12,
+      "community": 47,
       "norm_label": "searchbar.tsx",
       "id": "src_components_ui_searchbar_tsx"
     },
@@ -6906,7 +6978,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/SearchBar.tsx",
       "source_location": "L10",
-      "community": 12,
+      "community": 47,
       "norm_label": "searchbarprops",
       "id": "ui_searchbar_searchbarprops"
     },
@@ -6915,7 +6987,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/SearchBar.tsx",
       "source_location": "L18",
-      "community": 12,
+      "community": 47,
       "norm_label": "searchbar()",
       "id": "ui_searchbar_searchbar"
     },
@@ -7760,7 +7832,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/input.tsx",
       "source_location": "L1",
-      "community": 12,
+      "community": 47,
       "norm_label": "input.tsx",
       "id": "src_components_ui_input_tsx"
     },
@@ -7769,7 +7841,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/input.tsx",
       "source_location": "L6",
-      "community": 12,
+      "community": 47,
       "norm_label": "input",
       "id": "ui_input_input"
     },
@@ -7778,7 +7850,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/OrbitParameters.tsx",
       "source_location": "L1",
-      "community": 47,
+      "community": 12,
       "norm_label": "orbitparameters.tsx",
       "id": "src_components_ui_orbitparameters_tsx"
     },
@@ -7787,7 +7859,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/OrbitParameters.tsx",
       "source_location": "L3",
-      "community": 47,
+      "community": 12,
       "norm_label": "orbitparametersprops",
       "id": "ui_orbitparameters_orbitparametersprops"
     },
@@ -7796,7 +7868,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/OrbitParameters.tsx",
       "source_location": "L12",
-      "community": 47,
+      "community": 12,
       "norm_label": "paramcard()",
       "id": "ui_orbitparameters_paramcard"
     },
@@ -7805,7 +7877,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/OrbitParameters.tsx",
       "source_location": "L39",
-      "community": 47,
+      "community": 12,
       "norm_label": "orbitparameters()",
       "id": "ui_orbitparameters_orbitparameters"
     },
@@ -7814,7 +7886,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/scroll-area.tsx",
       "source_location": "L1",
-      "community": 2,
+      "community": 47,
       "norm_label": "scroll-area.tsx",
       "id": "src_components_ui_scroll_area_tsx"
     },
@@ -7823,7 +7895,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/scroll-area.tsx",
       "source_location": "L8",
-      "community": 2,
+      "community": 47,
       "norm_label": "scrollarea()",
       "id": "ui_scroll_area_scrollarea"
     },
@@ -7832,7 +7904,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/scroll-area.tsx",
       "source_location": "L31",
-      "community": 2,
+      "community": 47,
       "norm_label": "scrollbar()",
       "id": "ui_scroll_area_scrollbar"
     },
@@ -7841,7 +7913,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L1",
-      "community": 2,
+      "community": 15,
       "norm_label": "select.tsx",
       "id": "src_components_ui_select_tsx"
     },
@@ -7850,7 +7922,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L11",
-      "community": 2,
+      "community": 15,
       "norm_label": "selectgroup()",
       "id": "ui_select_selectgroup"
     },
@@ -7859,7 +7931,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L21",
-      "community": 2,
+      "community": 15,
       "norm_label": "selectvalue()",
       "id": "ui_select_selectvalue"
     },
@@ -7868,7 +7940,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L31",
-      "community": 2,
+      "community": 15,
       "norm_label": "selecttrigger()",
       "id": "ui_select_selecttrigger"
     },
@@ -7877,7 +7949,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L59",
-      "community": 2,
+      "community": 15,
       "norm_label": "selectcontent()",
       "id": "ui_select_selectcontent"
     },
@@ -7886,7 +7958,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L98",
-      "community": 2,
+      "community": 15,
       "norm_label": "selectlabel()",
       "id": "ui_select_selectlabel"
     },
@@ -7895,7 +7967,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L111",
-      "community": 2,
+      "community": 15,
       "norm_label": "selectitem()",
       "id": "ui_select_selectitem"
     },
@@ -7904,7 +7976,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L139",
-      "community": 2,
+      "community": 15,
       "norm_label": "selectseparator()",
       "id": "ui_select_selectseparator"
     },
@@ -7913,7 +7985,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L152",
-      "community": 2,
+      "community": 15,
       "norm_label": "selectscrollupbutton()",
       "id": "ui_select_selectscrollupbutton"
     },
@@ -7922,7 +7994,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L171",
-      "community": 2,
+      "community": 15,
       "norm_label": "selectscrolldownbutton()",
       "id": "ui_select_selectscrolldownbutton"
     },
@@ -7931,7 +8003,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/separator.tsx",
       "source_location": "L1",
-      "community": 2,
+      "community": 15,
       "norm_label": "separator.tsx",
       "id": "src_components_ui_separator_tsx"
     },
@@ -7940,7 +8012,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/separator.tsx",
       "source_location": "L7",
-      "community": 2,
+      "community": 15,
       "norm_label": "separator()",
       "id": "ui_separator_separator"
     },
@@ -7949,7 +8021,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/slider.tsx",
       "source_location": "L1",
-      "community": 2,
+      "community": 15,
       "norm_label": "slider.tsx",
       "id": "src_components_ui_slider_tsx"
     },
@@ -7958,7 +8030,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/slider.tsx",
       "source_location": "L5",
-      "community": 2,
+      "community": 15,
       "norm_label": "slider()",
       "id": "ui_slider_slider"
     },
@@ -8039,7 +8111,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/ViewSwitcher.tsx",
       "source_location": "L1",
-      "community": 15,
+      "community": 38,
       "norm_label": "viewswitcher.tsx",
       "id": "src_components_ui_viewswitcher_tsx"
     },
@@ -8048,7 +8120,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/ViewSwitcher.tsx",
       "source_location": "L6",
-      "community": 15,
+      "community": 38,
       "norm_label": "viewswitcher()",
       "id": "ui_viewswitcher_viewswitcher"
     },
@@ -8399,7 +8471,7 @@
       "file_type": "code",
       "source_file": "src/lib/utils.ts",
       "source_location": "L1",
-      "community": 2,
+      "community": 15,
       "norm_label": "utils.ts",
       "id": "src_lib_utils_ts"
     },
@@ -8408,7 +8480,7 @@
       "file_type": "code",
       "source_file": "src/lib/utils.ts",
       "source_location": "L4",
-      "community": 2,
+      "community": 15,
       "norm_label": "cn()",
       "id": "lib_utils_cn"
     },
@@ -8489,7 +8561,7 @@
       "file_type": "code",
       "source_file": "src/lib/tle/orbit.ts",
       "source_location": "L31",
-      "community": 19,
+      "community": 1,
       "norm_label": "orbitparams",
       "id": "tle_orbit_orbitparams"
     },
@@ -8561,7 +8633,7 @@
       "file_type": "code",
       "source_file": "src/lib/tle/orbit.ts",
       "source_location": "L139",
-      "community": 1,
+      "community": 28,
       "norm_label": "getgmst()",
       "id": "tle_orbit_getgmst"
     },
@@ -8669,7 +8741,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L1",
-      "community": 15,
+      "community": 38,
       "norm_label": "satellitestore.ts",
       "id": "src_store_satellitestore_ts"
     },
@@ -8687,7 +8759,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L5",
-      "community": 15,
+      "community": 38,
       "norm_label": "tledata",
       "id": "store_satellitestore_tledata"
     },
@@ -8705,7 +8777,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L31",
-      "community": 15,
+      "community": 38,
       "norm_label": "orbitcacheentry",
       "id": "store_satellitestore_orbitcacheentry"
     },
@@ -8714,7 +8786,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L44",
-      "community": 15,
+      "community": 38,
       "norm_label": "viewmode",
       "id": "store_satellitestore_viewmode"
     },
@@ -8723,7 +8795,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L46",
-      "community": 15,
+      "community": 38,
       "norm_label": "timestate",
       "id": "store_satellitestore_timestate"
     },
@@ -8732,7 +8804,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L52",
-      "community": 15,
+      "community": 38,
       "norm_label": "satellitestorestate",
       "id": "store_satellitestore_satellitestorestate"
     },
@@ -8741,7 +8813,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L65",
-      "community": 2,
+      "community": 38,
       "norm_label": "satellitestoreactions",
       "id": "store_satellitestore_satellitestoreactions"
     },
@@ -8750,7 +8822,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L90",
-      "community": 15,
+      "community": 38,
       "norm_label": "defaultsatellites",
       "id": "store_satellitestore_defaultsatellites"
     },
@@ -8759,7 +8831,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L92",
-      "community": 15,
+      "community": 38,
       "norm_label": "usesatellitestore",
       "id": "store_satellitestore_usesatellitestore"
     },
@@ -8786,7 +8858,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L235",
-      "community": 15,
+      "community": 38,
       "norm_label": "useviewmode()",
       "id": "store_satellitestore_useviewmode"
     },
@@ -8795,7 +8867,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L236",
-      "community": 15,
+      "community": 38,
       "norm_label": "usetimestate()",
       "id": "store_satellitestore_usetimestate"
     },
@@ -8813,7 +8885,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L238",
-      "community": 15,
+      "community": 38,
       "norm_label": "useorbitcache()",
       "id": "store_satellitestore_useorbitcache"
     },
@@ -8822,7 +8894,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L239",
-      "community": 15,
+      "community": 38,
       "norm_label": "usesatelliteloading()",
       "id": "store_satellitestore_usesatelliteloading"
     },
@@ -8831,7 +8903,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L240",
-      "community": 15,
+      "community": 38,
       "norm_label": "usesatelliteerror()",
       "id": "store_satellitestore_usesatelliteerror"
     },
@@ -9104,7 +9176,7 @@
       "file_type": "code",
       "source_file": "app/layout.tsx",
       "source_location": "L1",
-      "community": 2,
+      "community": 15,
       "norm_label": "layout.tsx",
       "id": "app_layout_tsx"
     },
@@ -9113,7 +9185,7 @@
       "file_type": "code",
       "source_file": "components/HomePage.tsx",
       "source_location": "L1",
-      "community": 38,
+      "community": 0,
       "norm_label": "homepage.tsx",
       "id": "components_homepage_tsx"
     },
@@ -9149,7 +9221,7 @@
       "file_type": "code",
       "source_file": "components/visualization/CesiumGlobe.tsx",
       "source_location": "L1",
-      "community": 0,
+      "community": 1,
       "norm_label": "cesiumglobe.tsx",
       "id": "components_visualization_cesiumglobe_tsx"
     },
@@ -9226,24 +9298,9 @@
           "maneuverEvent"
         ]
       },
-      "community": 4,
+      "community": 78,
       "norm_label": "cesiumglobe",
       "id": "cesium-globe-component"
-    },
-    {
-      "label": "TelemetryDashboard",
-      "type": "code_module",
-      "file_type": "code",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "rationale": "8-card neon-style telemetry dashboard shared by both HomePage mission mode and ChaseCockpit. Displays position, velocity, attitude, fuel, battery, payload, link quality, and alerts.",
-      "properties": {
-        "lines_of_code": 564,
-        "num_cards": 8,
-        "style": "neon cyberpunk"
-      },
-      "community": 4,
-      "norm_label": "telemetrydashboard",
-      "id": "telemetry-dashboard-component"
     },
     {
       "label": "CollisionAlertModal",
@@ -9266,26 +9323,6 @@
       "community": 4,
       "norm_label": "collisionalertmodal",
       "id": "collision-alert-modal"
-    },
-    {
-      "label": "HomePage",
-      "type": "code_module",
-      "file_type": "code",
-      "source_file": "src/components/HomePage.tsx",
-      "rationale": "Main application page that orchestrates mission mode, satellite list, search, TLE refresh, image upload, and TREA-01 mission panels.",
-      "properties": {
-        "lines_of_code": 850,
-        "mission_mode_features": [
-          "MissionHeader",
-          "TaskListPanel",
-          "TreaSatelliteView",
-          "TelemetryDashboard",
-          "ManeuverPanel"
-        ]
-      },
-      "community": 4,
-      "norm_label": "homepage",
-      "id": "homepage-component"
     },
     {
       "label": "AI Task Planning API",
@@ -9407,21 +9444,6 @@
       "community": 77,
       "norm_label": "scanvideomodal",
       "id": "scan-video-modal"
-    },
-    {
-      "label": "Cockpit Page Route",
-      "type": "code_module",
-      "file_type": "code",
-      "source_file": "src/app/cockpit/page.tsx",
-      "rationale": "Route entry for /cockpit. Dynamically imports ChaseCockpit with SSR disabled (ssr: false) since Cesium requires browser environment.",
-      "properties": {
-        "lines_of_code": 28,
-        "route_path": "/cockpit",
-        "ssr": false
-      },
-      "community": 74,
-      "norm_label": "cockpit page route",
-      "id": "cockpit-page-route"
     },
     {
       "label": "Root Layout",
@@ -9691,9 +9713,9 @@
       "source_file": "README.md",
       "source_location": "L39",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "\u5f00\u53d1\u533a_readme_\u529f\u80fd\u4ecb\u7ecd",
-      "target": "\u5f00\u53d1\u533a_readme_\u7b2c\u4e00\u89c6\u89d2\u9a7e\u9a76\u8231_first_person_cockpit",
-      "confidence_score": 1.0
+      "target": "\u5f00\u53d1\u533a_readme_\u7b2c\u4e00\u89c6\u89d2\u9a7e\u9a76\u8231_first_person_cockpit"
     },
     {
       "relation": "contains",
@@ -9731,9 +9753,9 @@
       "source_file": "README.md",
       "source_location": "L243",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "\u5f00\u53d1\u533a_readme_\u751f\u4ea7\u67b6\u6784",
-      "target": "\u5f00\u53d1\u533a_readme_docker_compose_\u81ea\u6258\u7ba1\u67b6\u6784",
-      "confidence_score": 1.0
+      "target": "\u5f00\u53d1\u533a_readme_docker_compose_\u81ea\u6258\u7ba1\u67b6\u6784"
     },
     {
       "relation": "contains",
@@ -9741,9 +9763,9 @@
       "source_file": "README.md",
       "source_location": "L226",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "\u5f00\u53d1\u533a_readme_\u751f\u4ea7\u67b6\u6784",
-      "target": "\u5f00\u53d1\u533a_readme_vercel_\u90e8\u7f72\u67b6\u6784",
-      "confidence_score": 1.0
+      "target": "\u5f00\u53d1\u533a_readme_vercel_\u90e8\u7f72\u67b6\u6784"
     },
     {
       "relation": "contains",
@@ -9761,9 +9783,9 @@
       "source_file": "README.md",
       "source_location": "L228",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "\u5f00\u53d1\u533a_readme_vercel_\u90e8\u7f72\u67b6\u6784",
-      "target": "\u5f00\u53d1\u533a_readme_codeblock_2",
-      "confidence_score": 1.0
+      "target": "\u5f00\u53d1\u533a_readme_codeblock_2"
     },
     {
       "relation": "contains",
@@ -9771,9 +9793,9 @@
       "source_file": "README.md",
       "source_location": "L245",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "\u5f00\u53d1\u533a_readme_docker_compose_\u81ea\u6258\u7ba1\u67b6\u6784",
-      "target": "\u5f00\u53d1\u533a_readme_codeblock_3",
-      "confidence_score": 1.0
+      "target": "\u5f00\u53d1\u533a_readme_codeblock_3"
     },
     {
       "relation": "contains",
@@ -9831,9 +9853,9 @@
       "source_file": "README.md",
       "source_location": "L286",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "\u5f00\u53d1\u533a_readme_\u5b89\u88c5\u4e0e\u542f\u52a8",
-      "target": "\u5f00\u53d1\u533a_readme_codeblock_4",
-      "confidence_score": 1.0
+      "target": "\u5f00\u53d1\u533a_readme_codeblock_4"
     },
     {
       "relation": "contains",
@@ -9841,9 +9863,9 @@
       "source_file": "README.md",
       "source_location": "L353",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "\u5f00\u53d1\u533a_readme_\u90e8\u7f72\u65b9\u5f0f",
-      "target": "\u5f00\u53d1\u533a_readme_docker_compose_\u81ea\u6258\u7ba1",
-      "confidence_score": 1.0
+      "target": "\u5f00\u53d1\u533a_readme_docker_compose_\u81ea\u6258\u7ba1"
     },
     {
       "relation": "contains",
@@ -9851,9 +9873,9 @@
       "source_file": "README.md",
       "source_location": "L343",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "\u5f00\u53d1\u533a_readme_\u90e8\u7f72\u65b9\u5f0f",
-      "target": "\u5f00\u53d1\u533a_readme_vercel_\u90e8\u7f72_\u96f6\u8fd0\u7ef4_\u63a8\u8350",
-      "confidence_score": 1.0
+      "target": "\u5f00\u53d1\u533a_readme_vercel_\u90e8\u7f72_\u96f6\u8fd0\u7ef4_\u63a8\u8350"
     },
     {
       "relation": "contains",
@@ -9871,9 +9893,9 @@
       "source_file": "README.md",
       "source_location": "L364",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "\u5f00\u53d1\u533a_readme_docker_compose_\u81ea\u6258\u7ba1",
-      "target": "\u5f00\u53d1\u533a_readme_codeblock_5",
-      "confidence_score": 1.0
+      "target": "\u5f00\u53d1\u533a_readme_codeblock_5"
     },
     {
       "relation": "contains",
@@ -9881,50 +9903,29 @@
       "source_file": "README.md",
       "source_location": "L392",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "\u5f00\u53d1\u533a_readme_\u90e8\u7f72\u66f4\u65b0\u6d41\u7a0b",
-      "target": "\u5f00\u53d1\u533a_readme_codeblock_6",
-      "confidence_score": 1.0
+      "target": "\u5f00\u53d1\u533a_readme_codeblock_6"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L119",
+      "source_file": "src/app/cockpit/page.tsx",
+      "source_location": "L14",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "src_components_cockpit_chasecockpit_tsx",
-      "target": "cockpit_chasecockpit_chasecockpit"
+      "source": "src_app_cockpit_page_tsx",
+      "target": "cockpit_page_chasecockpit"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L82",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_cockpit_chasecockpit_tsx",
-      "target": "cockpit_chasecockpit_cockpitwireframe"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L39",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_cockpit_chasecockpit_tsx",
-      "target": "cockpit_chasecockpit_timecontrol"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_file": "src/app/cockpit/page.tsx",
       "source_location": "L26",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "src_components_cockpit_chasecockpit_tsx",
-      "target": "hooks_usechaseviewer_usechaseviewer"
+      "source": "src_app_cockpit_page_tsx",
+      "target": "cockpit_page_cockpitpage"
     },
     {
       "relation": "imports_from",
@@ -9933,820 +9934,74 @@
       "source_file": "src/components/cockpit/ChaseCockpit.tsx",
       "source_location": "L27",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "src_components_cockpit_chasecockpit_tsx",
-      "target": "src_components_trea_telemetrydashboard_tsx"
+      "target": "src_components_fullscreenbutton_tsx",
+      "confidence_score": 1.0
     },
     {
-      "relation": "imports_from",
-      "context": "import",
+      "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L26",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_cockpit_chasecockpit_tsx",
-      "target": "src_hooks_usechaseviewer_ts"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_cockpit_chasecockpit_tsx",
-      "target": "store_timestore_usecurrenttime"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_cockpit_chasecockpit_tsx",
-      "target": "store_timestore_useisplaying"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_cockpit_chasecockpit_tsx",
-      "target": "store_timestore_useplaybackrate"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_cockpit_chasecockpit_tsx",
-      "target": "store_timestore_useplaybackrates"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_cockpit_chasecockpit_tsx",
-      "target": "store_timestore_usetimestore"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
-      "source_location": "L120",
-      "weight": 1.0,
-      "source": "cockpit_chasecockpit_chasecockpit",
-      "target": "hooks_usechaseviewer_usechaseviewer"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/visualization/CesiumGlobe.tsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_visualization_cesiumglobe_tsx",
-      "target": "src_hooks_usecesium_ts"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
+      "source_file": "src/components/FullscreenButton.tsx",
       "source_location": "L10",
       "weight": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "cesium_imagery_createearthimageryprovider",
+      "source": "src_components_fullscreenbutton_tsx",
+      "target": "components_fullscreenbutton_fullscreenbutton",
       "confidence_score": 1.0
     },
     {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L9",
+      "source_file": "src/components/FullscreenButton.tsx",
+      "source_location": "L4",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "cesium_positions_calculatesatelliteposition"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "cesium_positions_generateorbitpoints"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "cesium_positions_generateorbitpointsecef"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "hooks_usecesium_cesiuminstance"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L13",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "hooks_usecesium_cesiumns"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "hooks_usecesium_getcesium"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L65",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "hooks_usecesium_usecesium"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TreaSatelliteView.tsx",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "src_components_trea_treasatelliteview_tsx"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "src_components_visualization_orbittrail_tsx"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "src_components_visualization_satelliteentity_tsx"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L10",
-      "weight": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "src_lib_cesium_imagery_ts",
+      "source": "src_components_fullscreenbutton_tsx",
+      "target": "hooks_usefullscreen_usefullscreen",
       "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L9",
+      "source_file": "src/components/FullscreenButton.tsx",
+      "source_location": "L4",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "src_lib_cesium_positions_ts"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L10",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "src_lib_trea_constants_ts"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "src_store_satellitestore_ts"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "src_store_timestore_ts"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "store_satellitestore_spaceobject"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "store_timestore_usetimestore"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L11",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "tle_parser_tledata"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L10",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "trea_constants_aoi"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "visualization_orbittrail_createorbittrail"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "visualization_satelliteentity_createsatelliteentity"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useCesium.ts",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usecesium_ts",
-      "target": "visualization_satelliteentity_getsatellitecolor"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "hooks/useCesium.ts",
-      "source_location": "L13",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hooks_usecesium_cesiumns",
-      "target": "hooks_usecesium_ts"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "hooks/useCesium.ts",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hooks_usecesium_getcesium",
-      "target": "hooks_usecesium_ts"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "hooks/useCesium.ts",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hooks_usecesium_cesiuminstance",
-      "target": "hooks_usecesium_ts"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "components/visualization/CesiumGlobe.tsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hooks_usecesium_usecesium",
-      "target": "components_visualization_cesiumglobe_tsx"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "hooks/useCesium.ts",
-      "source_location": "L65",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hooks_usecesium_usecesium",
-      "target": "hooks_usecesium_ts"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TreaSatelliteView.tsx",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hooks_usecesium_usecesium",
-      "target": "src_components_trea_treasatelliteview_tsx"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/TreaSatelliteView.tsx",
-      "source_location": "L21",
-      "weight": 1.0,
-      "source": "hooks_usecesium_usecesium",
-      "target": "trea_treasatelliteview_treasatelliteview"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/visualization/CesiumGlobe.tsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_visualization_cesiumglobe_tsx",
-      "target": "hooks_usecesium_usecesium"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/visualization/CesiumGlobe.tsx",
-      "source_location": "L82",
-      "weight": 1.0,
-      "source": "visualization_cesiumglobe_cesiumglobe",
-      "target": "hooks_usecesium_usecesium"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L39",
-      "weight": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "cesium_imagery_createearthimageryprovider",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L31",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "cockpit_traffic_sats_createtrafficsats"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L31",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "cockpit_traffic_sats_distancekm"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L31",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "cockpit_traffic_sats_propagateecfkm"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L31",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "cockpit_traffic_sats_rephasetrafficsat"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L31",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "cockpit_traffic_sats_trafficsat"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L40",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "hooks_usechaseviewer_cesiumns"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L122",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "hooks_usechaseviewer_chaseinstance"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L107",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "hooks_usechaseviewer_getcesium"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L95",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "hooks_usechaseviewer_traffic_model_scale"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L142",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "hooks_usechaseviewer_usechaseviewer"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L131",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "hooks_usechaseviewer_usechaseviewerreturn"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L39",
-      "weight": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "src_lib_cesium_imagery_ts",
+      "source": "src_components_fullscreenbutton_tsx",
+      "target": "src_hooks_usefullscreen_ts",
       "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L31",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "src_lib_cockpit_traffic_sats_ts"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "src_store_treamissionstore_ts"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L27",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "store_timestore_usetimestore"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "store_treamissionstore_usetreatle"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "tle_orbit_createsatrec"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_hooks_usechaseviewer_ts",
-      "target": "tle_parser_tledata"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/hooks/useChaseViewer.ts",
-      "source_location": "L163",
-      "weight": 1.0,
-      "source": "hooks_usechaseviewer_usechaseviewer",
-      "target": "store_treamissionstore_usetreatle"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/cesium/imagery.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "src_lib_cesium_imagery_ts",
-      "target": "cesium_imagery_cesiumns",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/lib/cesium/imagery.ts",
-      "source_location": "L24",
-      "weight": 1.0,
-      "source": "src_lib_cesium_imagery_ts",
-      "target": "cesium_imagery_createearthimageryprovider",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_ts",
-      "target": "lib_security_timingsafeequalhash"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_ts",
-      "target": "src_lib_security_ts"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L48",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_ts",
-      "target": "src_middleware_checkratelimit"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L130",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_ts",
-      "target": "src_middleware_config"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L40",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_ts",
-      "target": "src_middleware_getclientip"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_ts",
-      "target": "src_middleware_ipbuckets"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L76",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_ts",
-      "target": "src_middleware_middleware"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L10",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_ts",
-      "target": "src_middleware_now"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_ts",
-      "target": "src_middleware_rate_limits"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
+      "source_file": "src/components/HomePage.tsx",
       "source_location": "L16",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_ts",
-      "target": "src_middleware_ratelimit"
+      "source": "src_components_homepage_tsx",
+      "target": "src_components_fullscreenbutton_tsx",
+      "confidence_score": 1.0
     },
     {
-      "relation": "contains",
+      "relation": "imports_from",
+      "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L5",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L9",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_ts",
-      "target": "src_middleware_ratelimitentry"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L57",
-      "weight": 1.0,
-      "source": "src_middleware_checkratelimit",
-      "target": "src_middleware_now",
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "src_components_fullscreenbutton_tsx",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L77",
-      "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "src_middleware_getclientip",
-      "target": "src_middleware_middleware"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/middleware.ts",
-      "source_location": "L93",
+      "source_file": "src/components/FullscreenButton.tsx",
+      "source_location": "L11",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_middleware_checkratelimit",
-      "target": "src_middleware_middleware"
+      "source": "components_fullscreenbutton_fullscreenbutton",
+      "target": "hooks_usefullscreen_usefullscreen"
     },
     {
       "relation": "imports",
@@ -11379,6 +10634,1613 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L119",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_cockpit_chasecockpit_tsx",
+      "target": "cockpit_chasecockpit_chasecockpit"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L82",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_cockpit_chasecockpit_tsx",
+      "target": "cockpit_chasecockpit_cockpitwireframe"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_cockpit_chasecockpit_tsx",
+      "target": "cockpit_chasecockpit_timecontrol"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L26",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_cockpit_chasecockpit_tsx",
+      "target": "hooks_usechaseviewer_usechaseviewer"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_cockpit_chasecockpit_tsx",
+      "target": "src_components_trea_telemetrydashboard_tsx"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L26",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_cockpit_chasecockpit_tsx",
+      "target": "src_hooks_usechaseviewer_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_cockpit_chasecockpit_tsx",
+      "target": "store_timestore_usecurrenttime"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_cockpit_chasecockpit_tsx",
+      "target": "store_timestore_useisplaying"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_cockpit_chasecockpit_tsx",
+      "target": "store_timestore_useplaybackrate"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_cockpit_chasecockpit_tsx",
+      "target": "store_timestore_useplaybackrates"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_cockpit_chasecockpit_tsx",
+      "target": "store_timestore_usetimestore"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/cockpit/ChaseCockpit.tsx",
+      "source_location": "L120",
+      "weight": 1.0,
+      "source": "cockpit_chasecockpit_chasecockpit",
+      "target": "hooks_usechaseviewer_usechaseviewer"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "src_lib_trea_constants_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "src_store_cinematicstore_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "store_cinematicstore_usecinematicstore"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "store_treamissionstore_usetreaattitude",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "store_treamissionstore_usetreabattery",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "store_treamissionstore_usetreacurrenttask",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "store_treamissionstore_usetreafuel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "store_treamissionstore_usetrealastreport",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "store_treamissionstore_usetreamissionphase",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "store_treamissionstore_usetreamissionstore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "store_treamissionstore_usetreapayloadstatus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "trea_constants_missionphase"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L46",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "trea_missionheader_attitude_labels"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L60",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "trea_missionheader_missionheader"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "trea_missionheader_missionheaderprops"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L54",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "trea_missionheader_payload_labels"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L37",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "trea_missionheader_phase_colors"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "trea_missionheader_phase_labels"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_missionheader_tsx",
+      "target": "ui_button_button"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_store_treamissionstore_ts",
+      "target": "src_components_trea_missionheader_tsx"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L64",
+      "weight": 1.0,
+      "source": "store_treamissionstore_usetreaattitude",
+      "target": "trea_missionheader_missionheader"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L63",
+      "weight": 1.0,
+      "source": "store_treamissionstore_usetreabattery",
+      "target": "trea_missionheader_missionheader"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L70",
+      "weight": 1.0,
+      "source": "store_treamissionstore_usetreacurrenttask",
+      "target": "trea_missionheader_missionheader"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L62",
+      "weight": 1.0,
+      "source": "store_treamissionstore_usetreafuel",
+      "target": "trea_missionheader_missionheader"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L71",
+      "weight": 1.0,
+      "source": "store_treamissionstore_usetrealastreport",
+      "target": "trea_missionheader_missionheader"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "store_treamissionstore_usetreamissionphase",
+      "target": "trea_missionheader_missionheader"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "store_treamissionstore_usetreapayloadstatus",
+      "target": "trea_missionheader_missionheader"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/MissionHeader.tsx",
+      "source_location": "L67",
+      "weight": 1.0,
+      "source": "trea_missionheader_missionheader",
+      "target": "store_cinematicstore_usecinematicstore"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L48",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "src_lib_trea_constants_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "src_store_treamissionstore_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L38",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "store_timestore_usecurrenttime"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "store_treamissionstore_usetreaattitude"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "store_treamissionstore_usetreabattery"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "store_treamissionstore_usetreafuel"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "store_treamissionstore_usetreamissionstore"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "store_treamissionstore_usetreapayloadstatus"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "store_treamissionstore_usetreatelemetry"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "store_treamissionstore_usetreatle"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L48",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_constants_payloadstatus"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L142",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_accent_border"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L150",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_accent_icon"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L480",
+      "weight": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_alertmini",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L123",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_attitude_labels"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L431",
+      "weight": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_attmini",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L134",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_cardprops"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L70",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_formatalt"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L55",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_formatlat"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L61",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_formatlon"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L418",
+      "weight": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_geocell",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L75",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_levelcolor"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L156",
+      "weight": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_minicard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L509",
+      "weight": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_paramcell",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L101",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_payload_display"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L451",
+      "weight": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_resourcemini",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L183",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_telemetrydashboard"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L178",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_trea_telemetrydashboard_tsx",
+      "target": "trea_telemetrydashboard_telemetrydashboardprops"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L307",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "trea_telemetrydashboard_formatlat",
+      "target": "trea_telemetrydashboard_telemetrydashboard"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L313",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "trea_telemetrydashboard_formatlon",
+      "target": "trea_telemetrydashboard_telemetrydashboard"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L319",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "trea_telemetrydashboard_formatalt",
+      "target": "trea_telemetrydashboard_telemetrydashboard"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L254",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "trea_telemetrydashboard_levelcolor",
+      "target": "trea_telemetrydashboard_telemetrydashboard"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L191",
+      "weight": 1.0,
+      "source": "trea_telemetrydashboard_telemetrydashboard",
+      "target": "store_treamissionstore_usetreaattitude"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L189",
+      "weight": 1.0,
+      "source": "trea_telemetrydashboard_telemetrydashboard",
+      "target": "store_treamissionstore_usetreabattery"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L188",
+      "weight": 1.0,
+      "source": "trea_telemetrydashboard_telemetrydashboard",
+      "target": "store_treamissionstore_usetreafuel"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L186",
+      "weight": 1.0,
+      "source": "trea_telemetrydashboard_telemetrydashboard",
+      "target": "store_treamissionstore_usetreamissionstore"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L190",
+      "weight": 1.0,
+      "source": "trea_telemetrydashboard_telemetrydashboard",
+      "target": "store_treamissionstore_usetreapayloadstatus"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L192",
+      "weight": 1.0,
+      "source": "trea_telemetrydashboard_telemetrydashboard",
+      "target": "store_treamissionstore_usetreatelemetry"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/TelemetryDashboard.tsx",
+      "source_location": "L187",
+      "weight": 1.0,
+      "source": "trea_telemetrydashboard_telemetrydashboard",
+      "target": "store_treamissionstore_usetreatle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useFullscreen.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_hooks_usefullscreen_ts",
+      "target": "hooks_usefullscreen_fullscreendocument",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useFullscreen.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "src_hooks_usefullscreen_ts",
+      "target": "hooks_usefullscreen_fullscreenelement",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useFullscreen.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "src_hooks_usefullscreen_ts",
+      "target": "hooks_usefullscreen_usefullscreen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/visualization/CesiumGlobe.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_visualization_cesiumglobe_tsx",
+      "target": "src_hooks_usecesium_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "cesium_imagery_createearthimageryprovider"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "cesium_positions_calculatesatelliteposition"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "cesium_positions_generateorbitpoints"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "cesium_positions_generateorbitpointsecef"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "hooks_usecesium_cesiuminstance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "hooks_usecesium_cesiumns"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "hooks_usecesium_getcesium"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L65",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "hooks_usecesium_usecesium"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TreaSatelliteView.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "src_components_trea_treasatelliteview_tsx"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "src_components_visualization_orbittrail_tsx"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "src_components_visualization_satelliteentity_tsx"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "src_lib_cesium_imagery_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "src_lib_cesium_positions_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "src_lib_trea_constants_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "src_store_satellitestore_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "src_store_timestore_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "store_satellitestore_spaceobject"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "store_timestore_usetimestore"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "tle_parser_tledata"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "trea_constants_aoi"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "visualization_orbittrail_createorbittrail"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "visualization_satelliteentity_createsatelliteentity"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useCesium.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usecesium_ts",
+      "target": "visualization_satelliteentity_getsatellitecolor"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "hooks/useCesium.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hooks_usecesium_cesiumns",
+      "target": "hooks_usecesium_ts"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "hooks/useCesium.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hooks_usecesium_getcesium",
+      "target": "hooks_usecesium_ts"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "hooks/useCesium.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hooks_usecesium_cesiuminstance",
+      "target": "hooks_usecesium_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/visualization/CesiumGlobe.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hooks_usecesium_usecesium",
+      "target": "components_visualization_cesiumglobe_tsx"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "hooks/useCesium.ts",
+      "source_location": "L65",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hooks_usecesium_usecesium",
+      "target": "hooks_usecesium_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/trea/TreaSatelliteView.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hooks_usecesium_usecesium",
+      "target": "src_components_trea_treasatelliteview_tsx"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/trea/TreaSatelliteView.tsx",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "hooks_usecesium_usecesium",
+      "target": "trea_treasatelliteview_treasatelliteview"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/visualization/CesiumGlobe.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_visualization_cesiumglobe_tsx",
+      "target": "hooks_usecesium_usecesium"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/visualization/CesiumGlobe.tsx",
+      "source_location": "L82",
+      "weight": 1.0,
+      "source": "visualization_cesiumglobe_cesiumglobe",
+      "target": "hooks_usecesium_usecesium"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "cesium_imagery_createearthimageryprovider"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "cockpit_traffic_sats_createtrafficsats"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "cockpit_traffic_sats_distancekm"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "cockpit_traffic_sats_propagateecfkm"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "cockpit_traffic_sats_rephasetrafficsat"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "cockpit_traffic_sats_trafficsat"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L40",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "hooks_usechaseviewer_cesiumns"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L122",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "hooks_usechaseviewer_chaseinstance"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L107",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "hooks_usechaseviewer_getcesium"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L95",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "hooks_usechaseviewer_traffic_model_scale"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L142",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "hooks_usechaseviewer_usechaseviewer"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L131",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "hooks_usechaseviewer_usechaseviewerreturn"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L39",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "src_lib_cesium_imagery_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "src_lib_cockpit_traffic_sats_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "src_store_treamissionstore_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "store_timestore_usetimestore"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "store_treamissionstore_usetreatle"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "tle_orbit_createsatrec"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usechaseviewer_ts",
+      "target": "tle_parser_tledata"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/hooks/useChaseViewer.ts",
+      "source_location": "L163",
+      "weight": 1.0,
+      "source": "hooks_usechaseviewer_usechaseviewer",
+      "target": "store_treamissionstore_usetreatle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/cesium/imagery.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_cesium_imagery_ts",
+      "target": "cesium_imagery_cesiumns"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/cesium/imagery.ts",
+      "source_location": "L24",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_cesium_imagery_ts",
+      "target": "cesium_imagery_createearthimageryprovider"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_ts",
+      "target": "lib_security_timingsafeequalhash"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_ts",
+      "target": "src_lib_security_ts"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L48",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_ts",
+      "target": "src_middleware_checkratelimit"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L130",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_ts",
+      "target": "src_middleware_config"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L40",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_ts",
+      "target": "src_middleware_getclientip"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_ts",
+      "target": "src_middleware_ipbuckets"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L76",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_ts",
+      "target": "src_middleware_middleware"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_ts",
+      "target": "src_middleware_now"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_ts",
+      "target": "src_middleware_rate_limits"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_ts",
+      "target": "src_middleware_ratelimit"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_ts",
+      "target": "src_middleware_ratelimitentry"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L57",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_checkratelimit",
+      "target": "src_middleware_now"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L77",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_getclientip",
+      "target": "src_middleware_middleware"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/middleware.ts",
+      "source_location": "L93",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_middleware_checkratelimit",
+      "target": "src_middleware_middleware"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "deploy/README.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -11916,26 +12778,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/app/cockpit/page.tsx",
-      "source_location": "L14",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_cockpit_page_tsx",
-      "target": "cockpit_page_chasecockpit"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/cockpit/page.tsx",
-      "source_location": "L26",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_cockpit_page_tsx",
-      "target": "cockpit_page_cockpitpage"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "src/app/layout.tsx",
       "source_location": "L8",
       "weight": 1.0,
@@ -12025,398 +12867,6 @@
       "weight": 1.0,
       "source": "app_layout_rootlayout",
       "target": "lib_utils_cn"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L48",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "src_lib_trea_constants_ts"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L39",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "src_store_treamissionstore_ts"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L38",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "store_timestore_usecurrenttime"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L39",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "store_treamissionstore_usetreaattitude"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L39",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "store_treamissionstore_usetreabattery"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L39",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "store_treamissionstore_usetreafuel"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L39",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "store_treamissionstore_usetreamissionstore"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L39",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "store_treamissionstore_usetreapayloadstatus"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L39",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "store_treamissionstore_usetreatelemetry"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L39",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "store_treamissionstore_usetreatle"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L48",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_constants_payloadstatus"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L142",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_accent_border"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L150",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_accent_icon"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L533",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_alertlight"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L123",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_attitude_labels"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L478",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_attituderow"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L134",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_cardprops"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L70",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_formatalt"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L55",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_formatlat"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L61",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_formatlon"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L75",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_levelcolor"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L158",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_neoncard"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L101",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_payload_display"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L499",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_resourcebar"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L183",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_telemetrydashboard"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L178",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_telemetrydashboard_tsx",
-      "target": "trea_telemetrydashboard_telemetrydashboardprops"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L307",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "trea_telemetrydashboard_formatlat",
-      "target": "trea_telemetrydashboard_telemetrydashboard"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L313",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "trea_telemetrydashboard_formatlon",
-      "target": "trea_telemetrydashboard_telemetrydashboard"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L319",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "trea_telemetrydashboard_formatalt",
-      "target": "trea_telemetrydashboard_telemetrydashboard"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L254",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "trea_telemetrydashboard_levelcolor",
-      "target": "trea_telemetrydashboard_telemetrydashboard"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L191",
-      "weight": 1.0,
-      "source": "trea_telemetrydashboard_telemetrydashboard",
-      "target": "store_treamissionstore_usetreaattitude"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L189",
-      "weight": 1.0,
-      "source": "trea_telemetrydashboard_telemetrydashboard",
-      "target": "store_treamissionstore_usetreabattery"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L188",
-      "weight": 1.0,
-      "source": "trea_telemetrydashboard_telemetrydashboard",
-      "target": "store_treamissionstore_usetreafuel"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L186",
-      "weight": 1.0,
-      "source": "trea_telemetrydashboard_telemetrydashboard",
-      "target": "store_treamissionstore_usetreamissionstore"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L190",
-      "weight": 1.0,
-      "source": "trea_telemetrydashboard_telemetrydashboard",
-      "target": "store_treamissionstore_usetreapayloadstatus"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L192",
-      "weight": 1.0,
-      "source": "trea_telemetrydashboard_telemetrydashboard",
-      "target": "store_treamissionstore_usetreatelemetry"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/TelemetryDashboard.tsx",
-      "source_location": "L187",
-      "weight": 1.0,
-      "source": "trea_telemetrydashboard_telemetrydashboard",
-      "target": "store_treamissionstore_usetreatle"
     },
     {
       "relation": "contains",
@@ -13593,17 +14043,6 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_store_treamissionstore_ts",
-      "target": "src_components_trea_missionheader_tsx"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "src/components/trea/MissionSimulator.tsx",
       "source_location": "L33",
       "weight": 1.0,
@@ -14411,17 +14850,6 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "store_treamissionstore_usetreamissionstore",
-      "target": "src_components_trea_missionheader_tsx"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "src/components/trea/MissionSimulator.tsx",
       "source_location": "L33",
       "weight": 1.0,
@@ -14877,17 +15305,6 @@
       "target": "src_components_trea_maneuverpanel_tsx"
     },
     {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "store_treamissionstore_usetreafuel",
-      "target": "src_components_trea_missionheader_tsx"
-    },
-    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "store/treaMissionStore.ts",
@@ -14920,28 +15337,6 @@
       "target": "trea_maneuverpanel_maneuverpanel"
     },
     {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L62",
-      "weight": 1.0,
-      "source": "store_treamissionstore_usetreafuel",
-      "target": "trea_missionheader_missionheader"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "store_treamissionstore_usetreabattery",
-      "target": "src_components_trea_missionheader_tsx"
-    },
-    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -14967,33 +15362,11 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L63",
-      "weight": 1.0,
-      "source": "store_treamissionstore_usetreabattery",
-      "target": "trea_missionheader_missionheader"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
       "source_file": "src/components/trea/TaskListPanel.tsx",
       "source_location": "L223",
       "weight": 1.0,
       "source": "store_treamissionstore_usetreabattery",
       "target": "trea_tasklistpanel_tasklistpanel"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "store_treamissionstore_usetreaattitude",
-      "target": "src_components_trea_missionheader_tsx"
     },
     {
       "relation": "contains",
@@ -15006,28 +15379,6 @@
       "target": "store_treamissionstore_ts"
     },
     {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L64",
-      "weight": 1.0,
-      "source": "store_treamissionstore_usetreaattitude",
-      "target": "trea_missionheader_missionheader"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "store_treamissionstore_usetreapayloadstatus",
-      "target": "src_components_trea_missionheader_tsx"
-    },
-    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "store/treaMissionStore.ts",
@@ -15036,17 +15387,6 @@
       "confidence_score": 1.0,
       "source": "store_treamissionstore_usetreapayloadstatus",
       "target": "store_treamissionstore_ts"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L65",
-      "weight": 1.0,
-      "source": "store_treamissionstore_usetreapayloadstatus",
-      "target": "trea_missionheader_missionheader"
     },
     {
       "relation": "imports",
@@ -15058,17 +15398,6 @@
       "confidence_score": 1.0,
       "source": "store_treamissionstore_usetreamissionphase",
       "target": "components_homepage_tsx"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "store_treamissionstore_usetreamissionphase",
-      "target": "src_components_trea_missionheader_tsx"
     },
     {
       "relation": "imports",
@@ -15107,17 +15436,6 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L61",
-      "weight": 1.0,
-      "source": "store_treamissionstore_usetreamissionphase",
-      "target": "trea_missionheader_missionheader"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
       "source_file": "src/components/trea/MissionSimulator.tsx",
       "source_location": "L179",
       "weight": 1.0,
@@ -15139,17 +15457,6 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "store_treamissionstore_usetreacurrenttask",
-      "target": "src_components_trea_missionheader_tsx"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "src/components/trea/MissionSimulator.tsx",
       "source_location": "L33",
       "weight": 1.0,
@@ -15166,17 +15473,6 @@
       "confidence_score": 1.0,
       "source": "store_treamissionstore_usetreacurrenttask",
       "target": "store_treamissionstore_ts"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L70",
-      "weight": 1.0,
-      "source": "store_treamissionstore_usetreacurrenttask",
-      "target": "trea_missionheader_missionheader"
     },
     {
       "relation": "calls",
@@ -15254,17 +15550,6 @@
       "target": "src_components_trea_cinematicoverlay_tsx"
     },
     {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "store_treamissionstore_usetrealastreport",
-      "target": "src_components_trea_missionheader_tsx"
-    },
-    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "store/treaMissionStore.ts",
@@ -15284,17 +15569,6 @@
       "weight": 1.0,
       "source": "store_treamissionstore_usetrealastreport",
       "target": "trea_cinematicoverlay_cinematicoverlay"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L71",
-      "weight": 1.0,
-      "source": "store_treamissionstore_usetrealastreport",
-      "target": "trea_missionheader_missionheader"
     },
     {
       "relation": "contains",
@@ -17822,132 +18096,6 @@
       "source_location": "L19",
       "weight": 1.0,
       "source": "trea_cinematicoverlay_cinematicoverlay",
-      "target": "store_cinematicstore_usecinematicstore"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_missionheader_tsx",
-      "target": "src_lib_trea_constants_ts"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_missionheader_tsx",
-      "target": "src_store_cinematicstore_ts"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_missionheader_tsx",
-      "target": "store_cinematicstore_usecinematicstore"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_missionheader_tsx",
-      "target": "trea_constants_missionphase"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L46",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_missionheader_tsx",
-      "target": "trea_missionheader_attitude_labels"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L60",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_missionheader_tsx",
-      "target": "trea_missionheader_missionheader"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L22",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_missionheader_tsx",
-      "target": "trea_missionheader_missionheaderprops"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L54",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_missionheader_tsx",
-      "target": "trea_missionheader_payload_labels"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L37",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_missionheader_tsx",
-      "target": "trea_missionheader_phase_colors"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_missionheader_tsx",
-      "target": "trea_missionheader_phase_labels"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_components_trea_missionheader_tsx",
-      "target": "ui_button_button"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/trea/MissionHeader.tsx",
-      "source_location": "L67",
-      "weight": 1.0,
-      "source": "trea_missionheader_missionheader",
       "target": "store_cinematicstore_usecinematicstore"
     },
     {
@@ -28326,22 +28474,6 @@
       "target": "collision-alert-modal"
     },
     {
-      "id": "edge-homepage-trea-store",
-      "confidence_score": 1.0,
-      "rationale": "HomePage reads mission mode state from treaMissionStore, handles maneuverEvent from lastAvoidanceExecution, and toggles mission UI panels based on store state.",
-      "relation": "uses_state_from",
-      "source": "trea-mission-store",
-      "target": "homepage-component"
-    },
-    {
-      "id": "edge-telemetry-dashboard-trea-store",
-      "confidence_score": 1.0,
-      "rationale": "TelemetryDashboard uses treaMissionStore selector hooks (useTreaFuel, useTreaBattery, useTreaTelemetry, etc.) to read telemetry data for all 8 cards.",
-      "relation": "uses_state_from",
-      "source": "trea-mission-store",
-      "target": "telemetry-dashboard-component"
-    },
-    {
       "id": "edge-sim-script-validation",
       "confidence_score": 1.0,
       "rationale": "sim-traffic-scheduling.mjs validates the traffic satellite scheduling logic from traffic-sats.ts by running 20-minute simulations at 10x speed.",
@@ -28350,36 +28482,12 @@
       "target": "sim-traffic-scheduling-script"
     },
     {
-      "id": "edge-homepage-cesium-globe",
-      "confidence_score": 1.0,
-      "rationale": "HomePage renders CesiumGlobe as the main 3D visualization component, passing satellites, missionMode, and maneuverEvent props.",
-      "relation": "renders",
-      "source": "cesium-globe-component",
-      "target": "homepage-component"
-    },
-    {
-      "id": "edge-homepage-telemetry-dashboard",
-      "confidence_score": 1.0,
-      "rationale": "HomePage renders TelemetryDashboard in mission mode on the right side panel for TREA-01 telemetry display.",
-      "relation": "renders",
-      "source": "telemetry-dashboard-component",
-      "target": "homepage-component"
-    },
-    {
       "id": "edge-collision-modal-avoidance-video",
       "confidence_score": 1.0,
       "rationale": "CollisionAlertModal renders AvoidanceVideoModal in the 'video' view state as part of its multi-state modal flow.",
       "relation": "renders",
       "source": "collision-alert-modal",
       "target": "avoidance-video-modal"
-    },
-    {
-      "id": "edge-homepage-collision-modal",
-      "confidence_score": 0.9,
-      "rationale": "HomePage renders CollisionAlertModal when collision alert is triggered in mission mode, connected via treaMissionStore collisionAlert state.",
-      "relation": "renders",
-      "source": "collision-alert-modal",
-      "target": "homepage-component"
     },
     {
       "id": "edge-deploy-script-docker-compose",
@@ -28508,5 +28616,5 @@
       ]
     }
   ],
-  "built_at_commit": "494317776c9f4d9f631b5678a64e8b8bc710b4c6"
+  "built_at_commit": "461d074b2f9e27402ef0354de7ae6dcb0a9c253b"
 }

@@ -294,109 +294,208 @@ export default function TelemetryDashboard({ columns = 2 }: TelemetryDashboardPr
         </div>
       </div>
 
-      {/* ===== 卡片网格(紧凑,3 列时 3×3 无滚动) ===== */}
-      <div className={`grid ${columns === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-1.5`}>
-        {/* 1. 实时位置卡 */}
-        <MiniCard title="实时位置" icon={<Satellite className="h-3 w-3" />} accent="cyan">
-          <div className="grid grid-cols-3 gap-0.5 text-center">
-            <GeoCell label="LAT" value={geo ? formatLat(geo.lat) : '—'} />
-            <GeoCell label="LON" value={geo ? formatLon(geo.lon) : '—'} />
-            <GeoCell label="ALT" value={geo ? formatAlt(geo.alt) : '—'} />
-          </div>
-        </MiniCard>
+      {/* ===== 卡片网格 =====
+          columns=3(第一视角):顶部 6 卡一排 + 底部(链路/电量/燃料)3 卡一排
+          columns=2(任务中心):紧凑 2 列网格
+      ===== */}
+      {columns === 3 ? (
+        <div className="space-y-1">
+          {/* ---- 顶部 6 卡一排 ---- */}
+          <div className="grid grid-cols-6 gap-1.5">
+            {/* 1. 实时位置 */}
+            <MiniCard title="位置" icon={<Satellite className="h-3 w-3" />} accent="cyan">
+              <div className="grid grid-cols-3 gap-0.5 text-center">
+                <GeoCell label="LAT" value={geo ? formatLat(geo.lat) : '—'} />
+                <GeoCell label="LON" value={geo ? formatLon(geo.lon) : '—'} />
+                <GeoCell label="ALT" value={geo ? formatAlt(geo.alt) : '—'} />
+              </div>
+            </MiniCard>
 
-        {/* 2. 轨道速度卡 */}
-        <MiniCard title="轨道速度" icon={<Gauge className="h-3 w-3" />} accent="purple">
-          <div className="flex items-baseline justify-center gap-1">
-            <span className="text-base font-bold text-purple-300 font-mono leading-none">
-              {speedKmPerSec.toFixed(2)}
-            </span>
-            <span className="text-[8px] text-slate-500">km/s</span>
-          </div>
-          <div className="text-center text-[8px] text-slate-500 font-mono">
-            {(speedKmPerSec * 3600).toFixed(0)} km/h
-          </div>
-        </MiniCard>
+            {/* 2. 轨道速度 */}
+            <MiniCard title="速度" icon={<Gauge className="h-3 w-3" />} accent="purple">
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-[15px] font-bold text-purple-300 font-mono leading-none">
+                  {speedKmPerSec.toFixed(2)}
+                </span>
+                <span className="text-[9px] text-slate-500">km/s</span>
+              </div>
+              <div className="text-center text-[9px] text-slate-500 font-mono">
+                {(speedKmPerSec * 3600).toFixed(0)} km/h
+              </div>
+            </MiniCard>
 
-        {/* 3. 姿态指示 */}
-        <MiniCard title="姿态 PRY" icon={<Compass className="h-3 w-3" />} accent="cyan">
-          <div className="grid grid-cols-3 gap-0.5 text-center">
-            <AttMini label="P" value={pitch} />
-            <AttMini label="R" value={roll} />
-            <AttMini label="Y" value={yaw} />
-          </div>
-          <div className="text-center text-[8px] text-slate-500 mt-0.5">
-            {ATTITUDE_LABELS[attitudeMode] ?? attitudeMode}
-          </div>
-        </MiniCard>
+            {/* 3. 姿态指示 */}
+            <MiniCard title="姿态" icon={<Compass className="h-3 w-3" />} accent="cyan">
+              <div className="grid grid-cols-3 gap-0.5 text-center">
+                <AttMini label="P" value={pitch} />
+                <AttMini label="R" value={roll} />
+                <AttMini label="Y" value={yaw} />
+              </div>
+              <div className="text-center text-[9px] text-slate-500 mt-0.5">
+                {ATTITUDE_LABELS[attitudeMode] ?? attitudeMode}
+              </div>
+            </MiniCard>
 
-        {/* 4. 燃料 */}
-        <MiniCard title="燃料" icon={<Fuel className="h-3 w-3" />} accent="emerald">
-          <ResourceMini pct={fuel} color={fuelCol} />
-        </MiniCard>
+            {/* 4. 载荷状态 */}
+            <MiniCard title="载荷" icon={<Camera className="h-3 w-3" />} accent="cyan">
+              <div className="flex items-center justify-center gap-1">
+                <span className={`w-2 h-2 rounded-full ${payloadInfo.dot}`} />
+                <span className={`text-[13px] font-semibold ${payloadInfo.color}`}>
+                  {payloadInfo.label}
+                </span>
+              </div>
+              <div className="text-center text-[9px] text-slate-500 font-mono">{payloadStatus}</div>
+            </MiniCard>
 
-        {/* 5. 电量 */}
-        <MiniCard title="电量" icon={<Battery className="h-3 w-3" />} accent="yellow">
-          <ResourceMini pct={battery} color={battCol} />
-        </MiniCard>
+            {/* 5. 告警 */}
+            <MiniCard
+              title="告警"
+              icon={<AlertTriangle className="h-3 w-3" />}
+              accent={hasAlert ? 'red' : 'cyan'}
+            >
+              <div className="flex items-center justify-center gap-1">
+                <AlertMini label="燃料" triggered={fuelLow} />
+                <AlertMini label="电量" triggered={batteryLow} />
+                <AlertMini label="姿态" triggered={attitudeAnomaly} />
+              </div>
+            </MiniCard>
 
-        {/* 6. 载荷状态 */}
-        <MiniCard title="载荷" icon={<Camera className="h-3 w-3" />} accent="cyan">
-          <div className="flex items-center justify-center gap-1.5">
-            <span className={`w-2 h-2 rounded-full ${payloadInfo.dot}`} />
-            <span className={`text-sm font-semibold ${payloadInfo.color}`}>
-              {payloadInfo.label}
-            </span>
+            {/* 6. 轨道参数 */}
+            <MiniCard title="轨道" icon={<Gauge className="h-3 w-3" />} accent="cyan">
+              <div className="grid grid-cols-2 gap-x-1 gap-y-0.5">
+                <ParamCell label="倾角" value={`${inclination.toFixed(1)}°`} />
+                <ParamCell label="偏心率" value={eccentricity.toFixed(3)} />
+                <ParamCell label="运动" value={meanMotion.toFixed(1)} />
+                <ParamCell label="周期" value={`${periodMin.toFixed(1)}m`} />
+              </div>
+            </MiniCard>
           </div>
-          <div className="text-center text-[8px] text-slate-500 font-mono">{payloadStatus}</div>
-        </MiniCard>
 
-        {/* 7. 链路质量 */}
-        <MiniCard title="链路" icon={<Radio className="h-3 w-3" />} accent="purple">
-          <div className="flex items-center justify-between mb-0.5">
-            <span className="text-sm font-bold text-purple-300 font-mono leading-none">
-              {dBm.toFixed(0)}
-            </span>
-            <span className="text-[8px] text-slate-500">dBm</span>
-          </div>
-          <div className="flex items-center gap-0.5">
-            {signalBars.map((on, i) => (
-              <div
-                key={i}
-                className={`flex-1 h-1.5 rounded-sm ${
-                  on ? 'bg-purple-400' : 'bg-slate-700'
-                }`}
-              />
-            ))}
-          </div>
-        </MiniCard>
+          {/* ---- 底部 3 卡一排:链路/电量/燃料 ---- */}
+          <div className="grid grid-cols-3 gap-1.5">
+            {/* 7. 链路质量 */}
+            <MiniCard title="链路" icon={<Radio className="h-3 w-3" />} accent="purple">
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-[13px] font-bold text-purple-300 font-mono leading-none">
+                  {dBm.toFixed(0)}
+                </span>
+                <span className="text-[9px] text-slate-500">dBm</span>
+              </div>
+              <div className="flex items-center gap-0.5">
+                {signalBars.map((on, i) => (
+                  <div
+                    key={i}
+                    className={`flex-1 h-1.5 rounded-sm ${
+                      on ? 'bg-purple-400' : 'bg-slate-700'
+                    }`}
+                  />
+                ))}
+              </div>
+            </MiniCard>
 
-        {/* 8. 告警灯(2 列布局时跨满,3 列布局时单列) */}
-        <MiniCard
-          title="告警"
-          icon={<AlertTriangle className="h-3 w-3" />}
-          accent={hasAlert ? 'red' : 'cyan'}
-          className={columns === 2 ? 'col-span-2' : ''}
-        >
-          <div className="grid grid-cols-3 gap-1">
-            <AlertMini label="燃料" triggered={fuelLow} />
-            <AlertMini label="电量" triggered={batteryLow} />
-            <AlertMini label="姿态" triggered={attitudeAnomaly} />
-          </div>
-        </MiniCard>
+            {/* 8. 电量 */}
+            <MiniCard title="电量" icon={<Battery className="h-3 w-3" />} accent="yellow">
+              <ResourceMini pct={battery} color={battCol} />
+            </MiniCard>
 
-        {/* 9. 轨道参数(仅 3 列布局时显示,补满 3×3 网格) */}
-        {columns === 3 && (
-          <MiniCard title="轨道参数" icon={<Gauge className="h-3 w-3" />} accent="cyan">
-            <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
-              <ParamCell label="倾角" value={`${inclination.toFixed(1)}°`} />
-              <ParamCell label="偏心率" value={eccentricity.toFixed(3)} />
-              <ParamCell label="平均运动" value={meanMotion.toFixed(1)} />
-              <ParamCell label="周期" value={`${periodMin.toFixed(1)}m`} />
+            {/* 9. 燃料 */}
+            <MiniCard title="燃料" icon={<Fuel className="h-3 w-3" />} accent="emerald">
+              <ResourceMini pct={fuel} color={fuelCol} />
+            </MiniCard>
+          </div>
+        </div>
+      ) : (
+        <div className={`grid grid-cols-2 gap-1.5`}>
+          {/* 1. 实时位置卡 */}
+          <MiniCard title="实时位置" icon={<Satellite className="h-3 w-3" />} accent="cyan">
+            <div className="grid grid-cols-3 gap-0.5 text-center">
+              <GeoCell label="LAT" value={geo ? formatLat(geo.lat) : '—'} />
+              <GeoCell label="LON" value={geo ? formatLon(geo.lon) : '—'} />
+              <GeoCell label="ALT" value={geo ? formatAlt(geo.alt) : '—'} />
             </div>
           </MiniCard>
-        )}
-      </div>
+
+          {/* 2. 轨道速度卡 */}
+          <MiniCard title="轨道速度" icon={<Gauge className="h-3 w-3" />} accent="purple">
+            <div className="flex items-baseline justify-center gap-1">
+              <span className="text-base font-bold text-purple-300 font-mono leading-none">
+                {speedKmPerSec.toFixed(2)}
+              </span>
+              <span className="text-[8px] text-slate-500">km/s</span>
+            </div>
+            <div className="text-center text-[8px] text-slate-500 font-mono">
+              {(speedKmPerSec * 3600).toFixed(0)} km/h
+            </div>
+          </MiniCard>
+
+          {/* 3. 姿态指示 */}
+          <MiniCard title="姿态 PRY" icon={<Compass className="h-3 w-3" />} accent="cyan">
+            <div className="grid grid-cols-3 gap-0.5 text-center">
+              <AttMini label="P" value={pitch} />
+              <AttMini label="R" value={roll} />
+              <AttMini label="Y" value={yaw} />
+            </div>
+            <div className="text-center text-[8px] text-slate-500 mt-0.5">
+              {ATTITUDE_LABELS[attitudeMode] ?? attitudeMode}
+            </div>
+          </MiniCard>
+
+          {/* 4. 燃料 */}
+          <MiniCard title="燃料" icon={<Fuel className="h-3 w-3" />} accent="emerald">
+            <ResourceMini pct={fuel} color={fuelCol} />
+          </MiniCard>
+
+          {/* 5. 电量 */}
+          <MiniCard title="电量" icon={<Battery className="h-3 w-3" />} accent="yellow">
+            <ResourceMini pct={battery} color={battCol} />
+          </MiniCard>
+
+          {/* 6. 载荷状态 */}
+          <MiniCard title="载荷" icon={<Camera className="h-3 w-3" />} accent="cyan">
+            <div className="flex items-center justify-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${payloadInfo.dot}`} />
+              <span className={`text-sm font-semibold ${payloadInfo.color}`}>
+                {payloadInfo.label}
+              </span>
+            </div>
+            <div className="text-center text-[8px] text-slate-500 font-mono">{payloadStatus}</div>
+          </MiniCard>
+
+          {/* 7. 链路质量 */}
+          <MiniCard title="链路" icon={<Radio className="h-3 w-3" />} accent="purple">
+            <div className="flex items-center justify-between mb-0.5">
+              <span className="text-sm font-bold text-purple-300 font-mono leading-none">
+                {dBm.toFixed(0)}
+              </span>
+              <span className="text-[8px] text-slate-500">dBm</span>
+            </div>
+            <div className="flex items-center gap-0.5">
+              {signalBars.map((on, i) => (
+                <div
+                  key={i}
+                  className={`flex-1 h-1.5 rounded-sm ${
+                    on ? 'bg-purple-400' : 'bg-slate-700'
+                  }`}
+                />
+              ))}
+            </div>
+          </MiniCard>
+
+          {/* 8. 告警灯(2 列布局时跨满) */}
+          <MiniCard
+            title="告警"
+            icon={<AlertTriangle className="h-3 w-3" />}
+            accent={hasAlert ? 'red' : 'cyan'}
+            className="col-span-2"
+          >
+            <div className="grid grid-cols-3 gap-1">
+              <AlertMini label="燃料" triggered={fuelLow} />
+              <AlertMini label="电量" triggered={batteryLow} />
+              <AlertMini label="姿态" triggered={attitudeAnomaly} />
+            </div>
+          </MiniCard>
+        </div>
+      )}
 
       {/* ===== 底部状态条(紧凑) ===== */}
       <div className="mt-1.5 pt-1 border-t border-slate-700/60 flex items-center justify-between text-[8px] text-slate-500 font-mono">

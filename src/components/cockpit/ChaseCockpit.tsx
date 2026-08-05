@@ -209,8 +209,8 @@ export default function ChaseCockpit() {
         )}
       </div>
 
-      {/* ===== 底部:HUD 数据面板(3 列遥测,紧凑无滚动) ===== */}
-      <div className="h-[30vh] min-h-[240px] flex gap-3 p-3 bg-slate-950 border-t border-cyan-500/30 overflow-hidden">
+      {/* ===== 底部:HUD 数据面板(顶部6卡 + 底部3卡,紧凑无滚动) ===== */}
+      <div className="h-[24vh] min-h-[200px] flex gap-3 p-3 bg-slate-950 border-t border-cyan-500/30 overflow-hidden">
         <CockpitWireframe />
         <div className="flex-1 min-w-0">
           <TelemetryDashboard columns={3} />
