@@ -36,6 +36,7 @@ import {
   TRAFFIC_SHOW_DISTANCE_KM,
   type TrafficSat,
 } from '@/lib/cockpit/traffic-sats';
+import { createEarthImageryProvider } from '@/lib/cesium/imagery';
 
 type CesiumNS = typeof CesiumType;
 
@@ -239,14 +240,13 @@ export function useChaseViewer(): UseChaseViewerReturn {
     // baseUrl 提前定义(Black Marble 纹理和 Model 均使用)
     const baseUrl = (typeof window !== 'undefined' ? window.location.origin : '');
 
-    // 基础昼面影像:NaturalEarthII
-    Cesium.TileMapServiceImageryProvider.fromUrl(
-      CESIUM_CDN + '/Assets/Textures/NaturalEarthII/',
-      { maximumLevel: 2 },
-    )
-      .then((provider: CesiumType.ImageryProvider) => {
+    // 基础昼面影像:Esri World Imagery 高清(或 NaturalEarthII 回退)
+    createEarthImageryProvider(Cesium, CESIUM_CDN)
+      .then(({ provider, ok }) => {
         if (viewer.isDestroyed()) return;
-        viewer.imageryLayers.addImageryProvider(provider);
+        if (ok && provider) {
+          viewer.imageryLayers.addImageryProvider(provider);
+        }
       })
       .catch((e: unknown) => {
         if (viewer.isDestroyed()) return;

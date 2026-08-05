@@ -22,7 +22,7 @@ const RATE_LIMITS: Record<string, RateLimit> = {
   '/cesium/': { windowMs: 60_000, max: 60 },
   '/audio/': { windowMs: 60_000, max: 30 },
   // 读 API：适中
-  '/api/space-objects': { windowMs: 60_000, max: 30 },
+  '/api/space-objects': { windowMs: 60_000, max: 100 },
   '/api/tags': { windowMs: 60_000, max: 30 },
   '/api/nasa-image/proxy': { windowMs: 60_000, max: 20 },
   '/api/nasa-media': { windowMs: 60_000, max: 20 },

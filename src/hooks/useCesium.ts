@@ -7,6 +7,7 @@ import { useTimeStore } from '@/store/timeStore';
 import { createSatelliteEntity, getSatelliteColor } from '@/components/visualization/SatelliteEntity';
 import { createOrbitTrail } from '@/components/visualization/OrbitTrail';
 import { calculateSatellitePosition, generateOrbitPointsECEF } from '@/lib/cesium/positions';
+import { createEarthImageryProvider } from '@/lib/cesium/imagery';
 import type { Aoi } from '@/lib/trea/constants';
 import type { TLEData } from '@/lib/tle/parser';
 
@@ -125,27 +126,13 @@ export function useCesium() {
       // ---------- Earth imagery ----------
       let imageryOk = false;
       try {
-        const ne2Provider = await Cesium.TileMapServiceImageryProvider.fromUrl(
-          CESIUM_CDN + '/Assets/Textures/NaturalEarthII/',
-          { maximumLevel: 2 }
-        );
-        viewer.imageryLayers.addImageryProvider(ne2Provider);
-        imageryOk = true;
-      } catch (e) {
-        console.warn('[useCesium] TMS fromUrl failed, trying constructor:', e);
-      }
-
-      if (!imageryOk) {
-        try {
-          const ne2Provider = new (Cesium as unknown as { TileMapServiceImageryProvider: new (opts: Record<string, unknown>) => CesiumType.ImageryProvider }).TileMapServiceImageryProvider({
-            url: CESIUM_CDN + '/Assets/Textures/NaturalEarthII/',
-            maximumLevel: 2,
-          });
-          viewer.imageryLayers.addImageryProvider(ne2Provider);
+        const { provider, ok } = await createEarthImageryProvider(Cesium, CESIUM_CDN);
+        if (ok && provider) {
+          viewer.imageryLayers.addImageryProvider(provider);
           imageryOk = true;
-        } catch (e2) {
-          console.warn('[useCesium] TMS constructor also failed:', e2);
         }
+      } catch (e) {
+        console.warn('[useCesium] Earth imagery provider failed:', e);
       }
 
       if (!imageryOk) {

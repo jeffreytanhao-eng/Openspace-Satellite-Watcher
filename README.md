@@ -310,6 +310,7 @@ npm run dev
 | `LLM_API_KEY` | 火山引擎方舟 API key（AI 辅助任务规划） | AI 功能必填 |
 | `LLM_API_URL` | LLM 接入点 base URL（如 `https://ark.cn-beijing.volces.com/api/v3`） | AI 功能必填 |
 | `LLM_MODEL` | LLM 模型 EP（如 `ep-xxxxxxxxxxxx-xxxxxx`） | AI 功能必填 |
+| `NEXT_PUBLIC_EARTH_IMAGERY` | 地球影像源：`esri`（World Imagery 高清卫星影像，默认）或 `naturalearth`（回退至低清 NaturalEarthII） | 否 |
 
 > LLM 凭据仅存于服务器端（`.env.local` 本地开发 / Vercel 环境变量），已在 `.gitignore`，不入库。未配置时 AI 路由返回 503 `MISSING_CONFIG`，其余功能不受影响。
 

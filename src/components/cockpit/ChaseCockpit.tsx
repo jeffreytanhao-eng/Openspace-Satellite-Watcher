@@ -12,7 +12,7 @@
 // 完全独立:不修改任何现有文件;复用 treaMissionStore/timeStore(只读为主)。
 // ============================================================
 
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -118,6 +118,12 @@ function CockpitWireframe() {
 // ============================================================
 export default function ChaseCockpit() {
   const { containerRef, ready, loadError, setDirection } = useChaseViewer();
+  // 全页面跳转进入 /cockpit 会重置 zustand 内存态,此处主动启动仿真播放,保证进入即播放
+  useEffect(() => {
+    useTimeStore.getState().setRate(10);
+    useTimeStore.getState().startPlayback();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // 使用 window.location.href 全页面导航,避免 Cesium viewer 销毁与 Next.js RSC 请求竞态(ERR_ABORTED)
   const goBack = () => {
     window.location.href = '/?mission=1';
