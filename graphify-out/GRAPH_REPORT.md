@@ -1,7 +1,7 @@
 # Graph Report - 开发区  (2026-08-05)
 
 ## Corpus Check
-- 126 files · ~773,305 words
+- 126 files · ~773,600 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `461d074b`
+- Built from commit: `94735969`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -312,7 +312,7 @@ Cohesion: 0.50
 Nodes (4): _fd_write(), printChar(), UTF8ArrayToString(), UTF8ToString()
 
 ## Knowledge Gaps
-- **392 isolated node(s):** `可视化引擎`, `卫星管理`, `TREA-01 遥感任务仿真闭环`, `第一视角驾驶舱（First-Person Cockpit）`, `数据导入（临时）` (+387 more)
+- **392 isolated node(s):** `TimeControl`, `PAYLOAD_DISPLAY`, `ATTITUDE_LABELS`, `CardProps`, `ACCENT_BORDER` (+387 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **31 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -321,11 +321,11 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `TLEData` connect `主页面与可视化组件` to `应用布局与样式`, `Draco 解码器 WASM`, `Community 38`, `Community 19`, `Community 20`, `Community 26`, `Community 28`?**
   _High betweenness centrality (0.032) - this node is a cross-community bridge._
-- **Why does `createSatrec()` connect `主页面与可视化组件` to `应用布局与样式`, `Draco 解码器 WASM`, `Community 38`, `轨道计算 Worker`, `Community 20`, `Community 26`?**
-  _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **Why does `Button()` connect `UI 组件配置` to `应用布局与样式`, `Community 38`, `Draco WASM 包装器`, `Community 47`, `轨道计算 Worker`, `Draco 解码器类`, `Community 19`, `Community 26`?**
   _High betweenness centrality (0.024) - this node is a cross-community bridge._
-- **What connects `可视化引擎`, `卫星管理`, `TREA-01 遥感任务仿真闭环` to the rest of the system?**
+- **Why does `createSatrec()` connect `主页面与可视化组件` to `应用布局与样式`, `Draco 解码器 WASM`, `Community 38`, `轨道计算 Worker`, `Community 20`, `Community 26`?**
+  _High betweenness centrality (0.024) - this node is a cross-community bridge._
+- **What connects `TimeControl`, `PAYLOAD_DISPLAY`, `ATTITUDE_LABELS` to the rest of the system?**
   _392 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `应用布局与样式` be split into smaller, more focused modules?**
   _Cohesion score 0.056886898096304594 - nodes in this community are weakly interconnected._
