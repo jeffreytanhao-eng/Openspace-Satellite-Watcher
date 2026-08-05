@@ -24,6 +24,7 @@ import {
   Gauge,
 } from 'lucide-react';
 import { useChaseViewer } from '@/hooks/useChaseViewer';
+import FullscreenButton from '@/components/FullscreenButton';
 import TelemetryDashboard from '@/components/trea/TelemetryDashboard';
 import {
   useTimeStore,
@@ -149,7 +150,7 @@ export default function ChaseCockpit() {
         {/* 顶部居中:时间控制 */}
         <TimeControl />
 
-        {/* 右上:视角标识 */}
+        {/* 右上:视角标识 + 全屏按钮 */}
         <div className="absolute top-3 right-3 flex flex-col items-end gap-1 z-10">
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-900 border border-purple-500/50 rounded-md shadow-[0_0_12px_rgba(168,85,247,0.25)]">
             <Satellite className="h-3.5 w-3.5 text-purple-300" />
@@ -158,6 +159,7 @@ export default function ChaseCockpit() {
           <div className="px-2 py-0.5 bg-slate-900 border border-slate-700 rounded text-[9px] font-mono text-slate-400">
             滚轮缩放 · ←→方向 · 后上方追踪
           </div>
+          <FullscreenButton />
         </div>
 
         {/* 底部居中:飞行方向控制(左右箭头) */}
@@ -191,7 +193,7 @@ export default function ChaseCockpit() {
         {!ready && !loadError && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black gap-3">
             <div className="w-10 h-10 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm text-cyan-300 font-mono">初始化赛车视角…</span>
+            <span className="text-sm text-cyan-300 font-mono">初始化卫星视角…</span>
           </div>
         )}
         {loadError && (
@@ -207,10 +209,10 @@ export default function ChaseCockpit() {
         )}
       </div>
 
-      {/* ===== 底部:HUD 数据面板(3 列遥测,照抄任务中心右侧) ===== */}
-      <div className="h-[34vh] min-h-[280px] flex gap-3 p-3 bg-slate-950 border-t border-cyan-500/30 overflow-hidden">
+      {/* ===== 底部:HUD 数据面板(3 列遥测,紧凑无滚动) ===== */}
+      <div className="h-[30vh] min-h-[240px] flex gap-3 p-3 bg-slate-950 border-t border-cyan-500/30 overflow-hidden">
         <CockpitWireframe />
-        <div className="flex-1 min-w-0 overflow-y-auto pr-1">
+        <div className="flex-1 min-w-0">
           <TelemetryDashboard columns={3} />
         </div>
       </div>

@@ -13,6 +13,7 @@ import { inferCountryFromName } from '@/lib/translations';
 import { apiClient } from '@/lib/api/client';
 import { Upload, RefreshCw, RotateCcw, Lock, Rocket, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import FullscreenButton from '@/components/FullscreenButton';
 import MissionHeader from '@/components/trea/MissionHeader';
 import TaskListPanel from '@/components/trea/TaskListPanel';
 import TelemetryDashboard from '@/components/trea/TelemetryDashboard';
@@ -637,6 +638,7 @@ export default function HomePage() {
             TREA-01 任务中心
           </Button>
           <ViewSwitcher />
+          <FullscreenButton />
         </div>
 
         <div className="flex items-center">

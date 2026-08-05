@@ -1,56 +1,61 @@
-# Graph Report - .  (2026-08-04)
+# Graph Report - 开发区  (2026-08-05)
 
 ## Corpus Check
-- 158 files · ~772,514 words
+- 124 files · ~773,033 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1068 nodes · 1906 edges · 74 communities (51 shown, 23 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 20 edges (avg confidence: 0.8)
+- 1023 nodes · 1805 edges · 78 communities (47 shown, 31 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 11 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
+## Graph Freshness
+- Built from commit: `49431777`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
+
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_TREA Mission UI Components|TREA Mission UI Components]]
-- [[_COMMUNITY_Cesium Core & Positions|Cesium Core & Positions]]
-- [[_COMMUNITY_Chase Cockpit Architecture|Chase Cockpit Architecture]]
-- [[_COMMUNITY_Constellation Import System|Constellation Import System]]
-- [[_COMMUNITY_Semantic Concepts & Architecture|Semantic Concepts & Architecture]]
-- [[_COMMUNITY_Traffic Satellite Scheduling|Traffic Satellite Scheduling]]
-- [[_COMMUNITY_README Feature Documentation|README Feature Documentation]]
-- [[_COMMUNITY_TREA Mission State & Report|TREA Mission State & Report]]
-- [[_COMMUNITY_Deployment Documentation|Deployment Documentation]]
-- [[_COMMUNITY_Draco Decoder Library|Draco Decoder Library]]
-- [[_COMMUNITY_Draco WASM Wrapper|Draco WASM Wrapper]]
-- [[_COMMUNITY_Project README Overview|Project README Overview]]
-- [[_COMMUNITY_UI Component Library|UI Component Library]]
-- [[_COMMUNITY_Path Aliases Configuration|Path Aliases Configuration]]
-- [[_COMMUNITY_TypeScript Compiler Config|TypeScript Compiler Config]]
-- [[_COMMUNITY_Next.js Config & Build|Next.js Config & Build]]
-- [[_COMMUNITY_TLE Parsing & Format|TLE Parsing & Format]]
-- [[_COMMUNITY_Satellite Orbit Calculations|Satellite Orbit Calculations]]
-- [[_COMMUNITY_Prisma Schema & Models|Prisma Schema & Models]]
-- [[_COMMUNITY_API Route Handlers|API Route Handlers]]
-- [[_COMMUNITY_Zustand State Management|Zustand State Management]]
-- [[_COMMUNITY_Satellite Store Actions|Satellite Store Actions]]
-- [[_COMMUNITY_Satellite List & Detail UI|Satellite List & Detail UI]]
-- [[_COMMUNITY_MapLibre Map View|MapLibre Map View]]
-- [[_COMMUNITY_Orbit Line & Trail Rendering|Orbit Line & Trail Rendering]]
-- [[_COMMUNITY_Satellite Entity Rendering|Satellite Entity Rendering]]
-- [[_COMMUNITY_TLE Import Routes|TLE Import Routes]]
-- [[_COMMUNITY_Space Objects API|Space Objects API]]
-- [[_COMMUNITY_Cinematic Shots System|Cinematic Shots System]]
-- [[_COMMUNITY_Maneuver Calculations|Maneuver Calculations]]
-- [[_COMMUNITY_Mission Simulator Logic|Mission Simulator Logic]]
-- [[_COMMUNITY_Task List Panel|Task List Panel]]
-- [[_COMMUNITY_Satellite Media Gallery|Satellite Media Gallery]]
-- [[_COMMUNITY_Time Control UI|Time Control UI]]
-- [[_COMMUNITY_Search & Filter UI|Search & Filter UI]]
-- [[_COMMUNITY_NASA Image & Media API|NASA Image & Media API]]
-- [[_COMMUNITY_Admin API Routes|Admin API Routes]]
-- [[_COMMUNITY_Security Middleware|Security Middleware]]
-- [[_COMMUNITY_Orbit Calculator Worker|Orbit Calculator Worker]]
-- [[_COMMUNITY_Mock Satellite Data|Mock Satellite Data]]
-- [[_COMMUNITY_Default Satellite Config|Default Satellite Config]]
+- [[_COMMUNITY_应用布局与样式|应用布局与样式]]
+- [[_COMMUNITY_主页面与可视化组件|主页面与可视化组件]]
+- [[_COMMUNITY_TREA 访问窗口测试|TREA 访问窗口测试]]
+- [[_COMMUNITY_README 核心概念|README 核心概念]]
+- [[_COMMUNITY_星座批量导入|星座批量导入]]
+- [[_COMMUNITY_Draco 解码器 WASM|Draco 解码器 WASM]]
+- [[_COMMUNITY_AI 规划 API 与模态框|AI 规划 API 与模态框]]
+- [[_COMMUNITY_Draco WASM 包装器|Draco WASM 包装器]]
+- [[_COMMUNITY_任务遥测 UI|任务遥测 UI]]
+- [[_COMMUNITY_README 文档结构|README 文档结构]]
+- [[_COMMUNITY_变轨控制与计算|变轨控制与计算]]
+- [[_COMMUNITY_Community 11|Community 11]]
+- [[_COMMUNITY_UI 组件配置|UI 组件配置]]
+- [[_COMMUNITY_TypeScript 配置|TypeScript 配置]]
+- [[_COMMUNITY_依赖包配置|依赖包配置]]
+- [[_COMMUNITY_Draco 解码器类|Draco 解码器类]]
+- [[_COMMUNITY_轨道计算 Worker|轨道计算 Worker]]
+- [[_COMMUNITY_安全与 TLE 解析|安全与 TLE 解析]]
+- [[_COMMUNITY_Community 18|Community 18]]
+- [[_COMMUNITY_Community 19|Community 19]]
+- [[_COMMUNITY_Community 20|Community 20]]
+- [[_COMMUNITY_Community 21|Community 21]]
+- [[_COMMUNITY_Community 22|Community 22]]
+- [[_COMMUNITY_Community 23|Community 23]]
+- [[_COMMUNITY_Community 24|Community 24]]
+- [[_COMMUNITY_Community 25|Community 25]]
+- [[_COMMUNITY_Community 26|Community 26]]
+- [[_COMMUNITY_Community 27|Community 27]]
+- [[_COMMUNITY_Community 28|Community 28]]
+- [[_COMMUNITY_Community 29|Community 29]]
+- [[_COMMUNITY_Community 30|Community 30]]
+- [[_COMMUNITY_Community 31|Community 31]]
+- [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 33|Community 33]]
+- [[_COMMUNITY_Community 34|Community 34]]
+- [[_COMMUNITY_Community 35|Community 35]]
+- [[_COMMUNITY_Community 36|Community 36]]
+- [[_COMMUNITY_Community 37|Community 37]]
+- [[_COMMUNITY_Community 38|Community 38]]
+- [[_COMMUNITY_Community 39|Community 39]]
+- [[_COMMUNITY_Community 40|Community 40]]
 - [[_COMMUNITY_Community 41|Community 41]]
 - [[_COMMUNITY_Community 42|Community 42]]
 - [[_COMMUNITY_Community 43|Community 43]]
@@ -82,6 +87,10 @@
 - [[_COMMUNITY_Community 71|Community 71]]
 - [[_COMMUNITY_Community 72|Community 72]]
 - [[_COMMUNITY_Community 73|Community 73]]
+- [[_COMMUNITY_Community 74|Community 74]]
+- [[_COMMUNITY_Community 75|Community 75]]
+- [[_COMMUNITY_Community 76|Community 76]]
+- [[_COMMUNITY_Community 77|Community 77]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `useTreaMissionStore` - 47 edges
@@ -96,16 +105,16 @@
 10. `compilerOptions` - 17 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `TREA-01` --related_to--> `Grok-Generated TREA Image 1`  [EXTRACTED]
-  README.md → public/trea/grok-image-9d334a19-6baf-46c8-988f-4588cf22a80b.jpg
-- `TREA-01` --related_to--> `Grok-Generated TREA Image 2`  [EXTRACTED]
-  README.md → public/trea/grok-image-c1f85337-83cf-4cd0-bcdf-c99a1eb3dd19.jpg
-- `useCesium` --visualizes--> `AOI (Area of Interest)`  [EXTRACTED]
-  src/hooks/useCesium.ts → README.md
-- `useCesium` --implements--> `Maneuver Visualization`  [EXTRACTED]
-  src/hooks/useCesium.ts → README.md
-- `useChaseViewer` --implements--> `Chase Cockpit View`  [EXTRACTED]
-  src/hooks/useChaseViewer.ts → README.md
+- `formatTime()` --calls--> `pad()`  [INFERRED]
+  src/components/trea/TaskListPanel.tsx → scripts/test-trea-access.ts
+- `importConstellation()` --calls--> `parseEpoch()`  [INFERRED]
+  src/lib/constellation-import.ts → src/lib/default-satellites.ts
+- `SatelliteDetailPanelProps` --references--> `SpaceObject`  [EXTRACTED]
+  src/components/ui/SatelliteDetailPanel.tsx → src/store/satelliteStore.ts
+- `SatelliteListProps` --references--> `SpaceObject`  [EXTRACTED]
+  src/components/ui/SatelliteList.tsx → src/store/satelliteStore.ts
+- `CinematicController()` --calls--> `useCinematicStore`  [EXTRACTED]
+  src/components/trea/CinematicController.tsx → src/store/cinematicStore.ts
 
 ## Hyperedges (group relationships)
 - **TREA-01 任务仿真闭环主流程** — readme_mission_planning, readme_ai_planning, readme_orbit_visualization, readme_imaging_simulation, readme_mission_report, readme_cinematic_playback [EXTRACTED 1.00]
@@ -115,165 +124,153 @@
 - **Chase Cockpit Independent Architecture** — use-chase-viewer-hook, traffic-sats-lib, chase-cockpit-component, telemetry-dashboard-component, img-black-marble [INFERRED 0.90]
 - **Docker Compose Deployment Architecture** — deployment-concept, docker-compose-config, deploy-script, deploy-readme-doc [INFERRED 0.95]
 
-## Communities (74 total, 23 thin omitted)
+## Communities (78 total, 31 thin omitted)
 
-### Community 0 - "TREA Mission UI Components"
+### Community 0 - "应用布局与样式"
 Cohesion: 0.05
-Nodes (72): useCesium(), CinematicActions, CinematicState, useCinematicStore, CollisionAlert, CollisionAvoidancePlan, computeOrbitParams(), computeTelemetry() (+64 more)
+Nodes (80): useCesium(), CinematicActions, CinematicState, useCinematicStore, CollisionAlert, CollisionAvoidancePlan, computeOrbitParams(), computeTelemetry() (+72 more)
 
-### Community 1 - "Cesium Core & Positions"
+### Community 1 - "主页面与可视化组件"
 Cohesion: 0.05
-Nodes (62): calculateSatellitePosition(), generateOrbitPoints(), generateOrbitPointsECEF(), isValidRadius(), CesiumInstance, CesiumNS, getCesium(), MapLibreInstance (+54 more)
+Nodes (61): calculateSatellitePosition(), generateOrbitPoints(), generateOrbitPointsECEF(), isValidRadius(), CesiumInstance, CesiumNS, getCesium(), MapLibreInstance (+53 more)
 
-### Community 2 - "Chase Cockpit Architecture"
+### Community 2 - "TREA 访问窗口测试"
 Cohesion: 0.09
 Nodes (34): inter, metadata, RootLayout(), ChaseCockpit(), TimeControl, useChaseViewer(), cn(), formatDateTime() (+26 more)
 
-### Community 3 - "Constellation Import System"
+### Community 3 - "README 核心概念"
+Cohesion: 0.09
+Nodes (24): FETCH_HEADERS, importConstellation(), ImportOptions, ImportResult, inferObjectTypeFromName(), isConstellationSeeded(), SavedSatellite, CelestrakQueryType (+16 more)
+
+### Community 4 - "星座批量导入"
+Cohesion: 0.53
+Nodes (6): AvoidanceVideoModal, CesiumGlobe, CollisionAlertModal, HomePage, TelemetryDashboard, treaMissionStore
+
+### Community 5 - "Draco 解码器 WASM"
 Cohesion: 0.07
-Nodes (28): FETCH_HEADERS, importConstellation(), ImportOptions, ImportResult, inferObjectTypeFromName(), isConstellationSeeded(), SavedSatellite, CelestrakQueryType (+20 more)
+Nodes (37): CesiumNS, createEarthImageryProvider(), buildTleFromElements(), createTrafficSats(), distanceKm(), EcefVec, L2_MA, L2_MM (+29 more)
 
-### Community 4 - "Semantic Concepts & Architecture"
-Cohesion: 0.09
-Nodes (36): AI Task Planning API, AOI (Area of Interest), AvoidanceVideoModal, CesiumGlobe, CesiumJS, ChaseCockpit, Chase Cockpit View, cinematicStore (+28 more)
+### Community 7 - "Draco WASM 包装器"
+Cohesion: 0.13
+Nodes (22): TreaMissionState, AttitudeMode, PayloadStatus, ATTITUDE_LABELS, coverageColor(), formatDateTime(), formatLat(), formatLon() (+14 more)
 
-### Community 5 - "Traffic Satellite Scheduling"
-Cohesion: 0.07
-Nodes (35): buildTleFromElements(), createTrafficSats(), distanceKm(), EcefVec, L2_MA, L2_MM, L2_RAAN, propagateEcfKm() (+27 more)
-
-### Community 6 - "README Feature Documentation"
-Cohesion: 0.09
-Nodes (37): 2D / 3D 双视角切换, AI 辅助规划 (火山引擎方舟 Doubao), AOI (南海西沙-菲律宾海域 / 霍尔木兹海峡), Cesium CallbackProperty (实时跟随 TLE 轨道线), Celestrak (TLE 外部数据源), CesiumJS (@cesium/engine, 3D 地球), 电影回放 (4 阶段流程), 紧急避撞任务 (3 躲避计划) (+29 more)
-
-### Community 7 - "TREA Mission State & Report"
-Cohesion: 0.09
-Nodes (31): TreaMissionActions, TreaMissionState, AOI_A, AOI_B, AoiPolygonVertex, ATTITUDE_INITIAL, AttitudeMode, getTrea01InitialState() (+23 more)
-
-### Community 8 - "Deployment Documentation"
+### Community 8 - "任务遥测 UI"
 Cohesion: 0.06
 Nodes (31): 1. 配置 DNS, 2. SSH 登录服务器并装 Docker（如未装）, 3. 拉取代码, 4. 配置环境变量, 5. 一键部署, 6. 验证, code:block1 (┌───────────┐ :80/:443), code:bash (# 本地构建) (+23 more)
 
-### Community 10 - "Draco WASM Wrapper"
+### Community 10 - "变轨控制与计算"
 Cohesion: 0.16
 Nodes (26): A(), B(), ba(), C(), D(), E(), f(), G() (+18 more)
 
-### Community 11 - "Project README Overview"
-Cohesion: 0.07
-Nodes (26): API 服务, code:block1 (src/), code:block2 (┌─────────────┐    HTTPS     ┌──────────────────────────┐   ), code:bash (# 1. 安装依赖), TREA-01 遥感任务仿真闭环, Vercel 部署（零配置，推荐）, 功能介绍, 卫星守望者 · Satellite Watcher (+18 more)
+### Community 11 - "Community 11"
+Cohesion: 0.06
+Nodes (33): API 服务, code:block1 (src/), code:block2 (┌─────────────┐    HTTPS     ┌──────────────────────────┐   ), code:block3 (┌─────────────┐    HTTPS     ┌───────────┐  反代  ┌───────────), code:bash (# 1. 安装依赖), code:bash (# 克隆代码), code:bash (git pull), Docker Compose 自托管 (+25 more)
 
-### Community 12 - "UI Component Library"
+### Community 12 - "UI 组件配置"
 Cohesion: 0.13
 Nodes (11): Button(), buttonVariants, ImportedSatellite, ImportFailure, ImportModalProps, ImportMode, ImportResult, ImportSummary (+3 more)
 
-### Community 13 - "Path Aliases Configuration"
+### Community 13 - "TypeScript 配置"
 Cohesion: 0.09
 Nodes (21): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+13 more)
 
-### Community 14 - "TypeScript Compiler Config"
+### Community 14 - "依赖包配置"
 Cohesion: 0.10
 Nodes (20): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+12 more)
 
-### Community 15 - "Next.js Config & Build"
-Cohesion: 0.18
-Nodes (18): HomePage(), defaultSatellites, OrbitCacheEntry, SatelliteStoreActions, SatelliteStoreState, TimeState, TLEData, useOrbitCache() (+10 more)
+### Community 15 - "Draco 解码器类"
+Cohesion: 0.22
+Nodes (13): defaultSatellites, OrbitCacheEntry, SatelliteStoreState, TimeState, TLEData, useOrbitCache(), useSatelliteError(), useSatelliteLoading() (+5 more)
 
-### Community 16 - "TLE Parsing & Format"
-Cohesion: 0.16
-Nodes (14): COUNTRY_KEYWORD_MAP, COUNTRY_TRANSLATIONS, OBJECT_TYPE_TRANSLATIONS, SATELLITE_NAME_TRANSLATIONS, translateCountry(), translateObjectType(), translateSatelliteName(), calculateOrbitParams() (+6 more)
+### Community 16 - "轨道计算 Worker"
+Cohesion: 0.15
+Nodes (15): COUNTRY_KEYWORD_MAP, COUNTRY_TRANSLATIONS, OBJECT_TYPE_TRANSLATIONS, SATELLITE_NAME_TRANSLATIONS, translateCountry(), translateObjectType(), translateSatelliteName(), calculateOrbitParams() (+7 more)
 
-### Community 17 - "Satellite Orbit Calculations"
+### Community 17 - "安全与 TLE 解析"
 Cohesion: 0.10
 Nodes (20): dependencies, @base-ui/react, cesium, @cesium/engine, class-variance-authority, clsx, critters, @google/model-viewer (+12 more)
 
-### Community 18 - "Prisma Schema & Models"
+### Community 18 - "Community 18"
 Cohesion: 0.10
 Nodes (20): AttributeOctahedronTransform(), AttributeQuantizationTransform(), AttributeTransformData(), Decoder(), DecoderBuffer(), destroy(), DracoFloat32Array(), DracoInt16Array() (+12 more)
 
-### Community 19 - "API Route Handlers"
-Cohesion: 0.16
-Nodes (15): extractJson(), LlmErrorResponse, normalizeOutput(), POST(), validateConfig(), AiAoiAnalysis, AiAoiSummary, AiCollisionAvoidanceInput (+7 more)
-
-### Community 20 - "Zustand State Management"
+### Community 19 - "Community 19"
 Cohesion: 0.10
-Nodes (18): aoiAPolygon, batchMap, bboxA, elevHorizon, elevOverhead, fp, largeAoi, nextLarge (+10 more)
+Nodes (23): extractJson(), LlmErrorResponse, LlmSuccessResponse, normalizeOutput(), POST(), validateConfig(), OrbitParams, AiAoiAnalysis (+15 more)
 
-### Community 21 - "Satellite Store Actions"
+### Community 20 - "Community 20"
+Cohesion: 0.06
+Nodes (47): aoiAPolygon, batchMap, bboxA, elevHorizon, elevOverhead, fmt(), fp, largeAoi (+39 more)
+
+### Community 21 - "Community 21"
 Cohesion: 0.15
 Nodes (15): timingSafeEqualHash(), verifyPassword(), fetchOne(), ParsedTLE, parseEpoch(), parseSingleTLE(), checkRateLimit(), config (+7 more)
 
-### Community 22 - "Satellite List & Detail UI"
+### Community 22 - "Community 22"
 Cohesion: 0.12
 Nodes (15): cache, cachedEntry, CacheEntry, calculateOrbit(), ecfToGeographic(), eciToEcf(), OrbitParams, OrbitPoint (+7 more)
 
-### Community 23 - "MapLibre Map View"
+### Community 23 - "Community 23"
 Cohesion: 0.21
 Nodes (5): ApiClient, ApiResponse, fetchSpaceObjects(), fetchTags(), TagData
 
-### Community 24 - "Orbit Line & Trail Rendering"
+### Community 24 - "Community 24"
 Cohesion: 0.12
 Nodes (16): devDependencies, autoprefixer, css-loader, draco3d, file-loader, @gltf-transform/extensions, @gltf-transform/functions, postcss (+8 more)
 
-### Community 25 - "Satellite Entity Rendering"
+### Community 25 - "Community 25"
 Cohesion: 0.12
 Nodes (15): compilerOptions, esModuleInterop, isolatedModules, jsx, lib, module, moduleResolution, noEmit (+7 more)
 
-### Community 26 - "TLE Import Routes"
-Cohesion: 0.25
-Nodes (14): AlongTrackDeltaVResult, applyManeuver(), circularOrbitVelocity(), computeAlongTrackDeltaV(), computeTleChecksum(), estimateFuelCost(), formatTleEpoch(), ManeuverDirection (+6 more)
+### Community 26 - "Community 26"
+Cohesion: 0.27
+Nodes (13): AlongTrackDeltaVResult, applyManeuver(), circularOrbitVelocity(), computeAlongTrackDeltaV(), computeTleChecksum(), estimateFuelCost(), formatTleEpoch(), ManeuverDirection (+5 more)
 
-### Community 27 - "Space Objects API"
+### Community 27 - "Community 27"
 Cohesion: 0.14
 Nodes (13): binChunkLength, binChunkType, buf, dryRun, gltf, jsonChunkLength, jsonChunkType, jsonStr (+5 more)
 
-### Community 28 - "Cinematic Shots System"
+### Community 28 - "Community 28"
 Cohesion: 0.31
 Nodes (12): generateMissionTle(), GenerateMissionTleOptions, generateMissionTleOrFallback(), GenerateMissionTleResult, normalize360(), computeTleChecksum(), formatAngleField8(), formatTleEpoch() (+4 more)
 
-### Community 29 - "Maneuver Calculations"
-Cohesion: 0.22
-Nodes (13): aoiToBBox(), BoundingBox, computeAccessWindows(), computeAccessWindowsForAois(), computeElevation(), computeFootprint(), Footprint, GeoPoint (+5 more)
-
-### Community 30 - "Mission Simulator Logic"
-Cohesion: 0.22
-Nodes (13): fmt(), pad(), AccessWindow, buildAiRequestInput(), buildCollisionRequestInput(), AoiSection(), AoiSectionProps, elevationColor() (+5 more)
-
-### Community 31 - "Task List Panel"
+### Community 31 - "Community 31"
 Cohesion: 0.18
 Nodes (10): buf, chunkLength, dir, exists, files, fullPath, gltf, jsonData (+2 more)
 
-### Community 32 - "Satellite Media Gallery"
+### Community 32 - "Community 32"
 Cohesion: 0.22
 Nodes (9): scripts, build, db:push, db:seed, dev, lint, postinstall, seed (+1 more)
 
-### Community 33 - "Time Control UI"
+### Community 33 - "Community 33"
 Cohesion: 0.31
 Nodes (7): args, BACKUP_DIR, compressFile(), createIO(), formatBytes(), main(), MODELS_DIR
 
-### Community 34 - "Search & Filter UI"
+### Community 34 - "Community 34"
 Cohesion: 0.22
 Nodes (8): doFix, hasTexCoord, io, material, meshes, primitives, semantics, texSemantics
 
-### Community 35 - "NASA Image & Media API"
+### Community 35 - "Community 35"
 Cohesion: 0.22
 Nodes (8): buf, chunkLength, chunkType, gltf, jsonData, length, magic, version
 
-### Community 36 - "Admin API Routes"
+### Community 36 - "Community 36"
 Cohesion: 0.22
 Nodes (8): buf, diag, gltf, jsonChunkLength, jsonData, name, scales, sizes
 
-### Community 37 - "Security Middleware"
+### Community 37 - "Community 37"
 Cohesion: 0.22
 Nodes (8): functions, src/app/api/admin/upload-image/route, src/app/api/sync/route, regions, maxDuration, memory, maxDuration, memory
 
-### Community 38 - "Orbit Calculator Worker"
-Cohesion: 0.43
-Nodes (6): CesiumGlobe, MapLibreMap, normalizeSatellite(), PasswordModal(), inferCountryFromName(), useLastAvoidanceExecution()
+### Community 38 - "Community 38"
+Cohesion: 0.18
+Nodes (13): CesiumGlobe, HomePage(), MapLibreMap, normalizeSatellite(), PasswordModal(), buildSatellitesFromTLE(), parseEpoch(), parseTLETextClient() (+5 more)
 
-### Community 39 - "Mock Satellite Data"
+### Community 39 - "Community 39"
 Cohesion: 0.25
 Nodes (7): license, name, prisma, seed, private, type, version
 
-### Community 40 - "Default Satellite Config"
+### Community 40 - "Community 40"
 Cohesion: 0.25
 Nodes (8): abort(), assert(), getBinary(), getBinaryPromise(), intArrayFromBase64(), isDataURI(), isFileURI(), tryParseAsDataURI()
 
@@ -284,10 +281,6 @@ Nodes (7): addOnPostRun(), addOnPreRun(), callRuntimeCallbacks(), initRuntime(),
 ### Community 42 - "Community 42"
 Cohesion: 0.29
 Nodes (6): dracoExtension, ext, io, ioSave, root, verifyIo
-
-### Community 43 - "Community 43"
-Cohesion: 0.33
-Nodes (5): LlmSuccessResponse, AiTaskPlanningOutput, AiPlanningModalProps, LOADING_STAGES, Status
 
 ### Community 44 - "Community 44"
 Cohesion: 0.33
@@ -314,24 +307,24 @@ Cohesion: 0.50
 Nodes (4): _fd_write(), printChar(), UTF8ArrayToString(), UTF8ToString()
 
 ## Knowledge Gaps
-- **390 isolated node(s):** `TimeControl`, `CesiumNS`, `TRAFFIC_MODEL_SCALE`, `ChaseInstance`, `UseChaseViewerReturn` (+385 more)
+- **391 isolated node(s):** `可视化引擎`, `卫星管理`, `TREA-01 遥感任务仿真闭环`, `第一视角驾驶舱（First-Person Cockpit）`, `数据导入（临时）` (+386 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **23 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **31 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `TLEData` connect `Cesium Core & Positions` to `TREA Mission UI Components`, `Traffic Satellite Scheduling`, `Orbit Calculator Worker`, `TREA Mission State & Report`, `API Route Handlers`, `TLE Import Routes`, `Cinematic Shots System`, `Maneuver Calculations`?**
-  _High betweenness centrality (0.034) - this node is a cross-community bridge._
-- **Why does `createSatrec()` connect `Cesium Core & Positions` to `TREA Mission UI Components`, `Traffic Satellite Scheduling`, `Orbit Calculator Worker`, `TLE Parsing & Format`, `TLE Import Routes`, `Maneuver Calculations`?**
-  _High betweenness centrality (0.033) - this node is a cross-community bridge._
-- **Why does `Button()` connect `UI Component Library` to `TREA Mission UI Components`, `Chase Cockpit Architecture`, `Orbit Calculator Worker`, `TREA Mission State & Report`, `Community 43`, `TLE Parsing & Format`, `Mission Simulator Logic`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **What connects `TimeControl`, `CesiumNS`, `TRAFFIC_MODEL_SCALE` to the rest of the system?**
-  _390 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `TREA Mission UI Components` be split into smaller, more focused modules?**
-  _Cohesion score 0.05359719645433931 - nodes in this community are weakly interconnected._
-- **Should `Cesium Core & Positions` be split into smaller, more focused modules?**
-  _Cohesion score 0.05290490100616683 - nodes in this community are weakly interconnected._
-- **Should `Chase Cockpit Architecture` be split into smaller, more focused modules?**
-  _Cohesion score 0.08880666049953746 - nodes in this community are weakly interconnected._
+- **Why does `TLEData` connect `主页面与可视化组件` to `应用布局与样式`, `Draco 解码器 WASM`, `Community 38`, `Community 19`, `Community 20`, `Community 26`, `Community 28`?**
+  _High betweenness centrality (0.039) - this node is a cross-community bridge._
+- **Why does `createSatrec()` connect `主页面与可视化组件` to `应用布局与样式`, `Draco 解码器 WASM`, `Community 38`, `轨道计算 Worker`, `Community 20`, `Community 26`?**
+  _High betweenness centrality (0.032) - this node is a cross-community bridge._
+- **Why does `Button()` connect `UI 组件配置` to `应用布局与样式`, `TREA 访问窗口测试`, `Community 38`, `Draco WASM 包装器`, `轨道计算 Worker`, `Community 19`?**
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
+- **What connects `可视化引擎`, `卫星管理`, `TREA-01 遥感任务仿真闭环` to the rest of the system?**
+  _391 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `应用布局与样式` be split into smaller, more focused modules?**
+  _Cohesion score 0.05022404779686333 - nodes in this community are weakly interconnected._
+- **Should `主页面与可视化组件` be split into smaller, more focused modules?**
+  _Cohesion score 0.053946053946053944 - nodes in this community are weakly interconnected._
+- **Should `TREA 访问窗口测试` be split into smaller, more focused modules?**
+  _Cohesion score 0.08985507246376812 - nodes in this community are weakly interconnected._

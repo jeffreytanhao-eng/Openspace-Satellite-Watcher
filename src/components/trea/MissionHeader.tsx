@@ -6,6 +6,7 @@
 
 import { Rocket, ArrowLeft, Satellite, Fuel, Battery, Activity, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import FullscreenButton from '@/components/FullscreenButton';
 import {
   useTreaMissionPhase,
   useTreaFuel,
@@ -189,6 +190,7 @@ export default function MissionHeader({ onExit }: MissionHeaderProps) {
             <span className="text-xs text-space-200 leading-tight">{PAYLOAD_LABELS[payloadStatus] ?? payloadStatus}</span>
           </div>
         </div>
+        <FullscreenButton />
       </div>
     </header>
   );

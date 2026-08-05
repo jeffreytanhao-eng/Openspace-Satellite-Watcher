@@ -11,9 +11,11 @@
 - **2D / 3D 双视角**：基于 MapLibre GL 的 2D 地图与基于 CesiumJS 的 3D 地球，一键无缝切换
 - **默认东亚视角**：打开页面时地球/地图自动聚焦中国区域（经度 110°E，纬度 35°N）
 - **实时轨道渲染**：使用 satellite.js 的 SGP4/SDP4 算法实时计算卫星位置，绘制多圈预测轨道线
+- **高清地球底图**：态势感知、任务中心、第一视角三处统一使用 **Esri World Imagery 高清卫星影像**（免费、无需 token，城市分辨率达 0.3m），替代默认低清 NaturalEarthII；可通过 `NEXT_PUBLIC_EARTH_IMAGERY=naturalearth` 一键回退
 - **卫星定位**：点击详情面板的定位图标，相机平滑飞至卫星当前位置
 - **3D 模型**：部分卫星预置 GLB 3D 模型，**选中卫星时在 Cesium 内渲染**（统一初始大小，支持鼠标滚轮缩放）；未选中或无模型时显示光点
 - **NASA 图片搜索**：集成 NASA 媒体库，一键搜索卫星配图
+- **全屏按钮**：三处界面（态势感知 / 任务中心 / 第一视角）右上角提供全屏切换按钮，支持 ESC 退出并自动同步图标
 
 ### 卫星管理
 
@@ -43,8 +45,8 @@
 - **独立 Cesium 实现**：驾驶舱使用独立的轻量化 Cesium 实例，直接操作 Model Primitive（而非 Entity 系统），避免连续渲染模式下模型抖动与消失
 - **追尾视角相机**：相机锁定在 TREA-01 卫星后方，支持滚轮缩放调整距离、方向键控制视角偏转
 - **交通卫星系统**：5 颗交通卫星按 Round-robin 轮换调度，首次启动后 **20 秒内（10x 倍速）** 出现第一颗，之后每 **30-45 秒** 交会一次；卫星以 3D 模型形式从视野中飞越，支持距离判断与可见时长控制
-- **昼夜变化**：加载 NASA Black Marble 夜间城市灯光纹理，地球随光照自转呈现真实昼夜过渡
-- **遥测仪表盘**：复用任务中心同款 8 卡片霓虹风格遥测面板，实时显示位置、速度、姿态、燃料、电池、载荷、链路质量与告警
+- **昼夜变化**：白天使用 Esri World Imagery 高清影像，夜间叠加 NASA Black Marble 城市灯光纹理，地球随光照自转呈现真实昼夜过渡
+- **遥测仪表盘**：向第一视角驾驶舱与任务中心复用高密度紧凑遥测面板，3×3 网格无需滚动即展示位置、速度、姿态、燃料、电池、载荷、链路、告警与轨道参数
 - **卫星线框示意图**：驾驶舱内显示 TREA-01 卫星线框图，增强驾驶舱沉浸感
 
 > 驾驶舱与任务中心之间通过全页面跳转（`window.location.href`）切换，避免 Next.js RSC 请求竞态导致的导航失效。
@@ -151,7 +153,7 @@ src/
 │   │   ├── MissionHeader.tsx       # 任务中心顶部栏（含电影回放按钮）
 │   │   ├── TaskListPanel.tsx       # 任务规划面板（过境窗口 + AI 辅助按钮）
 │   │   ├── AiPlanningModal.tsx    # AI 规划结果展示模态框
-│   │   ├── TelemetryDashboard.tsx  # 遥测仪表盘（任务中心与驾驶舱共用）
+│   │   ├── TelemetryDashboard.tsx  # 遥测仪表盘（任务中心与驾驶舱共用，紧凑高密度）
 │   │   ├── TreaSatelliteView.tsx   # TREA-01 卫星线框示意图 + 跟踪
 │   │   ├── ManeuverPanel.tsx       # 变轨控制面板
 │   │   ├── MissionSimulator.tsx    # 任务仿真状态机（纯逻辑）
@@ -161,6 +163,7 @@ src/
 │   │   ├── ScanVideoModal.tsx      # 成像扫描视频播放窗口
 │   │   ├── AvoidanceVideoModal.tsx # 避撞机动视频播放窗口
 │   │   └── CollisionAlertModal.tsx # 碰撞警报模态框（躲避计划选择）
+│   ├── FullscreenButton.tsx  # 全屏切换按钮（三处界面复用，支持 ESC）
 │   ├── ui/                   # 业务 UI 组件
 │   │   ├── ImportModal.tsx       # 导入弹窗（支持滚动）
 │   │   ├── SatelliteDetailPanel.tsx  # 卫星详情面板
@@ -173,10 +176,13 @@ src/
 │       └── ...
 ├── hooks/
 │   ├── useCesium.ts         # Cesium 主视图封装（实体管理、跟踪、AOI、变轨弧）
-│   └── useChaseViewer.ts    # Cesium 驾驶舱封装（追尾视角、交通卫星调度、滚轮缩放）
+│   ├── useChaseViewer.ts    # Cesium 驾驶舱封装（追尾视角、交通卫星调度、滚轮缩放）
+│   └── useFullscreen.ts     # 全屏状态管理（全屏/退出 + fullscreenchange 监听 + webkit 兼容）
 ├── lib/
 │   ├── api/client.ts         # API 客户端
 │   ├── security.ts           # 密码验证（timingSafeEqual）
+│   ├── cesium/
+│   │   └── imagery.ts        # 地球影像源模块（Esri World Imagery / NaturalEarthII 可切换）
 │   ├── cockpit/
 │   │   └── traffic-sats.ts   # 交通卫星 TLE 生成与调度算法（Round-robin）
 │   ├── tle/                  # TLE 解析与轨道计算（SSOT）

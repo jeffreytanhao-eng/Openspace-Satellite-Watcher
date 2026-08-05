@@ -17,7 +17,7 @@ const ChaseCockpit = dynamic(() => import('@/components/cockpit/ChaseCockpit'), 
     <div className="h-screen flex items-center justify-center bg-black text-cyan-400">
       <div className="flex flex-col items-center gap-3">
         <div className="w-10 h-10 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-        <span className="text-sm font-mono">加载赛车视角…</span>
+        <span className="text-sm font-mono">加载卫星视角…</span>
       </div>
     </div>
   ),
