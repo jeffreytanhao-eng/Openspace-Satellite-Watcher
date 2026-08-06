@@ -396,7 +396,7 @@ export default function ImportModal({
                   }`}
                 >
                   <Download className="h-4 w-4" />
-                  Celestrak
+                  导入美国Celestrack数据
                 </button>
                 <button
                   onClick={() => setImportMode('file')}
@@ -405,7 +405,7 @@ export default function ImportModal({
                   }`}
                 >
                   <Upload className="h-4 w-4" />
-                  本地文件
+                  上传国产AOE卫星数据
                 </button>
               </div>
 

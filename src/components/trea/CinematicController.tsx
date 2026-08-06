@@ -18,8 +18,6 @@ import { useTreaMissionStore } from '@/store/treaMissionStore';
 import { useTimeStore } from '@/store/timeStore';
 import { CINEMATIC_SHOTS } from '@/lib/trea/cinematicShots';
 import { generateReport } from '@/lib/trea/report';
-import { generateMissionTle } from '@/lib/tle/generateMissionTle';
-import { AOI_LIST } from '@/lib/trea/constants';
 import type { MissionResult } from '@/store/treaMissionStore';
 
 interface CinematicControllerProps {
@@ -36,8 +34,6 @@ export default function CinematicController({
   const isActive = useCinematicStore(s => s.isActive);
   const rafRef = useRef<number | null>(null);
   const startedRef = useRef(false);
-  // 跟踪虚拟任务轨道 TLE 是否已设置(避免重复设置)
-  const missionOrbitSetRef = useRef(false);
 
   const resetViewRef = useRef(resetView);
   const focusTrea01Ref = useRef(focusTrea01);
@@ -79,8 +75,6 @@ export default function CinematicController({
 
     if (startedRef.current) return;
     startedRef.current = true;
-    // 重置虚拟轨道设置标志(每次启动电影回放时重新设置)
-    missionOrbitSetRef.current = false;
 
     const treaState = useTreaMissionStore.getState();
     const task = treaState.currentTask;
@@ -195,27 +189,6 @@ export default function CinematicController({
           shotElapsed = 0;
           executeCameraAction(nextIndex);
 
-          // 进入阶段2(shot-02 "变轨飞向目标区域")时,设置虚拟任务轨道 TLE
-          // 使卫星跳转到经过 AOI 上空的轨道
-          if (nextIndex === 1 && !missionOrbitSetRef.current) {
-            const state = useTreaMissionStore.getState();
-            const task = state.currentTask;
-            const baseTle = state.tle;
-            if (task?.aoiId && task.windowStart) {
-              const aoi = AOI_LIST.find(a => a.id === task.aoiId);
-              if (aoi) {
-                const result = generateMissionTle(baseTle, aoi, task.windowStart);
-                if (result.tle) {
-                  state.setMissionOrbitTle(result.tle);
-                  missionOrbitSetRef.current = true;
-                  console.log('[CinematicController] 阶段2:设置虚拟任务轨道 TLE', result.debug);
-                } else {
-                  console.warn('[CinematicController] 虚拟 TLE 生成失败:', result.error);
-                }
-              }
-            }
-          }
-
           const nextShot = CINEMATIC_SHOTS[nextIndex];
           if (nextShot?.showReport) {
             ensureReport();
@@ -239,7 +212,6 @@ export default function CinematicController({
         rafRef.current = null;
       }
       startedRef.current = false;
-      missionOrbitSetRef.current = false;
       stopTrackingTrea01Ref.current?.();
       // 双保险:清除虚拟 TLE(主清除逻辑在 isActive 监听 effect 中)
       useTreaMissionStore.getState().setMissionOrbitTle(null);

@@ -12,11 +12,12 @@
 //   - 成功态:推荐 AOI 卡片 + AOI 评分对比 + 推理/风险/执行计划分节
 //   - 置信度进度条 + 耗时显示
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, Loader2, Zap, Shield, ListChecks, Brain, Target } from 'lucide-react';
+import { X, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, Loader2, Zap, Shield, ListChecks, Brain, Target, Orbit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AiTaskPlanningOutput } from '@/lib/trea/ai-prompt';
+import { buildFallbackTaskPlanning } from '@/lib/trea/ai-prompt';
 
 interface AiPlanningModalProps {
   isOpen: boolean;
@@ -25,9 +26,15 @@ interface AiPlanningModalProps {
   onInvoke: () => Promise<AiTaskPlanningOutput>;
   /** 应用建议:选中推荐的 AOI(父组件实现选中逻辑) */
   onApplyRecommendation: (aoiId: string, windowIndex: number) => void;
+  /** 执行相位机动(父组件实现变轨逻辑):AI 规划后若无窗口,可点击触发相位机动以增加窗口 */
+  onExecuteManeuver?: (aoiId: string) => void;
 }
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
+
+// LLM 超时兜底:40 秒内未拿到真实 LLM 反馈则直接返回 Mock 数据
+// 用户要求:AI 分析不能一直运行无反馈,超时后展示系统兜底(Mock)方案
+const AI_TIMEOUT_MS = 40_000;
 
 // 加载阶段(分步展示分析进度,减少用户等待焦虑)
 // LLM 调用是单次请求无法真正知道后端进度,这里用定时器模拟分阶段推进
@@ -40,7 +47,7 @@ const LOADING_STAGES = [
   { icon: CheckCircle2, label: '整合分析结果', desc: '校验输出格式,准备展示' },
 ] as const;
 
-export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyRecommendation }: AiPlanningModalProps) {
+export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyRecommendation, onExecuteManeuver }: AiPlanningModalProps) {
   const [status, setStatus] = useState<Status>('idle');
   const [result, setResult] = useState<AiTaskPlanningOutput | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>('');
@@ -74,6 +81,31 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
     return () => clearInterval(timer);
   }, [status]);
 
+  // LLM 调用带超时兜底:45 秒内未返回真实 LLM 反馈则 resolve 系统 Mock 数据
+  // 显式报错(HTTP 失败等)仍走 error 态;超时则展示兜底方案,避免一直无反馈
+  const invokeWithTimeout = useCallback(async (): Promise<AiTaskPlanningOutput> => {
+    return await new Promise<AiTaskPlanningOutput>((resolve, reject) => {
+      let settled = false;
+      let timer: ReturnType<typeof setTimeout>;
+      const finish = (v: AiTaskPlanningOutput) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(v);
+      };
+      timer = setTimeout(() => finish(buildFallbackTaskPlanning()), AI_TIMEOUT_MS);
+      onInvoke().then(
+        r => finish(r),
+        e => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          reject(e);
+        }
+      );
+    });
+  }, [onInvoke]);
+
   // 模态框打开时自动调用 AI
   // 记录加载起始时间,供实时计时 effect 使用;调用结束后用同一基准计算最终耗时
   useEffect(() => {
@@ -88,7 +120,7 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
     let cancelled = false;
     (async () => {
       try {
-        const r = await onInvoke();
+        const r = await invokeWithTimeout();
         if (cancelled) return;
         setResult(r);
         // 用同一基准计算最终耗时,保证与加载期间读秒连续
@@ -103,7 +135,7 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
     return () => {
       cancelled = true;
     };
-  }, [isOpen, onInvoke]);
+  }, [isOpen, onInvoke, invokeWithTimeout]);
 
   if (!isOpen) return null;
 
@@ -115,7 +147,7 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
     setErrorMsg('');
     (async () => {
       try {
-        const r = await onInvoke();
+        const r = await invokeWithTimeout();
         setResult(r);
         setElapsedMs(Date.now() - loadingStartRef.current);
         setStatus('success');
@@ -131,6 +163,13 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
     onApplyRecommendation(result.recommendedAoi, result.recommendedWindowIndex);
     setApplied(true);
     setTimeout(() => onClose(), 800);
+  };
+
+  // 执行相位机动:委托父组件执行变轨(选中 AOI + 触发 prepareManeuver 动画),随后关闭模态框
+  const handleExecuteManeuver = () => {
+    if (!result) return;
+    onExecuteManeuver?.(result.recommendedAoi);
+    onClose();
   };
 
   if (!mounted) return null;
@@ -213,7 +252,7 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
 
               {/* 耗时提示 */}
               <p className="text-space-500 text-xs">
-                通常需要 15-30 秒,已耗时 {(elapsedMs / 1000).toFixed(1)} 秒
+                通常需要 15-30 秒,已耗时 {(elapsedMs / 1000).toFixed(1)} 秒{elapsedMs >= AI_TIMEOUT_MS ? '(正在使用系统兜底方案)' : ''}
               </p>
             </div>
           )}
@@ -352,6 +391,33 @@ export default function AiPlanningModal({ isOpen, onClose, onInvoke, onApplyReco
                   {result.executionPlan}
                 </pre>
               </section>
+
+              {/* 执行相位机动准备:AI 规划后若 AOI 窗口不足,可触发相位机动以增加过境窗口 */}
+              {onExecuteManeuver && (
+                <section className="rounded-lg border border-cosmic-orange/40 bg-cosmic-orange/5 px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-cosmic-orange/15 flex items-center justify-center flex-shrink-0">
+                      <Orbit className="h-5 w-5 text-cosmic-orange" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-space-100">准备执行相位机动</div>
+                      <p className="text-[11px] text-space-400 mt-0.5 leading-relaxed">
+                        若 {result.recommendedAoi.toUpperCase()} 当前无可用过境窗口,可执行相位机动调整轨道相位,
+                        以在目标区域上方产生新的成像机会。
+                      </p>
+                      <Button
+                        size="sm"
+                        className="mt-2.5 h-8 bg-cosmic-orange hover:bg-cosmic-orange/80 text-white border border-cosmic-orange/50"
+                        onClick={handleExecuteManeuver}
+                        title="执行相位机动,变轨后重新计算过境窗口"
+                      >
+                        <Orbit className="h-3.5 w-3.5 mr-1.5" />
+                        执行相位机动准备
+                      </Button>
+                    </div>
+                  </div>
+                </section>
+              )}
 
               {/* 耗时 */}
               <div className="text-[10px] text-space-500 text-right">

@@ -13,6 +13,7 @@ import type { TLEData } from '@/lib/tle/parser';
 import MissionSimulator from '@/components/trea/MissionSimulator';
 import CinematicController from '@/components/trea/CinematicController';
 import CinematicOverlay from '@/components/trea/CinematicOverlay';
+import { CINEMATIC_SHOTS } from '@/lib/trea/cinematicShots';
 
 /** 变轨事件:ManeuverPanel 执行变轨后触发,包含新旧 TLE 供 Cesium 渲染轨道对比 */
 interface ManeuverEvent {
@@ -96,12 +97,20 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   const maneuverAnimationPhase = useTreaMissionStore(s => s.maneuverAnimationPhase);
   // 电影回放状态(回放期间暂停跟踪,退出后自动恢复)
   const cinematicActive = useCinematicStore(s => s.isActive);
+  // 电影回放当前镜头索引:报告阶段(showReport)不拦截跟踪,让大屏卫星恢复跟踪+播放
+  const cinematicShotIndex = useCinematicStore(s => s.currentShotIndex);
+  const isCinematicReport =
+    cinematicActive && !!CINEMATIC_SHOTS[cinematicShotIndex]?.showReport;
   // 视频播放中:暂停 Cesium 渲染(requestRenderMode)释放 GPU 给视频解码
   const videoPlaying = useTreaMissionStore(s => s.videoPlaying);
   // 变轨动画 cleanup 句柄(effect 清理 + 卸载时清理 setTimeout,避免重复 commit)
   const animationCleanupRef = useRef<(() => void) | null>(null);
   // TREA-01 跟踪状态(由 TreaSatelliteView 按钮切换,本组件监听并调用 startTrackingTrea01)
   const trea01Tracking = useTreaMissionStore(s => s.trea01Tracking);
+  // 任务仿真阶段:任务执行(EXECUTING/IMAGING)期间相机由 MissionSimulator 的
+  // frameSatAndAoi(卫星+AOI 同框近景)独占控制,本组件不启动卫星跟踪避免冲突。
+  // 任务完成后(COMPLETED)此 effect 因 missionPhase 变化重新执行,自动恢复卫星跟踪。
+  const missionPhase = useTreaMissionStore(s => s.missionPhase);
   const focusTrigger = useSatelliteStore(state => state.focusTrigger);
   const trackingNoradId = useSatelliteStore(state => state.trackingNoradId);
   const setTracking = useSatelliteStore(state => state.setTracking);
@@ -256,12 +265,19 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
     if (trea01Tracking) {
       // 变轨动画运行中(running/committed/done)或电影回放期间不启动跟踪
       // (让 focusOrbitChange / 电影相机控制;动画结束后 phase 回到 'idle' 自动恢复)
-      if (maneuverAnimationPhase !== 'idle' || cinematicActive) return;
+      // 特例:电影回放的"任务报告"阶段允许跟踪——报告弹出后大屏卫星应在跟踪状态下播放
+      if (maneuverAnimationPhase !== 'idle' || (cinematicActive && !isCinematicReport)) return;
+      // 任务执行阶段(EXECUTING/IMAGING)不启动卫星跟踪:
+      //   - EXECUTING:保持挂载时已启动的卫星跟踪(相机跟随卫星接近目标)
+      //   - IMAGING:相机由 MissionSimulator 的 frameSatAndAoi(卫星+AOI 同框)接管
+      // 任务完成后(COMPLETED)此 effect 因 missionPhase 变化重新执行,自动恢复卫星跟踪,
+      // 避免 frameSatAndAoi 的 preUpdate 监听器引用已销毁实体导致"跟踪失效"。
+      if (missionPhase === 'EXECUTING' || missionPhase === 'IMAGING') return;
       startTrackingTrea01();
     } else {
       stopTrackingTrea01();
     }
-  }, [trea01Tracking, missionMode, isReady, viewer, startTrackingTrea01, stopTrackingTrea01, maneuverAnimationPhase, cinematicActive]);
+  }, [trea01Tracking, missionPhase, missionMode, isReady, viewer, startTrackingTrea01, stopTrackingTrea01, maneuverAnimationPhase, cinematicActive, isCinematicReport]);
 
   // 视频回放期间暂停 Cesium 渲染,释放 GPU 给视频解码
   // ------------------------------------------------------------

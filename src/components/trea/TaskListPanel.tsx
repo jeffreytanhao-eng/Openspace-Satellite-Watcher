@@ -13,7 +13,7 @@
 //   - 「开始任务仿真」(M4 已接线):startTaskSimulation + 时间播放跳转+加速
 //   - 「重置 TREA-01」(Story 5.2):reset store + 停止播放 + 时间回 now
 
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { Target, Clock, TrendingUp, Rocket, Wrench, RefreshCw, CheckCircle2, MapPin, RotateCcw, PanelLeftClose, PanelLeftOpen, Sparkles, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AOI_A, AOI_B, AOI_LIST } from '@/lib/trea/constants';
@@ -22,6 +22,7 @@ import {
   findNextWindow,
   type AccessWindow,
 } from '@/lib/trea/access';
+import { suggestManeuver } from '@/lib/trea/maneuver';
 import {
   useTreaMissionStore,
   useTreaTle,
@@ -224,6 +225,7 @@ export default function TaskListPanel() {
   const setCurrentTask = useTreaMissionStore(s => s.setCurrentTask);
   const setMissionPhase = useTreaMissionStore(s => s.setMissionPhase);
   const executeManeuver = useTreaMissionStore(s => s.executeManeuver);
+  const prepareManeuver = useTreaMissionStore(s => s.prepareManeuver);
   const startTaskSimulation = useTreaMissionStore(s => s.startTaskSimulation);
   const resetMission = useTreaMissionStore(s => s.reset);
   const fuel = useTreaMissionStore(s => s.fuel);
@@ -474,6 +476,60 @@ export default function TaskListPanel() {
     setTimeout(() => setSimMessage(null), 4000);
   };
 
+  // 变轨动画进行中(冷却期,防止重复触发动画/commit)
+  const maneuverAnimationPhase = useTreaMissionStore(s => s.maneuverAnimationPhase);
+  const isManeuvering = maneuverAnimationPhase !== 'idle';
+
+  // 执行相位机动(AI 规划入口):选中目标 AOI + 走 prepareManeuver 完整变轨动画
+  // 变轨后窗口重算,若仍有窗口则交用户正常执行;若仍无窗口则提示兜底
+  const handleExecutePhaseManeuver = (aoiId: string) => {
+    // 1. 选中目标 AOI(写入 currentTask + missionPhase='PLANNED')
+    handleSelectAoi(aoiId);
+    // 2. 根据该 AOI 当前窗口计算建议机动
+    const windows = aoiId === AOI_A.id ? windowsA : aoiId === AOI_B.id ? windowsB : [];
+    const suggestion = suggestManeuver(tle, windows);
+    if (!suggestion) {
+      setSimMessage(`${aoiId.toUpperCase()} 窗口充足,无需相位机动,可直接执行任务`);
+      setTimeout(() => setSimMessage(null), 4000);
+      return;
+    }
+    if (fuel < suggestion.fuelCost) {
+      setSimMessage(`燃料不足(需 ${suggestion.fuelCost.toFixed(1)}%),无法执行相位机动`);
+      setTimeout(() => setSimMessage(null), 4000);
+      return;
+    }
+    if (isManeuvering) {
+      setSimMessage('变轨进行中,请等待当前机动完成后再执行');
+      setTimeout(() => setSimMessage(null), 4000);
+      return;
+    }
+    // 3. 转换为有符号 ΔV 并执行(走 prepare/commit 动画流程,与右侧 ManeuverPanel 一致)
+    const signedDeltaV =
+      suggestion.direction === 'prograde' ? +suggestion.deltaV : -suggestion.deltaV;
+    prepareManeuver(suggestion.newTle, signedDeltaV, suggestion.fuelCost);
+    setSimMessage(`正在执行相位机动(ΔV=${suggestion.deltaV.toFixed(2)} m/s),变轨后重新计算 ${aoiId.toUpperCase()} 窗口`);
+    // 变轨动画约 5s 后(t=3s commit 切换轨道),窗口重算生效
+    setTimeout(() => setSimMessage(null), 6000);
+  };
+
+  // 变轨兜底:相位机动完成后(phase='done')检查目标 AOI 窗口
+  // 若重算后仍无窗口,明确提示用户(相位机动不一定能产生窗口,取决于轨道覆盖几何)
+  const prevManeuverPhase = useRef(maneuverAnimationPhase);
+  useEffect(() => {
+    const prev = prevManeuverPhase.current;
+    prevManeuverPhase.current = maneuverAnimationPhase;
+    // 仅在 变轨动画结束(running/done → 完成)时检查一次
+    if (prev !== maneuverAnimationPhase && maneuverAnimationPhase === 'done' && selectedAoiId) {
+      const windows = selectedAoiId === AOI_A.id ? windowsA : selectedAoiId === AOI_B.id ? windowsB : [];
+      if (windows.length === 0) {
+        setSimMessage(`${selectedAoiId.toUpperCase()} 相位机动后仍无过境窗口,建议再次执行相位机动或调整轨道`);
+      } else {
+        setSimMessage(`${selectedAoiId.toUpperCase()} 相位机动完成,已获得 ${windows.length} 个过境窗口,可开始任务仿真`);
+      }
+      setTimeout(() => setSimMessage(null), 6000);
+    }
+  }, [maneuverAnimationPhase, selectedAoiId, windowsA, windowsB]);
+
   // 折叠状态:仅渲染窄条展开按钮
   if (collapsed) {
     return (
@@ -696,6 +752,7 @@ export default function TaskListPanel() {
         onClose={() => setShowAiModal(false)}
         onInvoke={handleInvokeAi}
         onApplyRecommendation={handleApplyAiRecommendation}
+        onExecuteManeuver={handleExecutePhaseManeuver}
       />
 
       {/* 碰撞避撞 AI 模态框:复用 AiPlanningModal,传入碰撞场景的 invoke 函数 */}

@@ -195,8 +195,6 @@ export default function MissionSimulator({
   const attitude = useTreaMissionStore(s => s.attitude);
   const payloadStatus = useTreaMissionStore(s => s.payloadStatus);
 
-  const stopPlayback = useTimeStore(s => s.stopPlayback);
-
   // 累积足迹采样点(不放入 store,避免每帧触发全局重渲染)
   const footprintPointsRef = useRef<Array<{ lat: number; lon: number }>>([]);
 
@@ -303,10 +301,9 @@ export default function MissionSimulator({
         scanBeamCreatedRef.current = false;
       }
 
-      // 电影模式下不停止时间播放(由 CinematicController 控制)
-      if (!cinematicActive) {
-        stopPlayback();
-      }
+      // 任务完成后不再暂停时间:让卫星在跟踪下继续播放。
+      // (此前 stopPlayback() 会冻结时间,导致任务仿真后卫星停在原地;
+      //  用户要求与电影报告阶段一致——任务结束后大屏卫星保持跟踪+播放)
 
       // 查找目标 AOI(用于覆盖率与面积计算)
       const aoi = AOI_LIST.find(a => a.id === currentTask.aoiId);
@@ -351,6 +348,17 @@ export default function MissionSimulator({
       };
 
       completeTask(result);
+      // 任务完成后不再暂停时间:让卫星在跟踪下继续播放。
+      // (此前 stopPlayback() 会冻结时间,导致任务仿真后卫星停在原地;
+      //  用户要求与电影报告阶段一致——任务结束后大屏卫星保持跟踪+播放)
+      //
+      // 同时扩展 endTime:TaskListPanel 启动任务时把 endTime 设为 windowEnd+60s,
+      // timeStore 在 currentTime>=endTime 时会自动停止播放。若不扩展,
+      // 任务完成后约 60s 仿真(10x 下 ~6s 真实时间)播放会自动停止,
+      // 表现为"卫星运行一会儿就停止播放"。扩展后播放持续进行。
+      const timeStore = useTimeStore.getState();
+      timeStore.setEndTime(new Date(we + 24 * 60 * 60 * 1000));
+      if (!timeStore.isPlaying) timeStore.startPlayback();
       // 清空累积点(为下次任务准备)
       footprintPointsRef.current = [];
       return;
@@ -378,7 +386,6 @@ export default function MissionSimulator({
     highlightAoi,
     unhighlightAoi,
     frameSatAndAoi,
-    stopPlayback,
   ]);
 
   // 组件卸载时清理 continuous swath 和 AOI 高亮(退出任务模式时执行)

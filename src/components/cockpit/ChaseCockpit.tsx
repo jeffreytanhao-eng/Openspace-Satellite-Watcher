@@ -46,7 +46,7 @@ const TimeControl = memo(function TimeControl() {
   const setRate = useTimeStore((s) => s.setRate);
 
   return (
-    <div className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-cyan-500/40 rounded-lg shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+    <div className={`${TIME_CONTROL_POS} flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-cyan-500/40 rounded-lg shadow-[0_0_15px_rgba(34,211,238,0.2)]`}>
       <button
         type="button"
         onClick={togglePlay}
@@ -67,7 +67,7 @@ const TimeControl = memo(function TimeControl() {
         title="仿真倍速"
       >
         {rates.map((r) => (
-          <option key={r} value={r}>
+          <option value={r}>
             {r === 0 ? '暂停' : `${r}x`}
           </option>
         ))}
@@ -75,6 +75,15 @@ const TimeControl = memo(function TimeControl() {
     </div>
   );
 });
+
+// ============================================================
+// 时间控制条(播放框) — 定位常量
+// ------------------------------------------------------------
+// 用户反馈:交通卫星 3D 模型在移动中会被屏幕顶部居中的"播放框"遮挡而消失。
+// 由于 3D 模型渲染在 Cesium canvas 内、DOM 覆盖层永远在其上方,无法让模型
+// 绘制在 DOM 之上;故把播放框从顶部居中移到顶部飞行区之外(底部居中、
+// 方向控制按钮上方),保持顶部飞行视野无遮挡,卫星不再被"播放框"盖住。
+const TIME_CONTROL_POS = 'absolute bottom-24 left-1/2 -translate-x-1/2';
 
 // ============================================================
 // 驾驶舱线框图(静态,不触发 trea01Tracking store 开关)

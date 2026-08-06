@@ -210,12 +210,15 @@ export function createTrafficSats(baseTle: TLEData): TrafficSat[] {
  * @param tArrival     抵达时刻(仿真时间)
  * @param aheadOffsetKm 沿迹前移偏移(km);默认 TRAFFIC_AHEAD_OFFSET_KM。
  *                      不同卫星用不同值避免同时抵达同一位置(视觉重叠)。
+ * @param raanOffsetDeg 轨道面 RAAN 偏移(度):>0 使卫星轨道面相对 TREA-01 横向
+ *                      偏转,产生侧向分离,避免与 TREA-01 落在同一直线上。
  */
 export function rephaseTrafficSat(
   treaTle: TLEData,
   sat: TrafficSat,
   tArrival: Date,
   aheadOffsetKm: number = TRAFFIC_AHEAD_OFFSET_KM,
+  raanOffsetDeg: number = 0,
 ): void {
   const el = treaTle.elements;
   const epochMs = treaTle.epoch.getTime();
@@ -238,12 +241,13 @@ export function rephaseTrafficSat(
   maSat0Rev = ((maSat0Rev % 1) + 1) % 1;
   const maSat0Deg = maSat0Rev * 360;
 
-  // 共面:RAAN 用 TREA-01 的(确保抵达点重合)
+  // 共面:RAAN 用 TREA-01 的(确保抵达点重合)。
+  // 若传入 raanOffsetDeg,则 RAAN 相对 TREA-01 横向偏转,产生侧向分离(非正前)。
   const tle = buildTleFromElements(
     treaTle,
     sat.config.name,
     sat.tle.noradId,
-    el.raan,
+    el.raan + raanOffsetDeg,
     maSat0Deg,
     nSat,
   );

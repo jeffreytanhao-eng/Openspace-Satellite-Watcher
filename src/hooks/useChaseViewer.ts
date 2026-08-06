@@ -72,18 +72,24 @@ const TREA_ROLL_RAD = 0;
 const TRAFFIC_FIRST_LEAD_SIM_MS = 100_000;
 // 后续重调 LEAD:100s sim → 10s real @10x
 const TRAFFIC_RESCHEDULE_LEAD_SIM_MS = 100_000;
-// 可见时长上限:350s sim → 35s real @10x,超时强制隐藏,控制出现频率 30-45s
-const TRAFFIC_VISIBLE_DURATION_SIM_MS = 350_000;
-// 冷却时间:60s sim → 6s real @10x,允许快速复用同一颗卫星
+// 冷却时间:60s sim → 6s real @10x,防止同一颗卫星被连续快速重调度
 const TRAFFIC_COOLDOWN_SIM_MS = 60 * 1000;
-// 同时在途最大数:1(严格串行,防止多卫星同时出现并重叠)
-const MAX_IN_TRANSIT = 1;
-// 调度检查间隔:5s sim → 0.5s real @10x(更频繁检查以快速调度)
-const SCHEDULE_CHECK_INTERVAL_SIM_MS = 5_000;
+// 屏幕上同时可见的最大交通卫星数:用户指定为 2
+const MAX_CONCURRENT_VISIBLE = 2;
+// 调度检查间隔:60s sim → 6s real @10x(分批调度,错开新卫星的出现时间)
+const SCHEDULE_CHECK_INTERVAL_SIM_MS = 60_000;
 
 // ---- 交通卫星显示滞后距离(km) ----
 // 进入 50km 显示,离开 55km 才隐藏,防止临界震荡闪烁
 const TRAFFIC_HIDE_DISTANCE_KM = 55;
+
+// ---- 交通卫星并发分离设置 ----
+// 沿迹偏移(km):按索引奇偶交替(+15/+38),保证并发两颗卫星沿迹距离明显错开。
+// RAAN 偏移(度):按索引奇偶交替(±0.18°),使并发两颗卫星处于稍不同轨道面,
+//   产生横向(侧向)分离,不落在 TREA-01 正前方的同一直线上,避免视觉重叠。
+const TRAFFIC_AHEAD_EVEN_KM = 15;
+const TRAFFIC_AHEAD_ODD_KM = 38;
+const TRAFFIC_RAAN_OFFSET_DEG = 0.18;
 
 // ---- 飞行方向控制参数 ----
 // 用户按左/右键 → 卫星模型横向偏移 + 倾斜(视觉效果,不改真实轨道)
@@ -335,6 +341,9 @@ export function useChaseViewer(): UseChaseViewerReturn {
         url: modelUri,
         scale: modelScale,
         minimumPixelSize: TRAFFIC_MODEL_MIN_PIXEL,
+        // 关闭深度测试:与标签(disableDepthTestDistance=Infinity)行为一致,
+        // 保证卫星飞行过程中即使越过地球边缘/被遮挡,模型也始终可见(不消失)。
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
       })
         .then((model: CesiumType.Model) => {
           if (disposed || viewer.isDestroyed()) { model.destroy(); return; }
@@ -375,6 +384,28 @@ export function useChaseViewer(): UseChaseViewerReturn {
       () => new Cesium.Cartesian3(0, 0, 0),
     );
 
+    // ---- 交通卫星兜底光点(PointPrimitive):仅当 3D 模型未加载/加载失败时显示 ----
+    // 用户反馈:某些情况下只出现交通卫星标签而无 3D 模型。
+    // 根因:模型为异步加载(trafficModels[i] 可能仍为 null),卫星进入视野时模型未就绪。
+    // 用光点兜底保证卫星始终有可见实体;模型加载成功后自动隐藏光点。
+    const pointCollection = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
+    const trafficPoints: CesiumType.PointPrimitive[] = trafficSats.map((ts) => {
+      return pointCollection.add({
+        position: new Cesium.Cartesian3(0, 0, 0),
+        pixelSize: 8,
+        color: Cesium.Color.fromCssColorString(ts.config.color),
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 1,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        show: false,
+      });
+    });
+    // 每个光点独立的 position 对象(避免共引用互相覆盖)
+    const trafficPointPositions: CesiumType.Cartesian3[] = trafficSats.map(
+      () => new Cesium.Cartesian3(0, 0, 0),
+    );
+    trafficPoints.forEach((p, i) => { p.position = trafficPointPositions[i]; });
+
     // ============================================================
     // preUpdate:每帧更新 modelMatrix + 相机 + 调度
     // ============================================================
@@ -406,8 +437,6 @@ export function useChaseViewer(): UseChaseViewerReturn {
     const _trafficDist: number[] = [];
     const _trafficVisible: boolean[] = [];
     const _trafficShowState: boolean[] = trafficSats.map(() => false);
-    // 可见开始时间(仿真ms),用于超时隐藏控制
-    const _trafficVisibleStartSim: number[] = trafficSats.map(() => 0);
     // Round-robin 调度索引:每次调度后递增,确保每次选不同的卫星
     let _nextPickIdx = 0;
 
@@ -547,6 +576,7 @@ export function useChaseViewer(): UseChaseViewerReturn {
 
         if (!tEcf) {
           if (model) model.show = false;
+          if (trafficPoints[i]) trafficPoints[i].show = false;
           if (trafficLabels[i]) trafficLabels[i].show = false;
           _trafficShowState[i] = false;
           _trafficDist[i] = Number.POSITIVE_INFINITY;
@@ -557,34 +587,22 @@ export function useChaseViewer(): UseChaseViewerReturn {
         const dist = distanceKm(ecf, tEcf);
         // 仅显示已调度的卫星(nextArrivalSim > 0),未调度的卫星(nextArrivalSim=0)不显示
         // 距离判定(滞后:已显示→55km才隐藏;未显示→50km才显示)
-        let visible = ts.nextArrivalSim > 0 && (
+        // 不做时间限制:卫星在屏幕中飞行期间保持显示,只按轨迹飞出(超过 55km)后消失
+        const visible = ts.nextArrivalSim > 0 && (
           _trafficShowState[i]
             ? dist < TRAFFIC_HIDE_DISTANCE_KM
             : dist < TRAFFIC_SHOW_DISTANCE_KM
         );
 
-        // 可见时长超时:超过 TRAFFIC_VISIBLE_DURATION_SIM_MS 强制隐藏并标记为未调度
-        if (visible) {
-          if (_trafficVisibleStartSim[i] === 0) {
-            _trafficVisibleStartSim[i] = t.getTime();  // 首次可见,记录开始时间
-          } else if (t.getTime() - _trafficVisibleStartSim[i] >= TRAFFIC_VISIBLE_DURATION_SIM_MS) {
-            visible = false;  // 超时,强制隐藏
-            ts.nextArrivalSim = 0;  // 标记为未调度,防止再次可见直到重新调度
-            _trafficVisibleStartSim[i] = 0;
-          }
-        } else {
-          _trafficVisibleStartSim[i] = 0;  // 不可见时重置计时
-        }
-
         _trafficDist[i] = dist;
         _trafficVisible[i] = visible;
         _trafficShowState[i] = visible;
 
-        // 每帧直接设 show(竞态安全:Model 异步加载后首帧即同步正确状态)
-        // Model.show 是普通 boolean,每帧赋同值不会导致抖动(不同于 Entity 属性系统)
-        if (model) model.show = visible;
-
-        // 可见时更新 modelMatrix + 标签
+        // 直接显示/隐藏:进入显示区立即完全可见,飞出显示区立即隐藏。
+        // 不做透明度过渡,保证卫星在屏幕中飞行期间始终清晰可见(不随时间变淡)。
+        //
+        // 可见实体:优先 3D 模型;若模型未加载/加载失败(trafficModels[i] 为 null),
+        // 用 PointPrimitive 光点兜底,保证卫星始终有可见实体(仅标签可见是 bug)。
         if (visible) {
           _trafficPos.x = tEcf.x * 1000;
           _trafficPos.y = tEcf.y * 1000;
@@ -601,6 +619,16 @@ export function useChaseViewer(): UseChaseViewerReturn {
             Matrix3.fromQuaternion(_trafficQuat, _trafficRotMat);
             Matrix4.fromRotationTranslation(_trafficRotMat, _trafficPos, _trafficModelMat);
             model.modelMatrix = _trafficModelMat;
+            model.show = true;
+            // 模型已加载:隐藏光点(避免光点绘制在 3D 模型之上)
+            if (trafficPoints[i]) trafficPoints[i].show = false;
+          } else if (trafficPoints[i]) {
+            // 模型未加载:光点兜底,保证卫星可见
+            const pp = trafficPointPositions[i];
+            pp.x = _trafficPos.x;
+            pp.y = _trafficPos.y;
+            pp.z = _trafficPos.z;
+            trafficPoints[i].show = true;
           }
 
           // 标签位置 + 文字
@@ -615,6 +643,8 @@ export function useChaseViewer(): UseChaseViewerReturn {
             label.show = true;
           }
         } else {
+          if (model) model.show = false;
+          if (trafficPoints[i]) trafficPoints[i].show = false;
           if (trafficLabels[i]) trafficLabels[i].show = false;
         }
       }
@@ -634,14 +664,16 @@ export function useChaseViewer(): UseChaseViewerReturn {
       }
 
       if (treaTleNow && nowSim >= nextScheduleSimRef.current) {
-        // 严格串行:任何卫星可见时,不调度新卫星(防止多卫星同时出现并重叠)
-        const anyVisible = _trafficVisible.some((v) => v);
-        if (!anyVisible && inTransitCount < MAX_IN_TRANSIT) {
+        // 并发调度:只要屏幕上可见卫星数未达上限,即使已有卫星在飞行,也可调度新卫星
+        // (新卫星不影响已有卫星的轨迹与显示,各自独立飞行)
+        const visibleCount = _trafficVisible.filter((v) => v).length;
+        if (visibleCount < MAX_CONCURRENT_VISIBLE) {
           // Round-robin: 从上次调度的下一个开始找,确保每次选不同的卫星
           for (let j = 0; j < trafficSatsNow.length; j++) {
             const i = (_nextPickIdx + j) % trafficSatsNow.length;
             const ts = trafficSatsNow[i];
-            if (ts.nextArrivalSim > nowSim) continue;                      // 已在途 → 跳过
+            if (_trafficVisible[i]) continue;                       // 正在屏幕中飞行 → 不打断
+            if (ts.nextArrivalSim > nowSim) continue;               // 已在途 → 跳过
             // 冷却检查(到达时间在过去,且未过冷却)
             if (ts.nextArrivalSim > 0 &&
                 (nowSim - ts.nextArrivalSim) < TRAFFIC_COOLDOWN_SIM_MS) continue;
@@ -651,18 +683,19 @@ export function useChaseViewer(): UseChaseViewerReturn {
               ? TRAFFIC_FIRST_LEAD_SIM_MS
               : TRAFFIC_RESCHEDULE_LEAD_SIM_MS;
 
-            // 沿迹偏移:每颗卫星用不同值,防止抵达同一位置
-            // 全部正值:卫星始终在 TREA-01 前方(追踪相机前视,后方不可见)
-            const AHEAD_OFFSETS_KM = [+20, +35, +15, +40, +25];
-            const aheadKm = AHEAD_OFFSETS_KM[i % AHEAD_OFFSETS_KM.length];
+            // 沿迹偏移:按索引奇偶交替,并发两颗卫星沿迹距离明显错开(+15/+38)
+            // RAAN 偏移:按索引奇偶交替(±0.18°),使两颗并发卫星处于稍不同轨道面,
+            //   产生横向(侧向)分离,不落在 TREA-01 正前方同一直线上。
+            const aheadKm = i % 2 === 0 ? TRAFFIC_AHEAD_EVEN_KM : TRAFFIC_AHEAD_ODD_KM;
+            const raanOffsetDeg = i % 2 === 0 ? TRAFFIC_RAAN_OFFSET_DEG : -TRAFFIC_RAAN_OFFSET_DEG;
 
             const tArrival = new Date(nowSim + leadMs);
-            rephaseTrafficSat(treaTleNow, ts, tArrival, aheadKm);
+            rephaseTrafficSat(treaTleNow, ts, tArrival, aheadKm, raanOffsetDeg);
             _nextPickIdx = (i + 1) % trafficSatsNow.length;  // 下次从下一个开始
             console.warn('[cockpit] ★调度 pickIdx=', i, 'name=', ts.config.name,
               'tArrival=', tArrival.toISOString(), 'leadMs=', leadMs,
               'aheadKm=', aheadKm, 'isFirst=', isFirstScheduleRef.current, 'rate=', rate);
-            break;  // 严格串行:每次只调度1颗
+            break;  // 分批调度:每次只调度1颗,错开出现时间
           }
         }
 

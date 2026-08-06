@@ -602,7 +602,7 @@ export default function HomePage() {
           </div>
           <div>
             <h1 className="text-lg font-bold text-space-100">开源太空 - 卫星守望者</h1>
-            <p className="text-xs text-space-400">OpenSpace - Satellite Watcher</p>
+            <p className="text-xs text-space-400">Openspace -  OpenspaceOS Watcher</p>
           </div>
         </div>
 
@@ -642,7 +642,7 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center">
-          <span className="text-space-500/30 text-[10px] font-medium tracking-[0.15em] pointer-events-none select-none mr-3 hidden sm:inline">谭谈</span>
+          <span className="text-space-500/50 text-lg font-bold tracking-[0.15em] pointer-events-none select-none mr-3 hidden sm:inline">谭谈</span>
           <button onClick={() => setShowSidebar(!showSidebar)} className="p-2 text-space-400 hover:text-cosmic-blue transition-colors">
             {showSidebar ? '◀' : '▶'}
           </button>

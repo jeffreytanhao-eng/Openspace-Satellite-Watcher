@@ -1,11 +1,9 @@
-// TREA-01 电影回放镜头脚本 v4(4 阶段简化版)
+// TREA-01 电影回放镜头脚本 v5(2 阶段简化版)
 // ------------------------------------------------------------
-// 用户需求:去掉之前复杂的相机动画和扫描效果,简化为4阶段
-//   1. 远景卫星移动 + "接受任务"(2秒)
-//   2. 卫星拉近 + "变轨飞向目标区域"(3秒)
-//   3. 视频播放窗口(6秒真实视频)
-//   4. 任务报告窗口(结束)
-// 无进度条,底部只显示阶段文字
+// 用户需求:去掉阶段1/2的3D过程(远景/变轨),直接播放视频,之后显示任务报告结束。
+//   1. 视频播放窗口(6秒真实视频)
+//   2. 任务报告窗口(结束)
+// 无进度条,无3D相机动画过程。
 
 export type CameraAction =
   | 'resetView'    // 重置视角到东亚上空(远景)
@@ -37,31 +35,21 @@ export interface CinematicShot {
 export const CINEMATIC_SHOTS: CinematicShot[] = [
   {
     id: 'shot-01',
-    name: '接受任务',
-    cameraAction: 'resetView',
-    transition: { maxDurationSec: 2, timeScale: 1 },
-    subtitle: '接受任务',
-  },
-  {
-    id: 'shot-02',
-    name: '变轨飞向目标区域',
-    cameraAction: 'focusTrea01',
-    transition: { maxDurationSec: 3, timeScale: 1 },
-    subtitle: '变轨飞向目标区域',
-  },
-  {
-    id: 'shot-03',
     name: '成像扫描',
+    // hold:无3D相机过程,直接进入视频播放
     cameraAction: 'hold',
     transition: { maxDurationSec: 6, timeScale: 0 },
     subtitle: null,
     showVideo: true,
   },
   {
-    id: 'shot-04',
+    id: 'shot-02',
     name: '任务报告',
+    // 报告阶段恢复大屏播放:配合 CesiumGlobe 报告阶段不拦截跟踪,大屏卫星在跟踪状态下播放。
+    // timeScale 用 10(与任务中心默认倍速一致):若用 1 倍速,LEO 卫星周期约 90 分钟,
+    // 播放几秒内卫星位移肉眼不可见,看起来仍像"暂停"。
     cameraAction: 'hold',
-    transition: { maxDurationSec: 999, timeScale: 0 },
+    transition: { maxDurationSec: 999, timeScale: 10 },
     subtitle: null,
     showReport: true,
   },

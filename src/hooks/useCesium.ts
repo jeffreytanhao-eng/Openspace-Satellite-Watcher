@@ -921,6 +921,9 @@ export function useCesium() {
     const pos = calculateSatellitePosition([tle], time);
     if (pos) {
       inst.missionTrea01Entity.update({ position: pos });
+      // 防御性强制:始终以 3D 模型显示(useModel=true),确保光点(point)绝不显示。
+      // 防止任务/相机状态切换过程中 point 被意外打开,导致"光点和3D模型同时出现"。
+      inst.missionTrea01Entity.update({ useModel: true });
     }
   }, []);
 
@@ -1850,10 +1853,16 @@ export function useCesium() {
     viewer.scene.screenSpaceCameraController.enableZoom = false;
 
     // preUpdate 监听器:每帧计算卫星与 AOI 中点,相机看向中点
+    // 关键:每帧动态 getById 获取实体,而非使用闭包中捕获的旧引用。
+    // 任务完成时 completeTask 会清空 missionOrbitTle → activeTle 变化 → addTrea01Entity
+    // 销毁旧实体并重建卫星实体。若此处持有旧实体引用,实体销毁后 position=undefined,
+    // 监听器静默返回,相机冻结 → "跟踪失效"。动态获取保证实体重建后仍能跟随。
     const listener = () => {
       const inst2 = cesiumRef.current;
       if (!inst2 || inst2.viewer.isDestroyed?.()) return;
-      const satPos = entity.position?.getValue?.(inst2.viewer.clock.currentTime);
+      const dynamicEntity = inst2.viewer.entities.getById(`satellite-${noradId}`);
+      if (!dynamicEntity) return;
+      const satPos = dynamicEntity.position?.getValue?.(inst2.viewer.clock.currentTime);
       if (!satPos) return;
       // 中点 = (satPos + aoiCart) / 2
       const mid = new inst2.Cesium.Cartesian3();

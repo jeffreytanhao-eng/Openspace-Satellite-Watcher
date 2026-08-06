@@ -47,9 +47,13 @@ function getClientIp(request: NextRequest): string {
 
 function checkRateLimit(ip: string, path: string): { limited: boolean; retryAfter?: number } {
   // 精确匹配优先，前缀匹配次之
+  // 特别注意:'/' 规则只精确匹配首页本身,不能作为 startWith 通配兜底。
+  // 否则 /cockpit、/textures/*、/trea/* 等所有未命中的静态资源/页面请求都会
+  // 计入同一个 30/分钟 桶,来回切换页面时被快速耗尽 → 页面导航返回 429
+  // "请求过于频繁,请稍后再试",表现为切换页面后出现文字报错。
   let limit: RateLimit | undefined;
   for (const [prefix, rl] of Object.entries(RATE_LIMITS)) {
-    if (path === prefix || path.startsWith(prefix)) { limit = rl; break; }
+    if (path === prefix || (prefix !== '/' && path.startsWith(prefix))) { limit = rl; break; }
   }
   if (!limit) return { limited: false };
 
@@ -129,7 +133,14 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // 仅对 API 接口做 IP 限流。
+    // 静态资源目录(/models、/audio、/textures、/trea、/images、/cesium 等)
+    // 以及页面导航(/、/cockpit)一律不经过限流——
+    // 否则第一视角(/cockpit)每次进入都会重新请求 6 个 3D 模型 + 音频,
+    // 任务中心又加载 13 颗缺省卫星模型,来回切换时 /models/ 的 60/min 配额
+    // 会被快速耗尽,触发 429 "请求过于频繁",导致模型加载失败/页面报错。
     '/api/:path*',
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    // 页面路由(限流不适用,仅添加安全头),排除所有静态资源目录
+    '/((?!_next/static|_next/image|favicon.ico|models/|audio/|textures/|trea/|images/|cesium/).*)',
   ],
 };

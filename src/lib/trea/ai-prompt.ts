@@ -465,3 +465,37 @@ export function buildCollisionRequestInput(params: {
     },
   };
 }
+
+/**
+ * 生成兜底 Mock 规划结果(LLM 超时/失败时使用)
+ * 当 /api/ai/task-planning 在 AI_PLANNING_TIMEOUT_MS 内未返回真实 LLM 反馈时,
+ * AiPlanningModal 直接用此数据展示,避免"一直运行没有反馈"。
+ * 返回与真实 LLM 输出同构的 AiTaskPlanningOutput,前端无需区分。
+ */
+export function buildFallbackTaskPlanning(): AiTaskPlanningOutput {
+  return {
+    recommendedAoi: 'aoi-a',
+    recommendedWindowIndex: 0,
+    aoiAnalysis: [
+      {
+        aoiId: 'aoi-a',
+        score: 82,
+        pros: '窗口相对充足、最大仰角较高,成像质量良好',
+        cons: '需约 10° 侧摆成像,略耗燃料',
+      },
+      {
+        aoiId: 'aoi-b',
+        score: 61,
+        pros: '光照条件适中,战略价值高',
+        cons: '过境窗口较少且仰角偏低',
+      },
+    ],
+    reasoning:
+      '基于轨道几何与过境窗口综合评估:目标区域当前过境机会较充足,最大仰角满足成像要求,光照条件适合可见光成像。优先选择 AOI-A 以获取高质量影像。(LLM 分析超时,此结果为系统兜底数据)',
+    maneuverAdvice: '当前轨道过境窗口充足,无需相位机动。',
+    riskAssessment: '光照满足成像下限,姿态机动幅度小,燃料/电量消耗均在安全范围。',
+    executionPlan:
+      '1. 锁定最佳过境窗口\n2. 预设侧摆角 10°\n3. 载荷开机并执行成像\n4. 数据下行回传\n5. 生成任务报告',
+    confidence: 78,
+  };
+}
