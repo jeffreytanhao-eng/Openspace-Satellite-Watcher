@@ -642,7 +642,7 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center">
-          <span className="text-space-500/50 text-lg font-bold tracking-[0.15em] pointer-events-none select-none mr-3 hidden sm:inline">谭谈</span>
+          <span className="text-space-500/50 text-base font-bold tracking-[0.15em] pointer-events-none select-none mr-3 hidden sm:inline">谭谈</span>
           <button onClick={() => setShowSidebar(!showSidebar)} className="p-2 text-space-400 hover:text-cosmic-blue transition-colors">
             {showSidebar ? '◀' : '▶'}
           </button>
