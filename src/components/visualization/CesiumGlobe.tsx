@@ -173,13 +173,16 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   const lastOrbitUpdateRealRef = useRef(0);
   useEffect(() => {
     if (!isReady || !viewer || !initCompleted.current) return;
-    if (isTrackingRef.current) return; // Freeze orbits during tracking
 
-    // 任务模式下隐藏默认轨道,仅显示 TREA-01 轨道线
+    // 任务模式下无条件隐藏默认轨道,仅显示 TREA-01 轨道线
+    // 必须在 isTrackingRef 判断之前执行:即使进入任务中心前正在跟踪某缺省卫星,
+    // 也要先移除默认轨道,避免 13 颗缺省轨道残留在任务中心
     if (missionMode) {
       updateOrbits([], currentTime);
       return;
     }
+
+    if (isTrackingRef.current) return; // Freeze orbits during tracking
 
     const visibleIds = new Set(visibleSatellites);
     const filteredSatellites = satellites.filter(s => visibleIds.has(s.noradId));

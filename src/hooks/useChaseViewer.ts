@@ -100,7 +100,7 @@ const MAX_ROLL_RAD = Math.PI / 18;     // 最大滚转角 10°
 // ---- 交通卫星 3D 模型参数 ----
 const TRAFFIC_MODEL_MIN_PIXEL = 50;
 const TRAFFIC_MODEL_SCALE: Record<string, number> = {
-  'cloudsat-decoded': 0.5 / 3,    // scene diag ~198 → ~33m
+  'trmm-decoded': 33 / 616172,    // scene diag ~616172 → ~33m
   'grace-decoded': 22.9 / 3,      // scene diag ~4.37 → ~33m
   'oco2-decoded': 2.3 / 3,        // scene diag ~43 → ~33m
   'tess-decoded': 2.3 / 3,        // scene diag ~44 → ~33m
@@ -427,11 +427,13 @@ export function useChaseViewer(): UseChaseViewerReturn {
     const _treaQuat = new Quaternion(0, 0, 0, 1);
     const _treaRotMat = new Matrix3();
     const _treaModelMat = new Matrix4();
-    const _trafficPos = new Cartesian3();
+    // 每颗交通卫星独立的 scratch 对象(避免并发显示时共享引用互相覆盖,
+    // 导致先处理的卫星模型被移到别的位置而"消失"— 标签用独立位置对象不受影响)
     const _trafficHpr = new HPR(0, 0, 0);
-    const _trafficQuat = new Quaternion(0, 0, 0, 1);
-    const _trafficRotMat = new Matrix3();
-    const _trafficModelMat = new Matrix4();
+    const _trafficQuat: Quaternion[] = trafficSats.map(() => new Quaternion(0, 0, 0, 1));
+    const _trafficRotMat: Matrix3[] = trafficSats.map(() => new Matrix3());
+    const _trafficModelMat: Matrix4[] = trafficSats.map(() => new Matrix4());
+    const _trafficPos: Cartesian3[] = trafficSats.map(() => new Cartesian3());
 
     // 交通卫星调度缓存
     const _trafficDist: number[] = [];
@@ -604,9 +606,10 @@ export function useChaseViewer(): UseChaseViewerReturn {
         // 可见实体:优先 3D 模型;若模型未加载/加载失败(trafficModels[i] 为 null),
         // 用 PointPrimitive 光点兜底,保证卫星始终有可见实体(仅标签可见是 bug)。
         if (visible) {
-          _trafficPos.x = tEcf.x * 1000;
-          _trafficPos.y = tEcf.y * 1000;
-          _trafficPos.z = tEcf.z * 1000;
+          const tPos = _trafficPos[i];
+          tPos.x = tEcf.x * 1000;
+          tPos.y = tEcf.y * 1000;
+          tPos.z = tEcf.z * 1000;
 
           if (model) {
             // 朝地心姿态(pitch=-90°)
@@ -614,20 +617,20 @@ export function useChaseViewer(): UseChaseViewerReturn {
             _trafficHpr.pitch = Cesium.Math.toRadians(-90);
             _trafficHpr.roll = 0;
             Transforms.headingPitchRollQuaternion(
-              _trafficPos, _trafficHpr, Ellipsoid.WGS84, undefined, _trafficQuat,
+              tPos, _trafficHpr, Ellipsoid.WGS84, undefined, _trafficQuat[i],
             );
-            Matrix3.fromQuaternion(_trafficQuat, _trafficRotMat);
-            Matrix4.fromRotationTranslation(_trafficRotMat, _trafficPos, _trafficModelMat);
-            model.modelMatrix = _trafficModelMat;
+            Matrix3.fromQuaternion(_trafficQuat[i], _trafficRotMat[i]);
+            Matrix4.fromRotationTranslation(_trafficRotMat[i], tPos, _trafficModelMat[i]);
+            model.modelMatrix = _trafficModelMat[i];
             model.show = true;
             // 模型已加载:隐藏光点(避免光点绘制在 3D 模型之上)
             if (trafficPoints[i]) trafficPoints[i].show = false;
           } else if (trafficPoints[i]) {
             // 模型未加载:光点兜底,保证卫星可见
             const pp = trafficPointPositions[i];
-            pp.x = _trafficPos.x;
-            pp.y = _trafficPos.y;
-            pp.z = _trafficPos.z;
+            pp.x = tPos.x;
+            pp.y = tPos.y;
+            pp.z = tPos.z;
             trafficPoints[i].show = true;
           }
 
@@ -635,9 +638,9 @@ export function useChaseViewer(): UseChaseViewerReturn {
           const label = trafficLabels[i];
           if (label) {
             const lp = trafficLabelPositions[i];
-            lp.x = _trafficPos.x;
-            lp.y = _trafficPos.y;
-            lp.z = _trafficPos.z;
+            lp.x = tPos.x;
+            lp.y = tPos.y;
+            lp.z = tPos.z;
             label.position = lp;
             label.text = `${ts.config.name} · ${dist.toFixed(1)} km`;
             label.show = true;

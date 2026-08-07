@@ -718,9 +718,9 @@ export default function HomePage() {
         <main className="flex-1 relative overflow-hidden min-h-0">
           {missionMode ? (
             <CesiumGlobe
-              satellites={allSatellites}
-              selectedSatellite={selectedSatellite}
-              visibleSatellites={visibleSatellites}
+              satellites={[]}
+              selectedSatellite={null}
+              visibleSatellites={[]}
               missionMode={true}
               maneuverEvent={maneuverEvent}
             />

@@ -44,7 +44,7 @@ export interface TrafficSatConfig {
  * 未使用的 NASA 3D 模型,经 Draco 解压,避免与主页模型重复。
  */
 export const TRAFFIC_SAT_CONFIGS: TrafficSatConfig[] = [
-  { name: 'TRAFFIC-01', meanMotionDelta: +0.020, color: '#7dd3fc', model: 'cloudsat-decoded' },
+  { name: 'TRAFFIC-01', meanMotionDelta: +0.020, color: '#7dd3fc', model: 'trmm-decoded' },
   { name: 'TRAFFIC-02', meanMotionDelta: -0.018, color: '#fbbf24', model: 'grace-decoded' },
   { name: 'TRAFFIC-03', meanMotionDelta: +0.025, color: '#a78bfa', model: 'oco2-decoded' },
   { name: 'TRAFFIC-04', meanMotionDelta: -0.022, color: '#fb923c', model: 'tess-decoded' },
