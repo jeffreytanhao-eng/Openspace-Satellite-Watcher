@@ -1,16 +1,16 @@
 # Graph Report - 开发区  (2026-08-05)
 
 ## Corpus Check
-- 126 files · ~773,600 words
+- 126 files · ~750,859 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1028 nodes · 1812 edges · 79 communities (48 shown, 31 thin omitted)
+- 1029 nodes · 1817 edges · 82 communities (52 shown, 30 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 11 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `94735969`
+- Built from commit: `21576725`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -92,6 +92,9 @@
 - [[_COMMUNITY_Community 76|Community 76]]
 - [[_COMMUNITY_Community 77|Community 77]]
 - [[_COMMUNITY_Community 78|Community 78]]
+- [[_COMMUNITY_Community 79|Community 79]]
+- [[_COMMUNITY_Community 80|Community 80]]
+- [[_COMMUNITY_Community 81|Community 81]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `useTreaMissionStore` - 47 edges
@@ -110,12 +113,12 @@
   src/components/trea/TaskListPanel.tsx → scripts/test-trea-access.ts
 - `importConstellation()` --calls--> `parseEpoch()`  [INFERRED]
   src/lib/constellation-import.ts → src/lib/default-satellites.ts
-- `useTreaOrbitParams()` --calls--> `OrbitParamsCard()`  [EXTRACTED]
-  src/store/treaMissionStore.ts → src/components/trea/ManeuverPanel.tsx
-- `useTreaFuel()` --calls--> `FuelStatusCard()`  [EXTRACTED]
-  src/store/treaMissionStore.ts → src/components/trea/ManeuverPanel.tsx
-- `useTreaManeuverHistory()` --calls--> `ManeuverHistoryList()`  [EXTRACTED]
-  src/store/treaMissionStore.ts → src/components/trea/ManeuverPanel.tsx
+- `SatelliteDetailPanelProps` --references--> `SpaceObject`  [EXTRACTED]
+  src/components/ui/SatelliteDetailPanel.tsx → src/store/satelliteStore.ts
+- `SatelliteListProps` --references--> `SpaceObject`  [EXTRACTED]
+  src/components/ui/SatelliteList.tsx → src/store/satelliteStore.ts
+- `MissionReportModalProps` --references--> `MissionReport`  [EXTRACTED]
+  src/components/trea/MissionReportModal.tsx → src/lib/trea/report.ts
 
 ## Hyperedges (group relationships)
 - **TREA-01 任务仿真闭环主流程** — readme_mission_planning, readme_ai_planning, readme_orbit_visualization, readme_imaging_simulation, readme_mission_report, readme_cinematic_playback [EXTRACTED 1.00]
@@ -125,19 +128,19 @@
 - **Chase Cockpit Independent Architecture** — use-chase-viewer-hook, traffic-sats-lib, chase-cockpit-component, telemetry-dashboard-component, img-black-marble [INFERRED 0.90]
 - **Docker Compose Deployment Architecture** — deployment-concept, docker-compose-config, deploy-script, deploy-readme-doc [INFERRED 0.95]
 
-## Communities (79 total, 31 thin omitted)
+## Communities (82 total, 30 thin omitted)
 
 ### Community 0 - "应用布局与样式"
-Cohesion: 0.06
-Nodes (72): CinematicActions, CinematicState, useCinematicStore, CollisionAlert, CollisionAvoidancePlan, computeOrbitParams(), computeTelemetry(), initialState (+64 more)
+Cohesion: 0.05
+Nodes (70): useCesium(), CinematicActions, CinematicState, useCinematicStore, CollisionAlert, CollisionAvoidancePlan, computeOrbitParams(), computeTelemetry() (+62 more)
 
 ### Community 1 - "主页面与可视化组件"
 Cohesion: 0.05
-Nodes (63): calculateSatellitePosition(), generateOrbitPoints(), generateOrbitPointsECEF(), isValidRadius(), CesiumInstance, CesiumNS, getCesium(), useCesium() (+55 more)
+Nodes (61): calculateSatellitePosition(), generateOrbitPoints(), generateOrbitPointsECEF(), isValidRadius(), CesiumInstance, CesiumNS, getCesium(), MapLibreInstance (+53 more)
 
 ### Community 2 - "TREA 访问窗口测试"
-Cohesion: 0.15
-Nodes (20): ChaseCockpit(), TimeControl, FullscreenButton(), useChaseViewer(), FullscreenDocument, FullscreenElement, useFullscreen(), formatDateTime() (+12 more)
+Cohesion: 0.09
+Nodes (33): inter, metadata, RootLayout(), ChaseCockpit(), TimeControl, useChaseViewer(), cn(), formatDateTime() (+25 more)
 
 ### Community 3 - "README 核心概念"
 Cohesion: 0.09
@@ -152,8 +155,8 @@ Cohesion: 0.07
 Nodes (37): CesiumNS, createEarthImageryProvider(), buildTleFromElements(), createTrafficSats(), distanceKm(), EcefVec, L2_MA, L2_MM (+29 more)
 
 ### Community 7 - "Draco WASM 包装器"
-Cohesion: 0.12
-Nodes (24): TreaMissionActions, TreaMissionState, AttitudeMode, MissionPhase, PayloadStatus, ATTITUDE_LABELS, coverageColor(), formatDateTime() (+16 more)
+Cohesion: 0.26
+Nodes (13): TreaMissionActions, TreaMissionState, AttitudeMode, MissionPhase, PayloadStatus, CONCLUSION_TEMPLATES, ConclusionContext, escapeXml() (+5 more)
 
 ### Community 8 - "任务遥测 UI"
 Cohesion: 0.06
@@ -168,8 +171,8 @@ Cohesion: 0.06
 Nodes (33): API 服务, code:block1 (src/), code:block2 (┌─────────────┐    HTTPS     ┌──────────────────────────┐   ), code:block3 (┌─────────────┐    HTTPS     ┌───────────┐  反代  ┌───────────), code:bash (# 1. 安装依赖), code:bash (# 克隆代码), code:bash (git pull), Docker Compose 自托管 (+25 more)
 
 ### Community 12 - "UI 组件配置"
-Cohesion: 0.12
-Nodes (10): Button(), buttonVariants, ImportedSatellite, ImportFailure, ImportModalProps, ImportMode, ImportResult, ImportSummary (+2 more)
+Cohesion: 0.13
+Nodes (11): Button(), buttonVariants, ImportedSatellite, ImportFailure, ImportModalProps, ImportMode, ImportResult, ImportSummary (+3 more)
 
 ### Community 13 - "TypeScript 配置"
 Cohesion: 0.09
@@ -180,12 +183,12 @@ Cohesion: 0.10
 Nodes (20): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+12 more)
 
 ### Community 15 - "Draco 解码器类"
-Cohesion: 0.18
-Nodes (15): inter, metadata, RootLayout(), cn(), SelectContent(), SelectGroup(), SelectItem(), SelectLabel() (+7 more)
+Cohesion: 0.17
+Nodes (16): aoiToBBox(), BoundingBox, computeAccessWindows(), computeAccessWindowsForAois(), computeElevation(), computeFootprint(), Footprint, GeoPoint (+8 more)
 
 ### Community 16 - "轨道计算 Worker"
-Cohesion: 0.18
-Nodes (14): COUNTRY_KEYWORD_MAP, COUNTRY_TRANSLATIONS, OBJECT_TYPE_TRANSLATIONS, SATELLITE_NAME_TRANSLATIONS, translateCountry(), translateObjectType(), translateSatelliteName(), calculateOrbitParams() (+6 more)
+Cohesion: 0.15
+Nodes (15): COUNTRY_KEYWORD_MAP, COUNTRY_TRANSLATIONS, OBJECT_TYPE_TRANSLATIONS, SATELLITE_NAME_TRANSLATIONS, translateCountry(), translateObjectType(), translateSatelliteName(), calculateOrbitParams() (+7 more)
 
 ### Community 17 - "安全与 TLE 解析"
 Cohesion: 0.10
@@ -197,11 +200,11 @@ Nodes (20): AttributeOctahedronTransform(), AttributeQuantizationTransform(), At
 
 ### Community 19 - "Community 19"
 Cohesion: 0.11
-Nodes (22): extractJson(), LlmErrorResponse, LlmSuccessResponse, normalizeOutput(), POST(), validateConfig(), AiAoiAnalysis, AiAoiSummary (+14 more)
+Nodes (24): buildMockOutput(), extractJson(), isRetryableConnectError(), LlmErrorResponse, LlmSuccessResponse, normalizeOutput(), POST(), validateConfig() (+16 more)
 
 ### Community 20 - "Community 20"
-Cohesion: 0.06
-Nodes (44): aoiAPolygon, batchMap, bboxA, elevHorizon, elevOverhead, fmt(), fp, largeAoi (+36 more)
+Cohesion: 0.10
+Nodes (18): aoiAPolygon, batchMap, bboxA, elevHorizon, elevOverhead, fp, largeAoi, nextLarge (+10 more)
 
 ### Community 21 - "Community 21"
 Cohesion: 0.15
@@ -224,8 +227,8 @@ Cohesion: 0.12
 Nodes (15): compilerOptions, esModuleInterop, isolatedModules, jsx, lib, module, moduleResolution, noEmit (+7 more)
 
 ### Community 26 - "Community 26"
-Cohesion: 0.13
-Nodes (20): AccessWindow, AlongTrackDeltaVResult, applyManeuver(), circularOrbitVelocity(), computeAlongTrackDeltaV(), computeTleChecksum(), estimateFuelCost(), formatTleEpoch() (+12 more)
+Cohesion: 0.25
+Nodes (14): AlongTrackDeltaVResult, applyManeuver(), circularOrbitVelocity(), computeAlongTrackDeltaV(), computeTleChecksum(), estimateFuelCost(), formatTleEpoch(), ManeuverDirection (+6 more)
 
 ### Community 27 - "Community 27"
 Cohesion: 0.14
@@ -264,8 +267,8 @@ Cohesion: 0.22
 Nodes (8): functions, src/app/api/admin/upload-image/route, src/app/api/sync/route, regions, maxDuration, memory, maxDuration, memory
 
 ### Community 38 - "Community 38"
-Cohesion: 0.11
-Nodes (27): CesiumGlobe, HomePage(), MapLibreMap, normalizeSatellite(), PasswordModal(), buildSatellitesFromTLE(), parseEpoch(), parseTLETextClient() (+19 more)
+Cohesion: 0.18
+Nodes (14): CesiumGlobe, HomePage(), MapLibreMap, normalizeSatellite(), PasswordModal(), buildSatellitesFromTLE(), parseEpoch(), parseTLETextClient() (+6 more)
 
 ### Community 39 - "Community 39"
 Cohesion: 0.25
@@ -292,8 +295,8 @@ Cohesion: 0.40
 Nodes (4): ext, readIo, root, writeIo
 
 ### Community 47 - "Community 47"
-Cohesion: 0.32
-Nodes (4): Input, ScrollArea(), ScrollBar(), SearchBarProps
+Cohesion: 0.20
+Nodes (14): defaultSatellites, OrbitCacheEntry, SatelliteStoreActions, SatelliteStoreState, TimeState, TLEData, useOrbitCache(), useSatelliteError() (+6 more)
 
 ### Community 48 - "Community 48"
 Cohesion: 0.50
@@ -311,25 +314,41 @@ Nodes (4): ensureString(), intArrayFromString(), lengthBytesUTF8(), stringToUTF8
 Cohesion: 0.50
 Nodes (4): _fd_write(), printChar(), UTF8ArrayToString(), UTF8ToString()
 
+### Community 65 - "Community 65"
+Cohesion: 0.20
+Nodes (11): ATTITUDE_LABELS, coverageColor(), formatDateTime(), formatLat(), formatLon(), fuelColor(), MetaItemProps, MissionReportModal() (+3 more)
+
+### Community 74 - "Community 74"
+Cohesion: 0.24
+Nodes (12): fmt(), pad(), AccessWindow, findNextWindow(), AoiSection(), AoiSectionProps, elevationColor(), formatDuration() (+4 more)
+
+### Community 79 - "Community 79"
+Cohesion: 0.25
+Nodes (7): AOI_A, AOI_B, AoiPolygonVertex, ATTITUDE_INITIAL, getTrea01InitialState(), PAYLOAD_INITIAL, Trea01InitialState
+
+### Community 80 - "Community 80"
+Cohesion: 0.47
+Nodes (4): FullscreenButton(), FullscreenDocument, FullscreenElement, useFullscreen()
+
 ## Knowledge Gaps
-- **392 isolated node(s):** `TimeControl`, `PAYLOAD_DISPLAY`, `ATTITUDE_LABELS`, `CardProps`, `ACCENT_BORDER` (+387 more)
+- **390 isolated node(s):** `LlmErrorResponse`, `TimeControl`, `PAYLOAD_DISPLAY`, `ATTITUDE_LABELS`, `CardProps` (+385 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **31 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **30 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `TLEData` connect `主页面与可视化组件` to `应用布局与样式`, `Draco 解码器 WASM`, `Community 38`, `Community 19`, `Community 20`, `Community 26`, `Community 28`?**
-  _High betweenness centrality (0.032) - this node is a cross-community bridge._
-- **Why does `Button()` connect `UI 组件配置` to `应用布局与样式`, `Community 38`, `Draco WASM 包装器`, `Community 47`, `轨道计算 Worker`, `Draco 解码器类`, `Community 19`, `Community 26`?**
-  _High betweenness centrality (0.024) - this node is a cross-community bridge._
-- **Why does `createSatrec()` connect `主页面与可视化组件` to `应用布局与样式`, `Draco 解码器 WASM`, `Community 38`, `轨道计算 Worker`, `Community 20`, `Community 26`?**
-  _High betweenness centrality (0.024) - this node is a cross-community bridge._
-- **What connects `TimeControl`, `PAYLOAD_DISPLAY`, `ATTITUDE_LABELS` to the rest of the system?**
-  _392 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `TLEData` connect `主页面与可视化组件` to `应用布局与样式`, `Draco 解码器 WASM`, `Community 38`, `Draco 解码器类`, `Community 79`, `Community 19`, `Community 26`, `Community 28`?**
+  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+- **Why does `Button()` connect `UI 组件配置` to `应用布局与样式`, `Community 65`, `TREA 访问窗口测试`, `Community 38`, `Community 74`, `轨道计算 Worker`, `Community 19`?**
+  _High betweenness centrality (0.028) - this node is a cross-community bridge._
+- **Why does `createSatrec()` connect `主页面与可视化组件` to `应用布局与样式`, `Draco 解码器 WASM`, `Community 38`, `Draco 解码器类`, `轨道计算 Worker`, `Community 26`?**
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+- **What connects `LlmErrorResponse`, `TimeControl`, `PAYLOAD_DISPLAY` to the rest of the system?**
+  _390 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `应用布局与样式` be split into smaller, more focused modules?**
-  _Cohesion score 0.056886898096304594 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.054385964912280704 - nodes in this community are weakly interconnected._
 - **Should `主页面与可视化组件` be split into smaller, more focused modules?**
-  _Cohesion score 0.05277777777777778 - nodes in this community are weakly interconnected._
-- **Should `README 核心概念` be split into smaller, more focused modules?**
-  _Cohesion score 0.09269162210338681 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.053613053613053616 - nodes in this community are weakly interconnected._
+- **Should `TREA 访问窗口测试` be split into smaller, more focused modules?**
+  _Cohesion score 0.09292929292929293 - nodes in this community are weakly interconnected._

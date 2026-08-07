@@ -90,202 +90,292 @@
   },
   "nodes": [
     {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L1",
+      "id": "src_app_api_ai_task_planning_route_ts",
+      "community": 19,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "isRetryableConnectError()",
+      "file_type": "code",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L45",
+      "id": "task_planning_route_isretryableconnecterror",
+      "community": 19,
+      "norm_label": "isretryableconnecterror()"
+    },
+    {
+      "label": "LlmErrorResponse",
+      "file_type": "code",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L60",
+      "id": "task_planning_route_llmerrorresponse",
+      "community": 19,
+      "norm_label": "llmerrorresponse"
+    },
+    {
+      "label": "LlmSuccessResponse",
+      "file_type": "code",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L66",
+      "id": "task_planning_route_llmsuccessresponse",
+      "community": 19,
+      "norm_label": "llmsuccessresponse"
+    },
+    {
+      "label": "validateConfig()",
+      "file_type": "code",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L78",
+      "id": "task_planning_route_validateconfig",
+      "community": 19,
+      "norm_label": "validateconfig()"
+    },
+    {
+      "label": "extractJson()",
+      "file_type": "code",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L100",
+      "id": "task_planning_route_extractjson",
+      "community": 19,
+      "norm_label": "extractjson()"
+    },
+    {
+      "label": "normalizeOutput()",
+      "file_type": "code",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L135",
+      "id": "task_planning_route_normalizeoutput",
+      "community": 19,
+      "norm_label": "normalizeoutput()"
+    },
+    {
+      "label": "buildMockOutput()",
+      "file_type": "code",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L171",
+      "id": "task_planning_route_buildmockoutput",
+      "community": 19,
+      "norm_label": "buildmockoutput()"
+    },
+    {
+      "label": "POST()",
+      "file_type": "code",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L250",
+      "id": "task_planning_route_post",
+      "community": 19,
+      "norm_label": "post()"
+    },
+    {
+      "label": "OPTIONS()",
+      "file_type": "code",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L448",
+      "id": "task_planning_route_options",
+      "community": 19,
+      "norm_label": "options()"
+    },
+    {
       "label": "ChaseCockpit.tsx",
       "file_type": "code",
       "source_file": "src/components/cockpit/ChaseCockpit.tsx",
       "source_location": "L1",
-      "id": "src_components_cockpit_chasecockpit_tsx",
       "community": 2,
-      "norm_label": "chasecockpit.tsx"
+      "norm_label": "chasecockpit.tsx",
+      "id": "src_components_cockpit_chasecockpit_tsx"
     },
     {
       "label": "TimeControl",
       "file_type": "code",
       "source_file": "src/components/cockpit/ChaseCockpit.tsx",
       "source_location": "L40",
-      "id": "cockpit_chasecockpit_timecontrol",
       "community": 2,
-      "norm_label": "timecontrol"
+      "norm_label": "timecontrol",
+      "id": "cockpit_chasecockpit_timecontrol"
     },
     {
       "label": "CockpitWireframe()",
       "file_type": "code",
       "source_file": "src/components/cockpit/ChaseCockpit.tsx",
       "source_location": "L83",
-      "id": "cockpit_chasecockpit_cockpitwireframe",
       "community": 2,
-      "norm_label": "cockpitwireframe()"
+      "norm_label": "cockpitwireframe()",
+      "id": "cockpit_chasecockpit_cockpitwireframe"
     },
     {
       "label": "ChaseCockpit()",
       "file_type": "code",
       "source_file": "src/components/cockpit/ChaseCockpit.tsx",
       "source_location": "L120",
-      "id": "cockpit_chasecockpit_chasecockpit",
       "community": 2,
-      "norm_label": "chasecockpit()"
+      "norm_label": "chasecockpit()",
+      "id": "cockpit_chasecockpit_chasecockpit"
     },
     {
       "label": "TelemetryDashboard.tsx",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L1",
-      "id": "src_components_trea_telemetrydashboard_tsx",
       "community": 0,
-      "norm_label": "telemetrydashboard.tsx"
+      "norm_label": "telemetrydashboard.tsx",
+      "id": "src_components_trea_telemetrydashboard_tsx"
     },
     {
       "label": "formatLat()",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L56",
-      "id": "trea_telemetrydashboard_formatlat",
       "community": 0,
-      "norm_label": "formatlat()"
+      "norm_label": "formatlat()",
+      "id": "trea_telemetrydashboard_formatlat"
     },
     {
       "label": "formatLon()",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L62",
-      "id": "trea_telemetrydashboard_formatlon",
       "community": 0,
-      "norm_label": "formatlon()"
+      "norm_label": "formatlon()",
+      "id": "trea_telemetrydashboard_formatlon"
     },
     {
       "label": "formatAlt()",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L71",
-      "id": "trea_telemetrydashboard_formatalt",
       "community": 0,
-      "norm_label": "formatalt()"
+      "norm_label": "formatalt()",
+      "id": "trea_telemetrydashboard_formatalt"
     },
     {
       "label": "levelColor()",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L76",
-      "id": "trea_telemetrydashboard_levelcolor",
       "community": 0,
-      "norm_label": "levelcolor()"
+      "norm_label": "levelcolor()",
+      "id": "trea_telemetrydashboard_levelcolor"
     },
     {
       "label": "PAYLOAD_DISPLAY",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L99",
-      "id": "trea_telemetrydashboard_payload_display",
       "community": 0,
-      "norm_label": "payload_display"
+      "norm_label": "payload_display",
+      "id": "trea_telemetrydashboard_payload_display"
     },
     {
       "label": "ATTITUDE_LABELS",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L121",
-      "id": "trea_telemetrydashboard_attitude_labels",
       "community": 0,
-      "norm_label": "attitude_labels"
+      "norm_label": "attitude_labels",
+      "id": "trea_telemetrydashboard_attitude_labels"
     },
     {
       "label": "CardProps",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L132",
-      "id": "trea_telemetrydashboard_cardprops",
       "community": 0,
-      "norm_label": "cardprops"
+      "norm_label": "cardprops",
+      "id": "trea_telemetrydashboard_cardprops"
     },
     {
       "label": "ACCENT_BORDER",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L140",
-      "id": "trea_telemetrydashboard_accent_border",
       "community": 0,
-      "norm_label": "accent_border"
+      "norm_label": "accent_border",
+      "id": "trea_telemetrydashboard_accent_border"
     },
     {
       "label": "ACCENT_ICON",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L148",
-      "id": "trea_telemetrydashboard_accent_icon",
       "community": 0,
-      "norm_label": "accent_icon"
+      "norm_label": "accent_icon",
+      "id": "trea_telemetrydashboard_accent_icon"
     },
     {
       "label": "MiniCard()",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L156",
-      "id": "trea_telemetrydashboard_minicard",
       "community": 0,
-      "norm_label": "minicard()"
+      "norm_label": "minicard()",
+      "id": "trea_telemetrydashboard_minicard"
     },
     {
       "label": "TelemetryDashboardProps",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L176",
-      "id": "trea_telemetrydashboard_telemetrydashboardprops",
       "community": 0,
-      "norm_label": "telemetrydashboardprops"
+      "norm_label": "telemetrydashboardprops",
+      "id": "trea_telemetrydashboard_telemetrydashboardprops"
     },
     {
       "label": "TelemetryDashboard()",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L181",
-      "id": "trea_telemetrydashboard_telemetrydashboard",
       "community": 0,
-      "norm_label": "telemetrydashboard()"
+      "norm_label": "telemetrydashboard()",
+      "id": "trea_telemetrydashboard_telemetrydashboard"
     },
     {
       "label": "GeoCell()",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L517",
-      "id": "trea_telemetrydashboard_geocell",
       "community": 0,
-      "norm_label": "geocell()"
+      "norm_label": "geocell()",
+      "id": "trea_telemetrydashboard_geocell"
     },
     {
       "label": "AttMini()",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L530",
-      "id": "trea_telemetrydashboard_attmini",
       "community": 0,
-      "norm_label": "attmini()"
+      "norm_label": "attmini()",
+      "id": "trea_telemetrydashboard_attmini"
     },
     {
       "label": "ResourceMini()",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L550",
-      "id": "trea_telemetrydashboard_resourcemini",
       "community": 0,
-      "norm_label": "resourcemini()"
+      "norm_label": "resourcemini()",
+      "id": "trea_telemetrydashboard_resourcemini"
     },
     {
       "label": "AlertMini()",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L579",
-      "id": "trea_telemetrydashboard_alertmini",
       "community": 0,
-      "norm_label": "alertmini()"
+      "norm_label": "alertmini()",
+      "id": "trea_telemetrydashboard_alertmini"
     },
     {
       "label": "ParamCell()",
       "file_type": "code",
       "source_file": "src/components/trea/TelemetryDashboard.tsx",
       "source_location": "L608",
-      "id": "trea_telemetrydashboard_paramcell",
       "community": 0,
-      "norm_label": "paramcell()"
+      "norm_label": "paramcell()",
+      "id": "trea_telemetrydashboard_paramcell"
     },
     {
       "label": "README.md",
@@ -625,7 +715,7 @@
       "file_type": "code",
       "source_file": "src/components/FullscreenButton.tsx",
       "source_location": "L1",
-      "community": 2,
+      "community": 80,
       "norm_label": "fullscreenbutton.tsx",
       "id": "src_components_fullscreenbutton_tsx"
     },
@@ -634,7 +724,7 @@
       "file_type": "code",
       "source_file": "src/components/FullscreenButton.tsx",
       "source_location": "L10",
-      "community": 2,
+      "community": 80,
       "norm_label": "fullscreenbutton()",
       "id": "components_fullscreenbutton_fullscreenbutton"
     },
@@ -760,7 +850,7 @@
       "file_type": "code",
       "source_file": "src/hooks/useFullscreen.ts",
       "source_location": "L1",
-      "community": 2,
+      "community": 80,
       "norm_label": "usefullscreen.ts",
       "id": "src_hooks_usefullscreen_ts"
     },
@@ -769,7 +859,7 @@
       "file_type": "code",
       "source_file": "src/hooks/useFullscreen.ts",
       "source_location": "L6",
-      "community": 2,
+      "community": 80,
       "norm_label": "fullscreendocument",
       "id": "hooks_usefullscreen_fullscreendocument"
     },
@@ -778,7 +868,7 @@
       "file_type": "code",
       "source_file": "src/hooks/useFullscreen.ts",
       "source_location": "L10",
-      "community": 2,
+      "community": 80,
       "norm_label": "fullscreenelement",
       "id": "hooks_usefullscreen_fullscreenelement"
     },
@@ -787,7 +877,7 @@
       "file_type": "code",
       "source_file": "src/hooks/useFullscreen.ts",
       "source_location": "L18",
-      "community": 2,
+      "community": 80,
       "norm_label": "usefullscreen()",
       "id": "hooks_usefullscreen_usefullscreen"
     },
@@ -832,7 +922,7 @@
       "file_type": "code",
       "source_file": "src/hooks/useCesium.ts",
       "source_location": "L66",
-      "community": 1,
+      "community": 0,
       "norm_label": "usecesium()",
       "id": "hooks_usecesium_usecesium"
     },
@@ -1470,7 +1560,7 @@
       "file_type": "code",
       "source_file": "src/app/layout.tsx",
       "source_location": "L1",
-      "community": 15,
+      "community": 2,
       "norm_label": "layout.tsx",
       "id": "src_app_layout_tsx"
     },
@@ -1479,7 +1569,7 @@
       "file_type": "code",
       "source_file": "src/app/layout.tsx",
       "source_location": "L8",
-      "community": 15,
+      "community": 2,
       "norm_label": "inter",
       "id": "app_layout_inter"
     },
@@ -1488,7 +1578,7 @@
       "file_type": "code",
       "source_file": "src/app/layout.tsx",
       "source_location": "L10",
-      "community": 15,
+      "community": 2,
       "norm_label": "metadata",
       "id": "app_layout_metadata"
     },
@@ -1497,7 +1587,7 @@
       "file_type": "code",
       "source_file": "src/app/layout.tsx",
       "source_location": "L15",
-      "community": 15,
+      "community": 2,
       "norm_label": "rootlayout()",
       "id": "app_layout_rootlayout"
     },
@@ -1655,78 +1745,6 @@
       "id": "cockpit_traffic_sats_distancekm"
     },
     {
-      "label": "route.ts",
-      "file_type": "code",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L1",
-      "community": 19,
-      "norm_label": "route.ts",
-      "id": "src_app_api_ai_task_planning_route_ts"
-    },
-    {
-      "label": "LlmErrorResponse",
-      "file_type": "code",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L34",
-      "community": 19,
-      "norm_label": "llmerrorresponse",
-      "id": "task_planning_route_llmerrorresponse"
-    },
-    {
-      "label": "LlmSuccessResponse",
-      "file_type": "code",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L40",
-      "community": 19,
-      "norm_label": "llmsuccessresponse",
-      "id": "task_planning_route_llmsuccessresponse"
-    },
-    {
-      "label": "validateConfig()",
-      "file_type": "code",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L52",
-      "community": 19,
-      "norm_label": "validateconfig()",
-      "id": "task_planning_route_validateconfig"
-    },
-    {
-      "label": "extractJson()",
-      "file_type": "code",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L74",
-      "community": 19,
-      "norm_label": "extractjson()",
-      "id": "task_planning_route_extractjson"
-    },
-    {
-      "label": "normalizeOutput()",
-      "file_type": "code",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L109",
-      "community": 19,
-      "norm_label": "normalizeoutput()",
-      "id": "task_planning_route_normalizeoutput"
-    },
-    {
-      "label": "POST()",
-      "file_type": "code",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L140",
-      "community": 19,
-      "norm_label": "post()",
-      "id": "task_planning_route_post"
-    },
-    {
-      "label": "OPTIONS()",
-      "file_type": "code",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L327",
-      "community": 19,
-      "norm_label": "options()",
-      "id": "task_planning_route_options"
-    },
-    {
       "label": "CesiumGlobe.tsx",
       "file_type": "code",
       "source_file": "src/components/visualization/CesiumGlobe.tsx",
@@ -1758,7 +1776,7 @@
       "file_type": "code",
       "source_file": "src/components/visualization/CesiumGlobe.tsx",
       "source_location": "L35",
-      "community": 1,
+      "community": 0,
       "norm_label": "cesiumglobe()",
       "id": "visualization_cesiumglobe_cesiumglobe"
     },
@@ -2100,7 +2118,7 @@
       "file_type": "code",
       "source_file": "src/store/treaMissionStore.ts",
       "source_location": "L712",
-      "community": 0,
+      "community": 38,
       "norm_label": "uselastavoidanceexecution()",
       "id": "store_treamissionstore_uselastavoidanceexecution"
     },
@@ -2217,7 +2235,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L1",
-      "community": 26,
+      "community": 0,
       "norm_label": "maneuverpanel.tsx",
       "id": "src_components_trea_maneuverpanel_tsx"
     },
@@ -2226,7 +2244,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L32",
-      "community": 26,
+      "community": 0,
       "norm_label": "maneuverpanelprops",
       "id": "trea_maneuverpanel_maneuverpanelprops"
     },
@@ -2235,7 +2253,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L46",
-      "community": 26,
+      "community": 0,
       "norm_label": "formattime()",
       "id": "trea_maneuverpanel_formattime"
     },
@@ -2244,7 +2262,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L55",
-      "community": 26,
+      "community": 0,
       "norm_label": "getdirectionlabel()",
       "id": "trea_maneuverpanel_getdirectionlabel"
     },
@@ -2253,7 +2271,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L63",
-      "community": 26,
+      "community": 0,
       "norm_label": "orbitparamscard()",
       "id": "trea_maneuverpanel_orbitparamscard"
     },
@@ -2262,7 +2280,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L123",
-      "community": 26,
+      "community": 0,
       "norm_label": "fuelstatuscard()",
       "id": "trea_maneuverpanel_fuelstatuscard"
     },
@@ -2271,7 +2289,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L162",
-      "community": 26,
+      "community": 0,
       "norm_label": "suggestioncardprops",
       "id": "trea_maneuverpanel_suggestioncardprops"
     },
@@ -2280,7 +2298,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L169",
-      "community": 26,
+      "community": 0,
       "norm_label": "suggestioncard()",
       "id": "trea_maneuverpanel_suggestioncard"
     },
@@ -2289,7 +2307,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/ManeuverPanel.tsx",
       "source_location": "L244",
-      "community": 26,
+      "community": 0,
       "norm_label": "maneuverhistorylist()",
       "id": "trea_maneuverpanel_maneuverhistorylist"
     },
@@ -2307,7 +2325,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionSimulator.tsx",
       "source_location": "L1",
-      "community": 20,
+      "community": 15,
       "norm_label": "missionsimulator.tsx",
       "id": "src_components_trea_missionsimulator_tsx"
     },
@@ -2316,7 +2334,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionSimulator.tsx",
       "source_location": "L50",
-      "community": 20,
+      "community": 15,
       "norm_label": "missionsimulatorprops",
       "id": "trea_missionsimulator_missionsimulatorprops"
     },
@@ -2325,7 +2343,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionSimulator.tsx",
       "source_location": "L91",
-      "community": 20,
+      "community": 15,
       "norm_label": "aoibboxareakm2()",
       "id": "trea_missionsimulator_aoibboxareakm2"
     },
@@ -2334,7 +2352,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionSimulator.tsx",
       "source_location": "L111",
-      "community": 20,
+      "community": 15,
       "norm_label": "getsatgroundpos()",
       "id": "trea_missionsimulator_getsatgroundpos"
     },
@@ -2343,7 +2361,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionSimulator.tsx",
       "source_location": "L127",
-      "community": 20,
+      "community": 15,
       "norm_label": "computecoveragepercent()",
       "id": "trea_missionsimulator_computecoveragepercent"
     },
@@ -2352,7 +2370,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionSimulator.tsx",
       "source_location": "L144",
-      "community": 20,
+      "community": 15,
       "norm_label": "computegroundcorners()",
       "id": "trea_missionsimulator_computegroundcorners"
     },
@@ -2370,7 +2388,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/TaskListPanel.tsx",
       "source_location": "L1",
-      "community": 0,
+      "community": 74,
       "norm_label": "tasklistpanel.tsx",
       "id": "src_components_trea_tasklistpanel_tsx"
     },
@@ -2379,7 +2397,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/TaskListPanel.tsx",
       "source_location": "L44",
-      "community": 20,
+      "community": 74,
       "norm_label": "formattime()",
       "id": "trea_tasklistpanel_formattime"
     },
@@ -2388,7 +2406,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/TaskListPanel.tsx",
       "source_location": "L50",
-      "community": 0,
+      "community": 74,
       "norm_label": "formatduration()",
       "id": "trea_tasklistpanel_formatduration"
     },
@@ -2397,7 +2415,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/TaskListPanel.tsx",
       "source_location": "L58",
-      "community": 0,
+      "community": 74,
       "norm_label": "formatrelative()",
       "id": "trea_tasklistpanel_formatrelative"
     },
@@ -2406,7 +2424,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/TaskListPanel.tsx",
       "source_location": "L68",
-      "community": 0,
+      "community": 74,
       "norm_label": "elevationcolor()",
       "id": "trea_tasklistpanel_elevationcolor"
     },
@@ -2415,7 +2433,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/TaskListPanel.tsx",
       "source_location": "L79",
-      "community": 0,
+      "community": 74,
       "norm_label": "windowcardprops",
       "id": "trea_tasklistpanel_windowcardprops"
     },
@@ -2424,7 +2442,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/TaskListPanel.tsx",
       "source_location": "L85",
-      "community": 0,
+      "community": 74,
       "norm_label": "windowcard()",
       "id": "trea_tasklistpanel_windowcard"
     },
@@ -2433,7 +2451,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/TaskListPanel.tsx",
       "source_location": "L123",
-      "community": 0,
+      "community": 74,
       "norm_label": "aoisectionprops",
       "id": "trea_tasklistpanel_aoisectionprops"
     },
@@ -2442,7 +2460,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/TaskListPanel.tsx",
       "source_location": "L134",
-      "community": 0,
+      "community": 74,
       "norm_label": "aoisection()",
       "id": "trea_tasklistpanel_aoisection"
     },
@@ -2622,7 +2640,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/maneuver.ts",
       "source_location": "L45",
-      "community": 26,
+      "community": 0,
       "norm_label": "accesswindow",
       "id": "trea_maneuver_accesswindow"
     },
@@ -3108,7 +3126,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L1",
-      "community": 7,
+      "community": 65,
       "norm_label": "missionreportmodal.tsx",
       "id": "src_components_trea_missionreportmodal_tsx"
     },
@@ -3117,7 +3135,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L62",
-      "community": 7,
+      "community": 65,
       "norm_label": "missionreportmodalprops",
       "id": "trea_missionreportmodal_missionreportmodalprops"
     },
@@ -3126,7 +3144,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L76",
-      "community": 7,
+      "community": 65,
       "norm_label": "formatdatetime()",
       "id": "trea_missionreportmodal_formatdatetime"
     },
@@ -3135,7 +3153,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L85",
-      "community": 7,
+      "community": 65,
       "norm_label": "formatlat()",
       "id": "trea_missionreportmodal_formatlat"
     },
@@ -3144,7 +3162,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L91",
-      "community": 7,
+      "community": 65,
       "norm_label": "formatlon()",
       "id": "trea_missionreportmodal_formatlon"
     },
@@ -3153,7 +3171,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L97",
-      "community": 7,
+      "community": 65,
       "norm_label": "coveragecolor()",
       "id": "trea_missionreportmodal_coveragecolor"
     },
@@ -3162,7 +3180,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L108",
-      "community": 7,
+      "community": 65,
       "norm_label": "fuelcolor()",
       "id": "trea_missionreportmodal_fuelcolor"
     },
@@ -3171,7 +3189,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L115",
-      "community": 7,
+      "community": 65,
       "norm_label": "attitude_labels",
       "id": "trea_missionreportmodal_attitude_labels"
     },
@@ -3180,7 +3198,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L123",
-      "community": 7,
+      "community": 65,
       "norm_label": "payload_labels",
       "id": "trea_missionreportmodal_payload_labels"
     },
@@ -3189,7 +3207,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L133",
-      "community": 7,
+      "community": 65,
       "norm_label": "progressbarprops",
       "id": "trea_missionreportmodal_progressbarprops"
     },
@@ -3198,7 +3216,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L139",
-      "community": 7,
+      "community": 65,
       "norm_label": "progressbar()",
       "id": "trea_missionreportmodal_progressbar"
     },
@@ -3207,7 +3225,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L155",
-      "community": 7,
+      "community": 65,
       "norm_label": "metaitemprops",
       "id": "trea_missionreportmodal_metaitemprops"
     },
@@ -3216,7 +3234,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L162",
-      "community": 7,
+      "community": 65,
       "norm_label": "metaitem()",
       "id": "trea_missionreportmodal_metaitem"
     },
@@ -3225,7 +3243,7 @@
       "file_type": "code",
       "source_file": "src/components/trea/MissionReportModal.tsx",
       "source_location": "L180",
-      "community": 7,
+      "community": 65,
       "norm_label": "missionreportmodal()",
       "id": "trea_missionreportmodal_missionreportmodal"
     },
@@ -3252,7 +3270,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L1",
-      "community": 20,
+      "community": 79,
       "norm_label": "constants.ts",
       "id": "src_lib_trea_constants_ts"
     },
@@ -3270,7 +3288,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L55",
-      "community": 20,
+      "community": 79,
       "norm_label": "aoipolygonvertex",
       "id": "trea_constants_aoipolygonvertex"
     },
@@ -3279,7 +3297,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L60",
-      "community": 20,
+      "community": 15,
       "norm_label": "aoi",
       "id": "trea_constants_aoi"
     },
@@ -3288,7 +3306,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L78",
-      "community": 20,
+      "community": 79,
       "norm_label": "aoi_a",
       "id": "trea_constants_aoi_a"
     },
@@ -3297,7 +3315,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L96",
-      "community": 20,
+      "community": 79,
       "norm_label": "aoi_b",
       "id": "trea_constants_aoi_b"
     },
@@ -3306,7 +3324,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L110",
-      "community": 0,
+      "community": 15,
       "norm_label": "aoi_list",
       "id": "trea_constants_aoi_list"
     },
@@ -3315,7 +3333,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L136",
-      "community": 20,
+      "community": 79,
       "norm_label": "attitude_initial",
       "id": "trea_constants_attitude_initial"
     },
@@ -3324,7 +3342,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L139",
-      "community": 20,
+      "community": 79,
       "norm_label": "payload_initial",
       "id": "trea_constants_payload_initial"
     },
@@ -3360,7 +3378,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L155",
-      "community": 20,
+      "community": 79,
       "norm_label": "trea01initialstate",
       "id": "trea_constants_trea01initialstate"
     },
@@ -3369,7 +3387,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/constants.ts",
       "source_location": "L169",
-      "community": 20,
+      "community": 79,
       "norm_label": "gettrea01initialstate()",
       "id": "trea_constants_gettrea01initialstate"
     },
@@ -4008,7 +4026,7 @@
       "file_type": "code",
       "source_file": "scripts/test-trea-access.ts",
       "source_location": "L24",
-      "community": 20,
+      "community": 74,
       "norm_label": "pad()",
       "id": "scripts_test_trea_access_pad"
     },
@@ -4017,7 +4035,7 @@
       "file_type": "code",
       "source_file": "scripts/test-trea-access.ts",
       "source_location": "L27",
-      "community": 20,
+      "community": 74,
       "norm_label": "fmt()",
       "id": "scripts_test_trea_access_fmt"
     },
@@ -4197,7 +4215,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L1",
-      "community": 20,
+      "community": 15,
       "norm_label": "access.ts",
       "id": "src_lib_trea_access_ts"
     },
@@ -4206,7 +4224,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L29",
-      "community": 20,
+      "community": 15,
       "norm_label": "geopoint",
       "id": "trea_access_geopoint"
     },
@@ -4215,7 +4233,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L35",
-      "community": 20,
+      "community": 15,
       "norm_label": "boundingbox",
       "id": "trea_access_boundingbox"
     },
@@ -4224,7 +4242,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L46",
-      "community": 20,
+      "community": 15,
       "norm_label": "footprint",
       "id": "trea_access_footprint"
     },
@@ -4233,7 +4251,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L60",
-      "community": 0,
+      "community": 74,
       "norm_label": "accesswindow",
       "id": "trea_access_accesswindow"
     },
@@ -4242,7 +4260,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L89",
-      "community": 20,
+      "community": 15,
       "norm_label": "normalizelon()",
       "id": "trea_access_normalizelon"
     },
@@ -4251,7 +4269,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L101",
-      "community": 20,
+      "community": 15,
       "norm_label": "pointinpolygon()",
       "id": "trea_access_pointinpolygon"
     },
@@ -4260,7 +4278,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L125",
-      "community": 20,
+      "community": 15,
       "norm_label": "rectanglesoverlap()",
       "id": "trea_access_rectanglesoverlap"
     },
@@ -4269,7 +4287,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L137",
-      "community": 20,
+      "community": 15,
       "norm_label": "aoitobbox()",
       "id": "trea_access_aoitobbox"
     },
@@ -4278,7 +4296,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L157",
-      "community": 20,
+      "community": 15,
       "norm_label": "computefootprint()",
       "id": "trea_access_computefootprint"
     },
@@ -4287,7 +4305,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L195",
-      "community": 20,
+      "community": 15,
       "norm_label": "computeelevation()",
       "id": "trea_access_computeelevation"
     },
@@ -4296,7 +4314,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L265",
-      "community": 20,
+      "community": 15,
       "norm_label": "computeaccesswindows()",
       "id": "trea_access_computeaccesswindows"
     },
@@ -4305,7 +4323,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L360",
-      "community": 20,
+      "community": 15,
       "norm_label": "computeaccesswindowsforaois()",
       "id": "trea_access_computeaccesswindowsforaois"
     },
@@ -4314,7 +4332,7 @@
       "file_type": "code",
       "source_file": "src/lib/trea/access.ts",
       "source_location": "L378",
-      "community": 20,
+      "community": 74,
       "norm_label": "findnextwindow()",
       "id": "trea_access_findnextwindow"
     },
@@ -4935,7 +4953,7 @@
       "file_type": "code",
       "source_file": "src/components/visualization/SatelliteMedia.tsx",
       "source_location": "L1",
-      "community": 74,
+      "community": 16,
       "norm_label": "satellitemedia.tsx",
       "id": "src_components_visualization_satellitemedia_tsx"
     },
@@ -4944,7 +4962,7 @@
       "file_type": "code",
       "source_file": "src/components/visualization/SatelliteMedia.tsx",
       "source_location": "L6",
-      "community": 74,
+      "community": 16,
       "norm_label": "satellitemediaprops",
       "id": "visualization_satellitemedia_satellitemediaprops"
     },
@@ -4953,7 +4971,7 @@
       "file_type": "code",
       "source_file": "src/components/visualization/SatelliteMedia.tsx",
       "source_location": "L16",
-      "community": 74,
+      "community": 16,
       "norm_label": "satellitemedia()",
       "id": "visualization_satellitemedia_satellitemedia"
     },
@@ -6969,7 +6987,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/SearchBar.tsx",
       "source_location": "L1",
-      "community": 47,
+      "community": 12,
       "norm_label": "searchbar.tsx",
       "id": "src_components_ui_searchbar_tsx"
     },
@@ -6978,7 +6996,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/SearchBar.tsx",
       "source_location": "L10",
-      "community": 47,
+      "community": 12,
       "norm_label": "searchbarprops",
       "id": "ui_searchbar_searchbarprops"
     },
@@ -6987,7 +7005,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/SearchBar.tsx",
       "source_location": "L18",
-      "community": 47,
+      "community": 12,
       "norm_label": "searchbar()",
       "id": "ui_searchbar_searchbar"
     },
@@ -7832,7 +7850,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/input.tsx",
       "source_location": "L1",
-      "community": 47,
+      "community": 12,
       "norm_label": "input.tsx",
       "id": "src_components_ui_input_tsx"
     },
@@ -7841,7 +7859,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/input.tsx",
       "source_location": "L6",
-      "community": 47,
+      "community": 12,
       "norm_label": "input",
       "id": "ui_input_input"
     },
@@ -7850,7 +7868,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/OrbitParameters.tsx",
       "source_location": "L1",
-      "community": 12,
+      "community": 81,
       "norm_label": "orbitparameters.tsx",
       "id": "src_components_ui_orbitparameters_tsx"
     },
@@ -7859,7 +7877,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/OrbitParameters.tsx",
       "source_location": "L3",
-      "community": 12,
+      "community": 81,
       "norm_label": "orbitparametersprops",
       "id": "ui_orbitparameters_orbitparametersprops"
     },
@@ -7868,7 +7886,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/OrbitParameters.tsx",
       "source_location": "L12",
-      "community": 12,
+      "community": 81,
       "norm_label": "paramcard()",
       "id": "ui_orbitparameters_paramcard"
     },
@@ -7877,7 +7895,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/OrbitParameters.tsx",
       "source_location": "L39",
-      "community": 12,
+      "community": 81,
       "norm_label": "orbitparameters()",
       "id": "ui_orbitparameters_orbitparameters"
     },
@@ -7886,7 +7904,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/scroll-area.tsx",
       "source_location": "L1",
-      "community": 47,
+      "community": 2,
       "norm_label": "scroll-area.tsx",
       "id": "src_components_ui_scroll_area_tsx"
     },
@@ -7895,7 +7913,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/scroll-area.tsx",
       "source_location": "L8",
-      "community": 47,
+      "community": 2,
       "norm_label": "scrollarea()",
       "id": "ui_scroll_area_scrollarea"
     },
@@ -7904,7 +7922,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/scroll-area.tsx",
       "source_location": "L31",
-      "community": 47,
+      "community": 2,
       "norm_label": "scrollbar()",
       "id": "ui_scroll_area_scrollbar"
     },
@@ -7913,7 +7931,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L1",
-      "community": 15,
+      "community": 2,
       "norm_label": "select.tsx",
       "id": "src_components_ui_select_tsx"
     },
@@ -7922,7 +7940,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L11",
-      "community": 15,
+      "community": 2,
       "norm_label": "selectgroup()",
       "id": "ui_select_selectgroup"
     },
@@ -7931,7 +7949,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L21",
-      "community": 15,
+      "community": 2,
       "norm_label": "selectvalue()",
       "id": "ui_select_selectvalue"
     },
@@ -7940,7 +7958,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L31",
-      "community": 15,
+      "community": 2,
       "norm_label": "selecttrigger()",
       "id": "ui_select_selecttrigger"
     },
@@ -7949,7 +7967,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L59",
-      "community": 15,
+      "community": 2,
       "norm_label": "selectcontent()",
       "id": "ui_select_selectcontent"
     },
@@ -7958,7 +7976,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L98",
-      "community": 15,
+      "community": 2,
       "norm_label": "selectlabel()",
       "id": "ui_select_selectlabel"
     },
@@ -7967,7 +7985,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L111",
-      "community": 15,
+      "community": 2,
       "norm_label": "selectitem()",
       "id": "ui_select_selectitem"
     },
@@ -7976,7 +7994,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L139",
-      "community": 15,
+      "community": 2,
       "norm_label": "selectseparator()",
       "id": "ui_select_selectseparator"
     },
@@ -7985,7 +8003,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L152",
-      "community": 15,
+      "community": 2,
       "norm_label": "selectscrollupbutton()",
       "id": "ui_select_selectscrollupbutton"
     },
@@ -7994,7 +8012,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/select.tsx",
       "source_location": "L171",
-      "community": 15,
+      "community": 2,
       "norm_label": "selectscrolldownbutton()",
       "id": "ui_select_selectscrolldownbutton"
     },
@@ -8003,7 +8021,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/separator.tsx",
       "source_location": "L1",
-      "community": 15,
+      "community": 2,
       "norm_label": "separator.tsx",
       "id": "src_components_ui_separator_tsx"
     },
@@ -8012,7 +8030,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/separator.tsx",
       "source_location": "L7",
-      "community": 15,
+      "community": 2,
       "norm_label": "separator()",
       "id": "ui_separator_separator"
     },
@@ -8021,7 +8039,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/slider.tsx",
       "source_location": "L1",
-      "community": 15,
+      "community": 2,
       "norm_label": "slider.tsx",
       "id": "src_components_ui_slider_tsx"
     },
@@ -8030,7 +8048,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/slider.tsx",
       "source_location": "L5",
-      "community": 15,
+      "community": 2,
       "norm_label": "slider()",
       "id": "ui_slider_slider"
     },
@@ -8111,7 +8129,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/ViewSwitcher.tsx",
       "source_location": "L1",
-      "community": 38,
+      "community": 47,
       "norm_label": "viewswitcher.tsx",
       "id": "src_components_ui_viewswitcher_tsx"
     },
@@ -8120,7 +8138,7 @@
       "file_type": "code",
       "source_file": "src/components/ui/ViewSwitcher.tsx",
       "source_location": "L6",
-      "community": 38,
+      "community": 47,
       "norm_label": "viewswitcher()",
       "id": "ui_viewswitcher_viewswitcher"
     },
@@ -8471,7 +8489,7 @@
       "file_type": "code",
       "source_file": "src/lib/utils.ts",
       "source_location": "L1",
-      "community": 15,
+      "community": 2,
       "norm_label": "utils.ts",
       "id": "src_lib_utils_ts"
     },
@@ -8480,7 +8498,7 @@
       "file_type": "code",
       "source_file": "src/lib/utils.ts",
       "source_location": "L4",
-      "community": 15,
+      "community": 2,
       "norm_label": "cn()",
       "id": "lib_utils_cn"
     },
@@ -8741,7 +8759,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L1",
-      "community": 38,
+      "community": 47,
       "norm_label": "satellitestore.ts",
       "id": "src_store_satellitestore_ts"
     },
@@ -8759,7 +8777,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L5",
-      "community": 38,
+      "community": 47,
       "norm_label": "tledata",
       "id": "store_satellitestore_tledata"
     },
@@ -8777,7 +8795,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L31",
-      "community": 38,
+      "community": 47,
       "norm_label": "orbitcacheentry",
       "id": "store_satellitestore_orbitcacheentry"
     },
@@ -8786,7 +8804,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L44",
-      "community": 38,
+      "community": 47,
       "norm_label": "viewmode",
       "id": "store_satellitestore_viewmode"
     },
@@ -8795,7 +8813,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L46",
-      "community": 38,
+      "community": 47,
       "norm_label": "timestate",
       "id": "store_satellitestore_timestate"
     },
@@ -8804,7 +8822,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L52",
-      "community": 38,
+      "community": 47,
       "norm_label": "satellitestorestate",
       "id": "store_satellitestore_satellitestorestate"
     },
@@ -8813,7 +8831,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L65",
-      "community": 38,
+      "community": 47,
       "norm_label": "satellitestoreactions",
       "id": "store_satellitestore_satellitestoreactions"
     },
@@ -8822,7 +8840,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L90",
-      "community": 38,
+      "community": 47,
       "norm_label": "defaultsatellites",
       "id": "store_satellitestore_defaultsatellites"
     },
@@ -8831,7 +8849,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L92",
-      "community": 38,
+      "community": 47,
       "norm_label": "usesatellitestore",
       "id": "store_satellitestore_usesatellitestore"
     },
@@ -8858,7 +8876,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L235",
-      "community": 38,
+      "community": 47,
       "norm_label": "useviewmode()",
       "id": "store_satellitestore_useviewmode"
     },
@@ -8867,7 +8885,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L236",
-      "community": 38,
+      "community": 47,
       "norm_label": "usetimestate()",
       "id": "store_satellitestore_usetimestate"
     },
@@ -8885,7 +8903,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L238",
-      "community": 38,
+      "community": 47,
       "norm_label": "useorbitcache()",
       "id": "store_satellitestore_useorbitcache"
     },
@@ -8894,7 +8912,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L239",
-      "community": 38,
+      "community": 47,
       "norm_label": "usesatelliteloading()",
       "id": "store_satellitestore_usesatelliteloading"
     },
@@ -8903,7 +8921,7 @@
       "file_type": "code",
       "source_file": "src/store/satelliteStore.ts",
       "source_location": "L240",
-      "community": 38,
+      "community": 47,
       "norm_label": "usesatelliteerror()",
       "id": "store_satellitestore_usesatelliteerror"
     },
@@ -9176,7 +9194,7 @@
       "file_type": "code",
       "source_file": "app/layout.tsx",
       "source_location": "L1",
-      "community": 15,
+      "community": 2,
       "norm_label": "layout.tsx",
       "id": "app_layout_tsx"
     },
@@ -9185,7 +9203,7 @@
       "file_type": "code",
       "source_file": "components/HomePage.tsx",
       "source_location": "L1",
-      "community": 0,
+      "community": 38,
       "norm_label": "homepage.tsx",
       "id": "components_homepage_tsx"
     },
@@ -9221,7 +9239,7 @@
       "file_type": "code",
       "source_file": "components/visualization/CesiumGlobe.tsx",
       "source_location": "L1",
-      "community": 1,
+      "community": 0,
       "norm_label": "cesiumglobe.tsx",
       "id": "components_visualization_cesiumglobe_tsx"
     },
@@ -9323,30 +9341,6 @@
       "community": 4,
       "norm_label": "collisionalertmodal",
       "id": "collision-alert-modal"
-    },
-    {
-      "label": "AI Task Planning API",
-      "type": "code_module",
-      "file_type": "code",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "rationale": "AI proxy API route that forwards requests to Volcano Engine Ark (Doubao LLM). Supports two scenarios: task-planning and collision-avoidance.",
-      "properties": {
-        "lines_of_code": 329,
-        "provider": "Volcano Engine Ark (Doubao)",
-        "protocol": "OpenAI-compatible",
-        "timeout": "55s",
-        "temperature": 0.3,
-        "error_codes": [
-          "MISSING_CONFIG",
-          "INVALID_INPUT",
-          "LLM_TIMEOUT",
-          "LLM_ERROR",
-          "PARSE_ERROR"
-        ]
-      },
-      "community": 65,
-      "norm_label": "ai task planning api",
-      "id": "ai-task-planning-api"
     },
     {
       "label": "sim-traffic-scheduling.mjs",
@@ -9557,6 +9551,294 @@
     }
   ],
   "links": [
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "src_lib_trea_ai_prompt_ts"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L171",
+      "weight": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "task_planning_route_buildmockoutput",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L74",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "task_planning_route_extractjson"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "task_planning_route_isretryableconnecterror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L34",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "task_planning_route_llmerrorresponse"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L40",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "task_planning_route_llmsuccessresponse"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L109",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "task_planning_route_normalizeoutput"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L327",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "task_planning_route_options"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L140",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "task_planning_route_post"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L52",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "task_planning_route_validateconfig"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "trea_ai_prompt_aiaoisummary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "trea_ai_prompt_aicollisionavoidanceinput"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "trea_ai_prompt_aicollisionavoidanceoutput"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "trea_ai_prompt_aitaskplanninginput"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "trea_ai_prompt_aitaskplanningoutput"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "trea_ai_prompt_buildcollisionprompt"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "trea_ai_prompt_builduserprompt"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_api_ai_task_planning_route_ts",
+      "target": "trea_ai_prompt_mapcollisiontotaskplanning"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L378",
+      "weight": 1.0,
+      "source": "task_planning_route_post",
+      "target": "task_planning_route_isretryableconnecterror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "field",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L42",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "task_planning_route_llmsuccessresponse",
+      "target": "trea_ai_prompt_aitaskplanningoutput"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L254",
+      "weight": 1.0,
+      "source": "task_planning_route_post",
+      "target": "task_planning_route_validateconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L258",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "task_planning_route_extractjson",
+      "target": "task_planning_route_post"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L274",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "task_planning_route_normalizeoutput",
+      "target": "task_planning_route_post"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L405",
+      "weight": 1.0,
+      "source": "task_planning_route_post",
+      "target": "task_planning_route_buildmockoutput",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L171",
+      "weight": 1.0,
+      "source": "task_planning_route_post",
+      "target": "trea_ai_prompt_buildcollisionprompt"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L179",
+      "weight": 1.0,
+      "source": "task_planning_route_post",
+      "target": "trea_ai_prompt_builduserprompt"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/api/ai/task-planning/route.ts",
+      "source_location": "L259",
+      "weight": 1.0,
+      "source": "task_planning_route_post",
+      "target": "trea_ai_prompt_mapcollisiontotaskplanning"
+    },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -13115,241 +13397,6 @@
       "confidence_score": 1.0,
       "source": "cockpit_traffic_sats_buildtlefromelements",
       "target": "cockpit_traffic_sats_rephasetrafficsat"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "src_lib_trea_ai_prompt_ts"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L74",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "task_planning_route_extractjson"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L34",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "task_planning_route_llmerrorresponse"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L40",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "task_planning_route_llmsuccessresponse"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L109",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "task_planning_route_normalizeoutput"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L327",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "task_planning_route_options"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L140",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "task_planning_route_post"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L52",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "task_planning_route_validateconfig"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "trea_ai_prompt_aicollisionavoidanceinput"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "trea_ai_prompt_aicollisionavoidanceoutput"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "trea_ai_prompt_aitaskplanninginput"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "trea_ai_prompt_aitaskplanningoutput"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "trea_ai_prompt_buildcollisionprompt"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "trea_ai_prompt_builduserprompt"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_app_api_ai_task_planning_route_ts",
-      "target": "trea_ai_prompt_mapcollisiontotaskplanning"
-    },
-    {
-      "relation": "references",
-      "context": "field",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L42",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "task_planning_route_llmsuccessresponse",
-      "target": "trea_ai_prompt_aitaskplanningoutput"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L144",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "task_planning_route_validateconfig",
-      "target": "task_planning_route_post"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L258",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "task_planning_route_extractjson",
-      "target": "task_planning_route_post"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L274",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "task_planning_route_normalizeoutput",
-      "target": "task_planning_route_post"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L171",
-      "weight": 1.0,
-      "source": "task_planning_route_post",
-      "target": "trea_ai_prompt_buildcollisionprompt"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L179",
-      "weight": 1.0,
-      "source": "task_planning_route_post",
-      "target": "trea_ai_prompt_builduserprompt"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/app/api/ai/task-planning/route.ts",
-      "source_location": "L259",
-      "weight": 1.0,
-      "source": "task_planning_route_post",
-      "target": "trea_ai_prompt_mapcollisiontotaskplanning"
     },
     {
       "relation": "imports",
@@ -28616,5 +28663,5 @@
       ]
     }
   ],
-  "built_at_commit": "9473596928b55621804c2bce87bb08604559b902"
+  "built_at_commit": "21576725526c70da5921a1dbcab43073f193a488"
 }

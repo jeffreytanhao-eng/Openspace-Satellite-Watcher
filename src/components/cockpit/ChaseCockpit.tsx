@@ -21,7 +21,6 @@ import {
   Satellite,
   Play,
   Pause,
-  Gauge,
 } from 'lucide-react';
 import { useChaseViewer } from '@/hooks/useChaseViewer';
 import FullscreenButton from '@/components/FullscreenButton';
@@ -46,28 +45,33 @@ const TimeControl = memo(function TimeControl() {
   const setRate = useTimeStore((s) => s.setRate);
 
   return (
-    <div className={`${TIME_CONTROL_POS} flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-cyan-500/40 rounded-lg shadow-[0_0_15px_rgba(34,211,238,0.2)]`}>
+    <div className={`${TIME_CONTROL_POS} flex items-center gap-2.5 px-3 py-2 bg-space-900/95 backdrop-blur-sm border border-space-800 rounded-lg shadow-lg`}>
+      {/* 播放/暂停按钮(与态势感知 TimeControlBar 一致的圆形样式) */}
       <button
         type="button"
         onClick={togglePlay}
-        className="flex items-center justify-center w-7 h-7 rounded-md bg-cyan-500/20 border border-cyan-400/60 text-cyan-300 hover:bg-cyan-500/30 transition-colors"
-        title={isPlaying ? '暂停' : '播放仿真'}
+        className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${
+          isPlaying
+            ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 shadow-lg shadow-red-500/20'
+            : 'bg-cosmic-blue/20 text-cosmic-blue hover:bg-cosmic-blue/30 shadow-lg shadow-cosmic-blue/20'
+        }`}
+        title={isPlaying ? '暂停' : '播放'}
       >
-        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
       </button>
-      <span className="text-[11px] font-mono text-cyan-300 tabular-nums whitespace-nowrap">
+      {/* 当前时间显示(与态势感知一致的深色圆角框) */}
+      <span className="font-mono text-xs text-cosmic-blue bg-space-800/50 px-2.5 py-1.5 rounded-md border border-space-700 whitespace-nowrap">
         {currentTime.toISOString().slice(0, 19)}Z
       </span>
-      <span className="w-px h-4 bg-slate-700" />
-      <Gauge className="h-3.5 w-3.5 text-slate-400" />
+      {/* 变速选择(与态势感知一致的下拉样式) */}
       <select
         value={rate}
         onChange={(e) => setRate(Number(e.target.value))}
-        className="bg-slate-800 text-slate-200 text-[11px] font-mono border border-slate-600 rounded px-1 py-0.5 cursor-pointer hover:border-cyan-500/50"
+        className="bg-space-800 text-space-200 text-xs px-2 py-1.5 rounded-md border border-space-700 focus:border-cosmic-blue focus:outline-none cursor-pointer hover:border-space-600"
         title="仿真倍速"
       >
         {rates.map((r) => (
-          <option value={r}>
+          <option key={r} value={r}>
             {r === 0 ? '暂停' : `${r}x`}
           </option>
         ))}
@@ -79,11 +83,11 @@ const TimeControl = memo(function TimeControl() {
 // ============================================================
 // 时间控制条(播放框) — 定位常量
 // ------------------------------------------------------------
-// 用户反馈:交通卫星 3D 模型在移动中会被屏幕顶部居中的"播放框"遮挡而消失。
-// 由于 3D 模型渲染在 Cesium canvas 内、DOM 覆盖层永远在其上方,无法让模型
-// 绘制在 DOM 之上;故把播放框从顶部居中移到顶部飞行区之外(底部居中、
-// 方向控制按钮上方),保持顶部飞行视野无遮挡,卫星不再被"播放框"盖住。
-const TIME_CONTROL_POS = 'absolute bottom-24 left-1/2 -translate-x-1/2';
+// 用户反馈:顶部居中的"播放框"会遮挡 TREA-01 模型。
+// 将播放/变速窗口移动到右下角,视觉样式与态势感知大屏的
+// TimeControlBar(space/cosmic-blue 主题)保持一致。
+// 底部居中仍保留方向控制按,右下角播放框互不重叠。
+const TIME_CONTROL_POS = 'absolute bottom-4 right-4';
 
 // ============================================================
 // 驾驶舱线框图(静态,不触发 trea01Tracking store 开关)
@@ -145,12 +149,12 @@ export default function ChaseCockpit() {
       <div className="flex-1 relative bg-black min-h-0">
         <div ref={containerRef} className="absolute inset-0" />
 
-        {/* 左上:标题 + 返回(返回 TREA-01 任务中心) */}
+        {/* 左下:标题 + 返回(返回 TREA-01 任务中心) */}
         <button
           type="button"
           onClick={goBack}
           onPointerDown={(e) => e.stopPropagation()}
-          className="absolute top-3 left-3 flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-cyan-500/40 rounded-lg shadow-[0_0_15px_rgba(34,211,238,0.2)] hover:border-cyan-400/80 transition-colors z-30"
+          className="absolute bottom-4 left-3 flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-cyan-500/40 rounded-lg shadow-[0_0_15px_rgba(34,211,238,0.2)] hover:border-cyan-400/80 transition-colors z-30"
         >
           <ArrowLeft className="h-4 w-4 text-cyan-300" />
           <span className="text-xs font-medium text-slate-200">返回任务中心</span>
