@@ -167,7 +167,7 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
   }, [satellites, currentTime, visibleSatellites, isReady, viewer, missionMode, updateSatellitePositions]);
 
   // Update orbits: ECEF 下轨道线随地球自转偏移,需随 currentTime 节流重新生成
-  // 才能与卫星位置(GMST 一致)重合。跟踪时冻结轨道,防止视觉跳动。
+  // 才能与卫星位置(GMST 一致)重合。跟踪时延长节流至 3 秒,平衡视觉稳定性与精度。
   const isTrackingRef = useRef(false);
   // 轨道线更新节流:记录上次更新的真实时间(普通模式与 TREA-01 轨道线共用)
   const lastOrbitUpdateRealRef = useRef(0);
@@ -176,22 +176,21 @@ export default function CesiumGlobe({ satellites, selectedSatellite, visibleSate
 
     // 任务模式下无条件隐藏默认轨道,仅显示 TREA-01 轨道线
     // 必须在 isTrackingRef 判断之前执行:即使进入任务中心前正在跟踪某缺省卫星,
-    // 也要先移除默认轨道,避免 13 颗缺省轨道残留在任务中心
+    // 也要先移除默认轨道,避免 14 颗缺省轨道残留在任务中心
     if (missionMode) {
       updateOrbits([], currentTime);
       return;
     }
 
-    if (isTrackingRef.current) return; // Freeze orbits during tracking
-
     const visibleIds = new Set(visibleSatellites);
     const filteredSatellites = satellites.filter(s => visibleIds.has(s.noradId));
 
     // 轨道线在 ECEF(固定)坐标系下会随地球自转而偏移,必须用最新 currentTime
-    // 重新生成才能与卫星位置(GMST 一致)重合。节流:每 1 秒真实时间更新一次,
-    // 避免每帧为多颗卫星各采样 180 个点的性能开销(与 TREA-01 轨道线策略一致)。
+    // 重新生成才能与卫星位置(GMST 一致)重合。
+    // 跟踪时使用 3 秒节流(平衡视觉稳定性与轨道精度),非跟踪时 1 秒。
     const nowReal = Date.now();
-    if (lastOrbitUpdateRealRef.current === 0 || nowReal - lastOrbitUpdateRealRef.current > 1000) {
+    const throttleMs = isTrackingRef.current ? 3000 : 1000;
+    if (lastOrbitUpdateRealRef.current === 0 || nowReal - lastOrbitUpdateRealRef.current > throttleMs) {
       // 即使卫星列表为空也要执行,以清理 Cesium 中残留的轨道实体
       updateOrbits(filteredSatellites, currentTime);
       lastOrbitUpdateRealRef.current = nowReal;

@@ -65,7 +65,7 @@ function serializeSatellite(s: any) {
 }
 
 // GET：从数据库读取卫星。
-// - 默认只返回 13 颗缺省卫星（DEFAULT_SATELLITE_NORAD_IDS），其余预导入星座数据需用户通过界面导入后才呈现
+// - 默认只返回 14 颗缺省卫星（DEFAULT_SATELLITE_NORAD_IDS），其余预导入星座数据需用户通过界面导入后才呈现
 // - ?all=true 返回全部卫星（供 DB 同步等高级操作使用）
 // - DB 不可用时返回内置默认数据
 export async function GET(request: NextRequest) {
@@ -91,7 +91,14 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'asc' },
     });
 
-    const data = satellites.map(serializeSatellite);
+    // 按 DEFAULT_SATELLITE_NORAD_IDS 顺序排序，确保列表顺序与 mock 数据一致
+    const noradOrder = new Map(DEFAULT_SATELLITE_NORAD_IDS.map((id, i) => [id, i]));
+    const sorted = [...satellites].sort((a, b) => {
+      const ia = noradOrder.get(a.noradId) ?? 9999;
+      const ib = noradOrder.get(b.noradId) ?? 9999;
+      return ia - ib;
+    });
+    const data = sorted.map(serializeSatellite);
     const payload = {
       success: true,
       data,

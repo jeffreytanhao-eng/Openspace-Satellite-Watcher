@@ -29,10 +29,11 @@ export interface MockSatellite {
   tleData: { name: string; line1: string; line2: string };
 }
 
-// 13 颗缺省卫星的 NORAD ID 列表 — /api/space-objects 默认只返回这些卫星
+// 14 颗缺省卫星的 NORAD ID 列表 — /api/space-objects 默认只返回这些卫星
 // 其余预导入星座数据（Starlink/GPS/风云等）存放在数据库中，
 // 用户通过界面"导入"按钮加载后才呈现（不自动全部显示）
 export const DEFAULT_SATELLITE_NORAD_IDS = [
+  41173,  // DAMPE (悟空)
   25544,  // ISS (ZARYA)
   20580,  // HUBBLE SPACE TELESCOPE
   48274,  // SENTINEL-1A
@@ -49,6 +50,24 @@ export const DEFAULT_SATELLITE_NORAD_IDS = [
 ];
 
 export const mockSatellites: MockSatellite[] = [
+  // ===== 暗物质粒子探测卫星 =====
+  {
+    noradId: 41173,
+    name: '悟空 (DAMPE)',
+    country: 'CHN',
+    objectType: 'PAYLOAD',
+    launchDate: '2015-12-17',
+    launchSite: 'Jiuquan',
+    owner: 'CAS',
+    isActive: true,
+    model3dUrl: null,
+    imageUrl: null, // 由用户自行上传
+    tleData: {
+      name: 'DAMPE',
+      line1: '1 41173U 15078A   26217.32322427  .00001591  00000-0  55840-4 0  9992',
+      line2: '2 41173  97.4578 223.0397 0010137 261.5337  98.4755 15.30903656592061',
+    },
+  },
   // ===== LEO 近地轨道有效载荷 =====
   {
     noradId: 25544,

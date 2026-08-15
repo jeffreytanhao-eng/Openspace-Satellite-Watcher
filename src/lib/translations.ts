@@ -54,6 +54,7 @@ const SATELLITE_NAME_TRANSLATIONS: Record<string, string> = {
   ZHUHONG: '珠海一号',
   GAOFEN: '高分',
   ZHOU: '周',
+  DAMPE: '暗物质粒子探测卫星',
 };
 
 // Country code/name translations — exact match only (codes are short)

@@ -262,7 +262,7 @@ export default function HomePage() {
     };
   }, [allSatellites, visibleSatellites, addSatellitesAction, setVisibleSatellites]);
 
-  // 星座导入回调：将后端返回的星座卫星 merge 到当前视图（不替换 13 颗缺省卫星）
+  // 星座导入回调：将后端返回的星座卫星 merge 到当前视图（不替换 14 颗缺省卫星）
   // 后端已将数据写入数据库，这里只更新前端显示
   const handleConstellationImported = useCallback(async (
     importedSatellites?: { noradId: number; name: string; line1: string; line2: string }[]
@@ -293,7 +293,7 @@ export default function HomePage() {
           tleData: [{ name: sat.name, line1: sat.line1, line2: sat.line2, epoch: new Date() }],
         }));
       if (newSats.length > 0) {
-        // merge 到当前视图（不替换 13 颗缺省），同时扩展 visibleSatellites 让新卫星立即可见
+        // merge 到当前视图（不替换 14 颗缺省），同时扩展 visibleSatellites 让新卫星立即可见
         setSatellites([...allSatellites, ...newSats]);
         setVisibleSatellites([...visibleSatellites, ...newSats.map(s => s.noradId)]);
         console.log(`[HomePage] 星座导入：新增 ${newSats.length} 颗卫星，当前总数 ${allSatellites.length + newSats.length}`);

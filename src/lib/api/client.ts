@@ -58,7 +58,7 @@ class ApiClient {
   }
 
   // 获取卫星列表
-  // - includeAll=false（默认）：只返回 13 颗缺省卫星
+  // - includeAll=false（默认）：只返回 14 颗缺省卫星
   // - includeAll=true：返回全部卫星（供 DB 同步等高级操作使用）
   public async getSpaceObjects(includeAll: boolean = false): Promise<ApiResponse<any[]>> {
     const query = includeAll ? '?all=true' : '';
