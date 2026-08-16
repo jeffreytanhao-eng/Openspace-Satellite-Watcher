@@ -135,6 +135,9 @@ export default function ChaseCockpit() {
   // 全页面跳转进入 /cockpit 会重置 zustand 内存态,此处主动启动仿真播放,保证进入即播放
   useEffect(() => {
     useTimeStore.getState().setRate(10);
+    // 延长 endTime 防止仿真时间到达终点后播放停止(默认 endTime=now+1天,10x 下 2.4 小时即耗尽)
+    const now = new Date();
+    useTimeStore.getState().setEndTime(new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000));
     useTimeStore.getState().startPlayback();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

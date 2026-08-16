@@ -16,7 +16,7 @@
             └─────┬─────┘
                   │ DATABASE_URL
             ┌─────▼─────┐
-            │ PostgreSQL │  13 默认卫星 + 8 星座 + 标签(卷持久化)
+            │ PostgreSQL │  14 默认卫星 + 8 星座 + 标签(卷持久化)
             └───────────┘
             (migrate 一次性服务:首次启动跑 prisma db push + seed)
 ```
@@ -105,9 +105,9 @@ docker compose -f deploy/docker-compose.yml logs caddy
 
 浏览器访问 
 
-- ✅ Cesium 3D 地球加载 + 13 颗默认卫星显示
+- ✅ Cesium 3D 地球加载 + 14 颗默认卫星显示
 - ✅ TREA 任务中心、AI 辅助任务规划、避撞视频回放正常
-- ✅ 星座导入功能可用（DB 已 seed 8 个星座）
+- ✅ 星座导入功能可用（DB 已 seed 8 个星座，响应体体积优化 95%+，base64 图片分离为独立请求）
 
 证书首次申请可能需 1-2 分钟，期间 HTTPS 可能不可用，刷新即可。
 

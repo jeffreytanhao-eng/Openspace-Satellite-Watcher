@@ -30,17 +30,21 @@ export default function AudioPlayer() {
       // 尝试自动播放（大多数浏览器会阻止无用户交互的自动播放）
       startPlayback();
     };
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-
-    // 浏览器 autoplay policy：等待用户首次交互后自动播放
-    const handleFirstInteraction = () => {
-      if (interactionStarted) return;
+    const handlePlay = () => {
       interactionStarted = true;
-      startPlayback();
+      setIsPlaying(true);
       document.removeEventListener('click', handleFirstInteraction);
       document.removeEventListener('keydown', handleFirstInteraction);
       document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+    const handlePause = () => setIsPlaying(false);
+
+    // 浏览器 autoplay policy：等待用户首次交互后自动播放
+    // 注意：不在首次交互时移除监听，而是在 play 事件真正触发时才移除。
+    // 否则如果音频还没加载完，play() 失败后后续交互不再触发重试，音乐永远不播放。
+    const handleFirstInteraction = () => {
+      if (interactionStarted) return;
+      startPlayback();
     };
 
     audio.addEventListener('canplaythrough', handleCanPlay);

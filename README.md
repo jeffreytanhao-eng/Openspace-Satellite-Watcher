@@ -48,8 +48,8 @@
 ### 数据导入
 
 - **Celestrak 导入**：按分类（stations/visual/starlink/gps等）或 NORAD ID/名称 从 Celestrak 实时拉取 TLE
-- **星座批量导入**：预置主流星座（Starlink、Iridium、GPS、北斗、风云等）一键导入
-- **文件导入**：支持标准 TLE 格式AOE文本文件
+- **星座批量导入**：预置主流星座（Starlink、GPS、北斗、风云等）一键导入，响应体体积优化 95%+（base64 图片分离为独立请求）
+- **文件导入**：支持标准 TLE 格式文本文件
 
 ### 数据管理（需密码）
 
@@ -72,6 +72,7 @@
 | `/api/space-objects`            | GET      | 否     | 获取所有默认卫星（含 TLE、图片），5min 内存缓存   |
 | `/api/tle/refresh`              | POST     | **是** | 从 Celestrak 刷新 TLE 并写入数据库      |
 | `/api/tle/import/celestrak`     | POST     | 否     | 按分类从 Celestrak 导入（代理，单次≤100颗）  |
+| `/api/satellite-image/[noradId]` | GET      | 否     | 按需返回卫星图片（base64 → 短 URL，浏览器缓存 24h） |
 | `/api/tle/import/constellation` | GET/POST | 否     | 获取/导入星座列表（自动过滤非 PAYLOAD）       |
 | `/api/tle/import/search`        | GET      | 否     | 按名称/ID搜索 Celestrak             |
 | `/api/nasa-media`               | GET      | 否     | 检索 NASA 媒体库                    |
@@ -127,6 +128,7 @@ src/
 │   │   ├── nasa-image/       # NASA 图片代理
 │   │   ├── nasa-media/       # NASA 媒体检索
 │   │   ├── space-objects/    # 卫星数据查询（5min 内存缓存）
+│   │   ├── satellite-image/  # 卫星图片按需加载（base64→短URL，浏览器缓存24h）
 │   │   ├── tags/             # 标签查询
 │   │   └── tle/
 │   │       ├── import/       # TLE 导入（Celestrak代理/星座/搜索）
@@ -231,7 +233,7 @@ deploy/                       # Docker 自托管部署
 │             │              │  · 密码验证+限流           │     │
 │             │              │  · 客户端状态隔离          │     ↓
 └─────────────┘              │                          │  Vercel Postgres (Neon)
-                             │                          │  · 13颗默认卫星
+                             │                          │  · 14颗默认卫星
                              │                          │  · TLE/标签/图片
                              └──────────────────────────┘
 ```
@@ -254,7 +256,7 @@ deploy/                       # Docker 自托管部署
 
 - **Caddy**：自动申请/续期 Let's Encrypt 证书，HTTP→HTTPS 跳转，反向代理到 Next.js
 - **Next.js Standalone**：Node 服务运行 `server.js`，Cesium 走 CDN
-- **PostgreSQL**：13 颗默认卫星 + 8 星座 + 标签，Docker 卷持久化
+- **PostgreSQL**：14 颗默认卫星 + 8 星座 + 标签，Docker 卷持久化
 - **migrate**：容器启动时一次性跑 `prisma db push` + 幂等 seed，完成后退出
 
 详细部署文档见 [deploy/README.md](deploy/README.md)。
@@ -304,7 +306,7 @@ npm run dev
 
 ### 默认卫星
 
-初始化后包含 13 颗默认卫星：
+初始化后包含 14 颗默认卫星：
 
 | NORAD ID | 名称               | 说明              |
 | -------- | ---------------- | --------------- |
@@ -321,6 +323,7 @@ npm run dev
 | 43013    | NOAA 20 (JPSS-1) | NOAA 气象卫星       |
 | 44714    | STARLINK-1008    | Starlink 卫星     |
 | 41270    | NOAA 16 DEB      | NOAA 16 碎片（演示用） |
+| 41173    | 悟空 (DAMPE)     | 暗物质粒子探测卫星      |
 
 ***
 
@@ -367,7 +370,7 @@ sh deploy/deploy.sh
 
 - 构建 Next.js 镜像（三阶段 Dockerfile）
 - 启动 PostgreSQL 并持久化数据卷
-- 跑 `prisma db push` + 幂等 seed（13 颗默认卫星 + 8 星座 + 标签）
+- 跑 `prisma db push` + 幂等 seed（14 颗默认卫星 + 8 星座 + 标签）
 - Caddy 自动申请 Let's Encrypt HTTPS 证书
 - 反向代理到 Next.js 应用
 

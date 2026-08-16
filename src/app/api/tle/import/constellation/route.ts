@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { CONSTELLATIONS_METADATA, getConstellationMeta } from '@/lib/constellation-metadata';
 import { invalidateCache } from '@/lib/cache';
 import { importConstellation, isConstellationSeeded, IMPORT_LIMIT } from '@/lib/constellation-import';
+import { replaceDataUriWithUrl } from '@/lib/satellite-image';
 
 export async function GET() {
   return NextResponse.json({
@@ -46,6 +47,24 @@ export async function POST(request: NextRequest) {
           include: { tleData: { take: 1, orderBy: { epoch: 'desc' } } },
           orderBy: { noradId: 'asc' },
         });
+
+        // imageUrl 分离：将 data: URI 替换为按需加载的短 URL（/api/satellite-image/[noradId]），
+        // 避免在响应中嵌入大段 base64 数据。浏览器通过 <img> 并行加载图片，且可被缓存。
+        const satellites = replaceDataUriWithUrl(constellationSats.map(s => ({
+          noradId: s.noradId,
+          name: s.name,
+          country: s.country,
+          objectType: s.objectType,
+          launchDate: s.launchDate ? s.launchDate.toISOString() : null,
+          launchSite: s.launchSite,
+          owner: s.owner,
+          isActive: s.isActive,
+          model3dUrl: s.model3dUrl,
+          imageUrl: s.imageUrl,
+          line1: s.tleData[0]?.line1 || '',
+          line2: s.tleData[0]?.line2 || '',
+        })));
+
         return NextResponse.json({
           success: true,
           data: {
@@ -60,20 +79,7 @@ export async function POST(request: NextRequest) {
               skippedNonPayload: 0,
               allAlreadyImported: true,
             },
-            satellites: constellationSats.map(s => ({
-              noradId: s.noradId,
-              name: s.name,
-              country: s.country,
-              objectType: s.objectType,
-              launchDate: s.launchDate ? s.launchDate.toISOString() : null,
-              launchSite: s.launchSite,
-              owner: s.owner,
-              isActive: s.isActive,
-              model3dUrl: s.model3dUrl,
-              imageUrl: s.imageUrl,
-              line1: s.tleData[0]?.line1 || '',
-              line2: s.tleData[0]?.line2 || '',
-            })),
+            satellites,
           },
         });
       }
@@ -123,7 +129,7 @@ export async function POST(request: NextRequest) {
           skippedNonPayload: result.skippedNonPayload,
           allAlreadyImported,
         },
-        satellites: result.savedSatellites,
+        satellites: replaceDataUriWithUrl(result.savedSatellites),
       },
     });
   } catch (error) {

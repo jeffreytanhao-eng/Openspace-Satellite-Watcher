@@ -277,7 +277,7 @@ function computeOrbitParams(tle: TLEData): OrbitParams | null {
  * 根据时间传播 TLE,生成遥测缓存
  * 失败时返回 null,不抛异常
  */
-function computeTelemetry(tle: TLEData, time: Date): TelemetryCache | null {
+export function computeTelemetry(tle: TLEData, time: Date): TelemetryCache | null {
   try {
     const satrec = createSatrec(tle);
     const state = propagateOrbit(satrec, time);

@@ -49,3 +49,10 @@ app-pkg.tar.gz
 # HK 部署环境变量(含密钥,绝不提交)
 deploy/.env
 
+# HK 部署脚本(含服务器密码,绝不提交)
+deploy_hk.py
+ssh_cmd.py
+
+# 本地构建产物(用于 HK 服务器更新,不含源码)
+.next-update.zip
+

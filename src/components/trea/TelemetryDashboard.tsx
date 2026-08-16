@@ -9,9 +9,8 @@
 //
 // 数据来源:
 //   - useCurrentTime() 订阅仿真时间
-//   - treaMissionStore.updateTelemetry(time) 每帧更新遥测缓存
+//   - computeTelemetry(tle, currentTime) 同步计算遥测(useMemo)
 //   - useTreaFuel / useTreaBattery / useTreaPayloadStatus 读取状态
-//   - useTreaTelemetry() 读取 ECI 位置(km)/ 速度(km/s)/ 地理坐标
 //
 // 展示卡片(9 项,3 列布局):
 //   1. 实时位置  :经度/纬度/高度(由 ECI → 地理坐标)
@@ -38,13 +37,12 @@ import {
 } from 'lucide-react';
 import { useCurrentTime } from '@/store/timeStore';
 import {
-  useTreaMissionStore,
   useTreaTle,
   useTreaFuel,
   useTreaBattery,
-  useTreaTelemetry,
   useTreaPayloadStatus,
   useTreaAttitude,
+  computeTelemetry,
 } from '@/store/treaMissionStore';
 import type { PayloadStatus } from '@/lib/trea/constants';
 
@@ -181,18 +179,17 @@ interface TelemetryDashboardProps {
 export default function TelemetryDashboard({ columns = 2 }: TelemetryDashboardProps) {
   // ----- 订阅仿真时间 + TREA 状态 -----
   const currentTime = useCurrentTime();
-  const updateTelemetry = useTreaMissionStore((s) => s.updateTelemetry);
   const tle = useTreaTle();
   const fuel = useTreaFuel();
   const battery = useTreaBattery();
   const payloadStatus = useTreaPayloadStatus();
   const attitudeMode = useTreaAttitude();
-  const telemetry = useTreaTelemetry();
 
-  // ----- 每帧调用 updateTelemetry,把当前仿真时间写入遥测缓存 -----
-  useEffect(() => {
-    updateTelemetry(currentTime);
-  }, [currentTime, updateTelemetry]);
+  // ----- 同步计算遥测(useMemo 替代 useEffect+store 更新,避免级联 re-render) -----
+  const telemetry = useMemo(
+    () => computeTelemetry(tle, currentTime),
+    [tle, currentTime]
+  );
 
   // ----- 速度:相邻两帧 ECI 位置差 / dt(km/s) -----
   const prevPosRef = useRef<

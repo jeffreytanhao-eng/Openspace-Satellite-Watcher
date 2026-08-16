@@ -4,6 +4,7 @@ import { ObjectType, Source } from '@prisma/client';
 import { mockSatellites, DEFAULT_SATELLITE_NORAD_IDS } from '@/lib/mock/satellites';
 import { verifyPassword } from '@/lib/security';
 import { getCached, setCache } from '@/lib/cache';
+import { replaceDataUriWithUrl } from '@/lib/satellite-image';
 
 const CACHE_KEY = 'space-objects';
 const CACHE_KEY_ALL = 'space-objects-all';
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
       const ib = noradOrder.get(b.noradId) ?? 9999;
       return ia - ib;
     });
-    const data = sorted.map(serializeSatellite);
+    const data = replaceDataUriWithUrl(sorted.map(serializeSatellite));
     const payload = {
       success: true,
       data,
@@ -108,7 +109,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(payload);
   } catch (error) {
     console.warn('DB unavailable, returning mock satellites:', (error as Error).message);
-    const data = getMockSatellites().map(serializeSatellite);
+    const data = replaceDataUriWithUrl(getMockSatellites().map(serializeSatellite));
     return NextResponse.json({
       success: true,
       data,
